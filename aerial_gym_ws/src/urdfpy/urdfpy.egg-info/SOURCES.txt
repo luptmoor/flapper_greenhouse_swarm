@@ -1,0 +1,12 @@
+LICENSE
+README.md
+setup.py
+urdfpy/__init__.py
+urdfpy/urdf.py
+urdfpy/utils.py
+urdfpy/version.py
+urdfpy.egg-info/PKG-INFO
+urdfpy.egg-info/SOURCES.txt
+urdfpy.egg-info/dependency_links.txt
+urdfpy.egg-info/requires.txt
+urdfpy.egg-info/top_level.txt
