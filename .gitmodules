@@ -1,0 +1,3 @@
+[submodule "aerial_gym_ws/src/aerial_gym_simulator"]
+	path = aerial_gym_ws/src/aerial_gym_simulator
+	url = git@github.com:ntnu-arl/aerial_gym_simulator.git
