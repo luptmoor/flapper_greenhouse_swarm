@@ -224,7 +224,7 @@ class Flapper(BaseRobot):
         #     f"Applying disturbance to {disturbance_occurence.sum().item()} out of {self.num_envs} environments"
         # )
         # logger.debug(
-        #     f"Shape of disturbance tensors: {self.robot_force_tensors.shape}, {self.robot_torque_tensors.shape}"
+        #     f"Shape of disturbance tset_joint_positionsensors: {self.robot_force_tensors.shape}, {self.robot_torque_tensors.shape}"
         # )
         # logger.debug(f"Disturbance shape: {disturbance_occurence.unsqueeze(1).shape}")
         self.robot_force_tensors[:, 0, 0:3] += torch_rand_float_tensor(
@@ -327,3 +327,5 @@ class Flapper(BaseRobot):
         self.call_controller()
         self.simulate_drag()
         self.apply_disturbance()
+
+        # animate flapping wings without physics

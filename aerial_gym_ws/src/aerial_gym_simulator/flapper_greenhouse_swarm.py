@@ -14,17 +14,17 @@ if __name__ == "__main__":
     # Build simulation
     env_manager = SimBuilder().build_env(
         sim_name="base_sim",
-        env_name="empty_env",
+        env_name="greenhouse_env",
         robot_name="flapper",
         controller_name="lee_position_control",
         args=None,
         device="cuda:0",
-        num_envs=args.num_envs,
+        num_envs=8,
         headless=args.headless,
         use_warp=args.use_warp,
     )
 
-    # Define actions
+    # actions: reference positions in local coordinate system
     actions = torch.zeros((env_manager.num_envs, 4)).to("cuda:0")
 
     # Start simulation
@@ -34,7 +34,5 @@ if __name__ == "__main__":
     for i in range(10000):
         if i % 1000 == 0:
             logger.info(f"Step {i}, changing target setpoint.")
-            # actions[:, 0:3] = 2.0 * (torch.rand_like(actions[:, 0:3]) * 2 - 1)
-            # actions[:, 3] = torch.pi * (torch.rand_like(actions[:, 3]) * 2 - 1)
             env_manager.reset()
         env_manager.step(actions=actions)

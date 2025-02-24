@@ -102,8 +102,8 @@ class FlapperConfig:
 
         min_state_ratio = [
             0.1,
-            0.1,
-            0.1,
+            0.0,
+            0.0,
             0,
             0,
             -np.pi,
@@ -116,9 +116,9 @@ class FlapperConfig:
             0,
         ]  # [ratio_x, ratio_y, ratio_z, roll_rad, pitch_rad, yaw_rad, 1.0, vx, vy, vz, wx, wy, wz]
         max_state_ratio = [
-            0.3,
-            0.9,
-            0.9,
+            100.0,
+            0.0,
+            0.0,
             0,
             0,
             np.pi,
@@ -177,7 +177,7 @@ class FlapperConfig:
             #### change!
             Ly = 0.08
             ###
-            
+
             use_rps = True
 
             motor_thrust_constant_min = 0.00000926312
