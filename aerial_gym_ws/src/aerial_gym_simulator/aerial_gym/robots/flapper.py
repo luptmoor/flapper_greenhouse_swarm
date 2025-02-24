@@ -169,6 +169,11 @@ class Flapper(BaseRobot):
             global_tensor_dict["robot_torque_tensor"], device=self.device
         )
 
+
+        ###
+        self.ly = self.cfg.control_allocator_config.motor_model_config.Ly
+        ###
+
     def reset(self):
         self.reset_idx(torch.arange(self.num_envs))
 
@@ -233,13 +238,32 @@ class Flapper(BaseRobot):
 
     def control_allocation(self, command_wrench, output_mode):
         """
-        Allocate the thrust and torque commands to the motors. The motor model is also used to update the motor thrusts.
+        Allocate the thrust and torque commands to the motors and wing deflectors.
         """
 
-        forces, torques = self.control_allocator.allocate_output(command_wrench, output_mode)
+        # Actuator setpoints T1, T2, theta1, theta2 from command wrench
+        Fx = command_wrench[:, 0]
+        Fy = command_wrench[:, 1]
+        Fz = command_wrench[:, 2]
+        Tx = command_wrench[:, 3]
+        Ty = command_wrench[:, 4]
+        Tz = command_wrench[:, 5]
 
-        self.output_forces[:, self.application_mask, :] = forces
-        self.output_torques[:, self.application_mask, :] = torques
+        T1_setpoint = (Fz * self.ly - Tx) / (2 * self.ly)
+        T2_setpoint = (Fz * self.ly + Tx) / (2 * self.ly)
+
+        theta1_setpoint = (Fx * self.ly + Tz) / (Fz * self.ly - Tx)
+        theta2_setpoint = (Fx * self.ly - Tz) / (Fz * self.ly + Tx)
+
+        # Actuator dynamics
+
+        # Resulting forces, torques (neglect actuator dynamics currently)
+        forces = command_wrench[:,  0:3]
+        torques = command_wrench[:, 3:6]
+
+
+        self.output_forces[:, self.application_mask, :] = forces.unsqueeze(1)
+        self.output_torques[:, self.application_mask, :] = torques.unsqueeze(1)
 
     def call_controller(self):
         """

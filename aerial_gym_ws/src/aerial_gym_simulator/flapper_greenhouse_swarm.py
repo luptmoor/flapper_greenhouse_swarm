@@ -24,7 +24,7 @@ if __name__ == "__main__":
         use_warp=args.use_warp,
     )
 
-    # Defgine actions
+    # Define actions
     actions = torch.zeros((env_manager.num_envs, 4)).to("cuda:0")
 
     # Start simulation

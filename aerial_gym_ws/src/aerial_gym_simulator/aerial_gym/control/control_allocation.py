@@ -65,18 +65,22 @@ class ControlAllocator:
         return forces, torques
 
     def update_wrench(self, ref_wrench):
-
+        ## Motor setpoints
         ref_motor_thrusts = torch.bmm(
             self.inv_force_torque_allocation_matrix, ref_wrench.unsqueeze(-1)
         ).squeeze(-1)
 
+        ## Motor thrusts
         current_motor_thrust = self.motor_model.update_motor_thrusts(ref_motor_thrusts)
 
+        ## Resulting wrench
         self.output_wrench[:] = torch.bmm(
             self.force_torque_allocation_matrix, current_motor_thrust.unsqueeze(-1)
         ).squeeze(-1)
 
         return self.output_wrench
+    
+
 
     def update_motor_thrusts_with_forces(self, ref_forces):
         current_motor_thrust = self.motor_model.update_motor_thrusts(ref_forces)

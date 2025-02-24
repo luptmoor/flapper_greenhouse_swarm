@@ -7,8 +7,8 @@ class BaseSimConfig:
         lookat = [0, 0, 0]  # [m]
         camera_orientation_euler_deg = [0, 0, 0]  # [deg]
         camera_follow_type = "FOLLOW_TRANSFORM"
-        width = 1280
-        height = 720
+        width = 1920            
+        height = 1080
         max_range = 100.0  # [m]
         min_range = 0.1
         horizontal_fov_deg = 90

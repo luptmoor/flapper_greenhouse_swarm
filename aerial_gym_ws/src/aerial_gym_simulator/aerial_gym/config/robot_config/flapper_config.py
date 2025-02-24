@@ -158,7 +158,7 @@ class FlapperConfig:
 
     class control_allocator_config:
         num_motors = 4
-        force_application_level = "motor_link"  # "motor_link" or "root_link" decides to apply combined forces acting on the robot at the root link or at the individual motor links
+        force_application_level = "root_link"  # "motor_link" or "root_link" decides to apply combined forces acting on the robot at the root link or at the individual motor links
 
         application_mask = [1 + 4 + i for i in range(0, 4)]
         motor_directions = [1, -1, 1, -1]
@@ -173,6 +173,11 @@ class FlapperConfig:
         ]
 
         class motor_model_config:
+
+            #### change!
+            Ly = 0.08
+            ###
+            
             use_rps = True
 
             motor_thrust_constant_min = 0.00000926312
@@ -193,11 +198,13 @@ class FlapperConfig:
                 True  # Setting to false will compute f' based on difference and time constant
             )
 
+
+
+
 class FlapperWithIMUCfg(FlapperConfig):
     class sensor_config(FlapperConfig.sensor_config):
         enable_imu = True
         imu_config = BaseImuConfig
-
 
 class FlapperWithCameraCfg(FlapperConfig):
     class sensor_config(FlapperConfig.sensor_config):
