@@ -5,12 +5,8 @@ from behaviour_tree import BehaviourTree
 from bt_evolution import BTEvolution
 import torch
 from datetime import datetime
+from settings import *
 time = datetime.now().strftime("%d_%m_%H_%M")
-
-MAX_TIME            =       600 * 100       # steps
-POPULATION_SIZE     =        50
-N_GENERATIONS       =        50
-BASEPATH            =       "simresults/results_"
 
 
 
@@ -36,23 +32,26 @@ if __name__ == "__main__":
         use_warp=args.use_warp,
     )
 
-    evolution = BTEvolution(env_manager, population_size=POPULATION_SIZE, n_generations=N_GENERATIONS, tmax=MAX_TIME, filepath=BASEPATH + time)
+    #evolution = BTEvolution(env_manager, population_size=POPULATION_SIZE, n_generations=N_GENERATIONS, tmax=MAX_TIME, filepath=BASEPATH + time)
 
-    bt = BehaviourTree(3)
+    #bt = BehaviourTree(3)
 
-    blackboard = {
-        "current_time": 0,
-        "absolute_x": 0,
-        "absolute_y": 0,
-        "absolute_z": 0,
-        "heading": 0,
-        "visit_list": [],
-        "tof_array": None,
-        "peer_distances": [],
-        "fruit_visible": False,
-    }
+    bt = BehaviourTree(random_tree=True)
+    bt.save2file('test_tree.json')
+
+    # blackboard = {
+    #     "current_time": 0,
+    #     "absolute_x": 0,
+    #     "absolute_y": 0,
+    #     "absolute_z": 0,
+    #     "heading": 0,
+    #     "visit_list": [],
+    #     "tof_array": None,
+    #     "peer_distances": [],
+    #     "fruit_visible": False,
+    # }
 
 
-    evolution.simulate_bt(bt, MAX_TIME)
+    #evolution.simulate_bt(bt, MAX_TIME)
 
     

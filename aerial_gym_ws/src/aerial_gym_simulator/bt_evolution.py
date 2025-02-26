@@ -1,7 +1,7 @@
 
 from aerial_gym.utils.logging import CustomLogger
 logger = CustomLogger(__name__)
-
+from behaviour_tree import BehaviourTree
 from aerial_gym.utils.logging import CustomLogger
 import torch
 
@@ -13,12 +13,17 @@ class BTEvolution:
         self.population_size = population_size
         self.n_generations = n_generations
 
-        self.current_gen = []  # list of BTs
+        self.current_gen = self.population_size * [None]  # list of BTs
         self.current_fitnesses = self.population_size * [0]
         self.generation_counter = 0
 
         self.filepath = filepath
 
+        # Initialise population
+        for i in range(self.population_size):
+            self.current_gen[i] = BehaviourTree(random=True)
+
+        print(self.current_gen)
 
     def evaluate(self, x):
         fitness = x**2
@@ -34,8 +39,8 @@ class BTEvolution:
         return 0
     
     def next_gen(self):
-
         return 0
+    
 
 
     def simulate_current_gen(self):
