@@ -36,21 +36,26 @@ if __name__ == "__main__":
 
     #bt = BehaviourTree(3)
 
+   
+
+    blackboard = {
+        "elapsed_battery_time": 0,
+        "absolute_x": 0,
+        "absolute_y": 0,
+        "absolute_z": 0,
+        "heading": 0,
+        "visit_list": 0,
+        "tof": 0,
+        "peer_distances": [],
+        "fruit_visible": False,
+        'swarmneural': 0,
+        'memory': 0.2
+    }
+
     bt = BehaviourTree(random_tree=True)
     bt.save2file('test_tree.json')
 
-    # blackboard = {
-    #     "elapsed_battery_time": 0,
-    #     "absolute_x": 0,
-    #     "absolute_y": 0,
-    #     "absolute_z": 0,
-    #     "heading": 0,
-    #     "visit_list": [],
-    #     "tof_array": None,
-    #     "peer_distances": [],
-    #     "fruit_visible": False,
-    # }
-
+    bt.feed_forward(blackboard=blackboard)
 
     #evolution.simulate_bt(bt, MAX_TIME)
 

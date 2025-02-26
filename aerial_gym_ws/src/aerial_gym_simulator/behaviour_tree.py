@@ -8,20 +8,7 @@ import json
 
 class BehaviourTree:
     def __init__(self, random_tree=True):
-
-        self.actions = ['psi', 'vx', 'vy', 'vz']
-        self.action_limits = {
-            'psi': (-180, 180),     # deg
-            'vx':  (V_BACKWARD_MAX, V_FORWARD_MAX),
-            'vy':  (V_RIGHT_MAX,    V_LEFT_MAX),
-            'vx':  (V_DOWN_MAX,     V_LEFT_MAX)
-        }
-
-        self.redings = ['fruit_visible', 'elapsed_battery_time', 'tof']
-        self.threshold_limits = {
-            'elapsed_battery_time': (10, 600),
-            'tof': (-1.0, 1.0)
-        }
+    
 
         if random_tree:
 
@@ -36,15 +23,16 @@ class BehaviourTree:
         
         print(f'BT with {self.root.n_children} children created.')
 
+    def set_blackboard(self, blackboard):
+        self.blackboard = blackboard
+
     def feed_forward(self, blackboard):
-        action = torch.zeros(2);
-        return action
-    
+        self.root.execute(blackboard=blackboard)
+
     def save2file(self, filename="behavior_tree.json"):
         """Save the behavior tree to a JSON file."""
         with open(filename, "w") as file:
             json.dump(self.root.to_dict(), file, indent=4)
-
 
 
     ### Node classes
@@ -68,6 +56,10 @@ class ActionNode(BTNode):
 
     def to_dict(self):
         return {"type": self.__class__.__name__, "name": self.name, "action": self.action, "value": self.value}
+    
+    def execute(self, blackboard):
+        print(f"{self.name}: Set {self.action} to {self.value}.")
+        return True
 
 class ConditionNode(BTNode):
     """Represents a condition check in the behavior tree."""
@@ -80,6 +72,24 @@ class ConditionNode(BTNode):
     def to_dict(self):
         return {"type": self.__class__.__name__, "name": self.name, "reading": self.reading, "operator": self.operator,  "value": self.value}
 
+    def execute(self, blackboard):
+
+        if self.reading == 'fruit_visible':
+            print(f"{self.name}: checking if {self.reading}")
+            return blackboard[self.reading]
+        else:
+            print(f"{self.name}: checking if {self.reading} {self.operator} {self.value}.")
+            if self.operator == 'greaterThan':
+                if blackboard[self.reading] > self.value: return True
+                else: return False
+
+            elif self.operator == 'smallerThan':
+                if blackboard[self.reading] < self.value: return True
+                else: return False
+
+            else:
+                print(f'[ERROR] Invalid opeerator "{self.operator}" in {self.name}!')
+                return False
 
 class CompositeNode(BTNode):
     """Base class for sequence and selector nodes."""
@@ -94,6 +104,7 @@ class CompositeNode(BTNode):
             self.children.append(child)
         else:
             raise ValueError("Max number of children (6) exceeded.")
+        
     
     def grow(self):
         for i in range(BT_MAX_CHILDREN):
@@ -109,21 +120,27 @@ class CompositeNode(BTNode):
                 
             # Condition Node        
             elif die - P_BT_COMPOSITE < P_BT_CONDITION:
-                reading = random.randint(0, 4)
-                if random.randint(0, 1) == 1: operator = 'greaterThan'
-                else: operator = 'smallerThan'
-                value = random.uniform(0, 1)
+                reading = READING_VARS[random.randint(0, 4)]
+
+                if reading != 'fruit_visible':
+                    if random.randint(0, 1) == 1: operator = 'greaterThan'
+                    else: operator = 'smallerThan'
+                    value = random.uniform(0, 1) * (READING_LIMITS[reading][1] - READING_LIMITS[reading][0]) + READING_LIMITS[reading][0]
+                else:
+                    operator = 'n.a.'
+                    value = 0
 
                 self.add_child(ConditionNode(self.name + "_condition" + str(i), reading=reading, operator=operator, value=value))
 
 
             # Action Node
             elif die - P_BT_COMPOSITE - P_BT_CONDITION < P_BT_ACTION:
-                action = random.randint(0, 4)
+                action = ACTION_VARS[random.randint(0, 6)]
 
-                if action == 4:
+                if action == 6:
                     print('Neural command based on position')
-                value = random.uniform(0, 1)
+
+                value = random.uniform(0, 1) * (ACTION_LIMITS[action][1] - ACTION_LIMITS[action][0]) + ACTION_LIMITS[action][0]
                 self.add_child(ActionNode(self.name + "_action" + str(i), action=action, value=value))
 
 
@@ -143,8 +160,20 @@ class CompositeNode(BTNode):
 
 class SequenceNode(CompositeNode):
     """Sequence node executes children in order until one fails."""
-    pass
+    
+    def execute(self, blackboard):
+        print(f'Executing {self.name}.')
+        for child in self.children:
+            if not child.execute(blackboard):
+                return False
+        return True
 
 class SelectorNode(CompositeNode):
     """Selector node executes children in order until one succeeds."""
-    pass
+
+    def execute(self, blackboard):
+        print(f"Executing {self.name}.")
+        for child in self.children:
+            if child.execute(blackboard):
+                return True
+        return False
