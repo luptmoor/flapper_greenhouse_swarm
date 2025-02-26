@@ -40,7 +40,7 @@ if __name__ == "__main__":
     bt.save2file('test_tree.json')
 
     # blackboard = {
-    #     "current_time": 0,
+    #     "elapsed_battery_time": 0,
     #     "absolute_x": 0,
     #     "absolute_y": 0,
     #     "absolute_z": 0,

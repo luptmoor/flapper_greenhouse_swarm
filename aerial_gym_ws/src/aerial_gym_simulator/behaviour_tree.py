@@ -17,6 +17,12 @@ class BehaviourTree:
             'vx':  (V_DOWN_MAX,     V_LEFT_MAX)
         }
 
+        self.redings = ['fruit_visible', 'elapsed_battery_time', 'tof']
+        self.threshold_limits = {
+            'elapsed_battery_time': (10, 600),
+            'tof': (-1.0, 1.0)
+        }
+
         if random_tree:
 
             # Root node
@@ -65,8 +71,15 @@ class ActionNode(BTNode):
 
 class ConditionNode(BTNode):
     """Represents a condition check in the behavior tree."""
-    def __init__(self, name):
+    def __init__(self, name, reading, operator, value):
         super().__init__(name)
+        self.reading = reading
+        self.operator = operator
+        self.value = value
+
+    def to_dict(self):
+        return {"type": self.__class__.__name__, "name": self.name, "reading": self.reading, "operator": self.operator,  "value": self.value}
+
 
 class CompositeNode(BTNode):
     """Base class for sequence and selector nodes."""
@@ -96,11 +109,20 @@ class CompositeNode(BTNode):
                 
             # Condition Node        
             elif die - P_BT_COMPOSITE < P_BT_CONDITION:
-                self.add_child(ConditionNode(self.name + "_condition" + str(i)))
+                reading = random.randint(0, 4)
+                if random.randint(0, 1) == 1: operator = 'greaterThan'
+                else: operator = 'smallerThan'
+                value = random.uniform(0, 1)
+
+                self.add_child(ConditionNode(self.name + "_condition" + str(i), reading=reading, operator=operator, value=value))
+
 
             # Action Node
             elif die - P_BT_COMPOSITE - P_BT_CONDITION < P_BT_ACTION:
-                action = random.randint(0, 3)
+                action = random.randint(0, 4)
+
+                if action == 4:
+                    print('Neural command based on position')
                 value = random.uniform(0, 1)
                 self.add_child(ActionNode(self.name + "_action" + str(i), action=action, value=value))
 
