@@ -9,6 +9,14 @@ import json
 class BehaviourTree:
     def __init__(self, random_tree=True):
 
+        self.actions = ['psi', 'vx', 'vy', 'vz']
+        self.action_limits = {
+            'psi': (-180, 180),     # deg
+            'vx':  (V_BACKWARD_MAX, V_FORWARD_MAX),
+            'vy':  (V_RIGHT_MAX,    V_LEFT_MAX),
+            'vx':  (V_DOWN_MAX,     V_LEFT_MAX)
+        }
+
         if random_tree:
 
             # Root node
@@ -47,8 +55,13 @@ class BTNode:
 
 class ActionNode(BTNode):
     """Represents an action in the behavior tree."""
-    def __init__(self, name):
+    def __init__(self, name, action, value):
         super().__init__(name)
+        self.action = action
+        self.value = value
+
+    def to_dict(self):
+        return {"type": self.__class__.__name__, "name": self.name, "action": self.action, "value": self.value}
 
 class ConditionNode(BTNode):
     """Represents a condition check in the behavior tree."""
@@ -72,6 +85,8 @@ class CompositeNode(BTNode):
     def grow(self):
         for i in range(BT_MAX_CHILDREN):
             die = random.uniform(0, 1)
+
+            # Composite Node
             if die < P_BT_COMPOSITE and self.depth < BT_MAX_DEPTH - 1:
                 if random.uniform(0, 1) >= P_BT_SEQUENCE:
                     self.add_child(SelectorNode(self.name + "_selector" + str(i), depth=self.depth+1))
@@ -79,12 +94,17 @@ class CompositeNode(BTNode):
                     self.add_child(SequenceNode(self.name + "_sequence" + str(i), depth=self.depth+1))
                 if self.children[-1].depth < BT_MAX_DEPTH: self.children[-1].grow()    
                 
-                    
+            # Condition Node        
             elif die - P_BT_COMPOSITE < P_BT_CONDITION:
                 self.add_child(ConditionNode(self.name + "_condition" + str(i)))
 
+            # Action Node
             elif die - P_BT_COMPOSITE - P_BT_CONDITION < P_BT_ACTION:
-                self.add_child(ActionNode(self.name + "_action" + str(i)))
+                action = random.randint(0, 3)
+                value = random.uniform(0, 1)
+                self.add_child(ActionNode(self.name + "_action" + str(i), action=action, value=value))
+
+
         self.n_children = sum([child.n_children for child in self.children if isinstance(child, CompositeNode)])
         
 
