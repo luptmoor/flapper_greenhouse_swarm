@@ -71,10 +71,16 @@ class BTNode:
 
 class ActionNode(BTNode):
     """Represents an action in the behavior tree."""
-    def __init__(self, name, action, value):
+    def __init__(self, name):
         super().__init__(name)
-        self.action = action
-        self.value = value
+        
+        self.action = ACTION_VARS[random.randint(0, 7)]
+
+        if self.action in ['tofnet', 'swarmnet']:
+            self.value = True
+        else:
+            self.value = random.uniform(0, 1) * (ACTION_LIMITS[self.action][1] - ACTION_LIMITS[self.action][0]) + ACTION_LIMITS[self.action][0]
+
 
     def to_dict(self):
         return {"type": self.__class__.__name__, "name": self.name, "action": self.action, "value": self.value}
@@ -85,11 +91,19 @@ class ActionNode(BTNode):
 
 class ConditionNode(BTNode):
     """Represents a condition check in the behavior tree."""
-    def __init__(self, name, reading, operator, value):
+    def __init__(self, name):
         super().__init__(name)
-        self.reading = reading
-        self.operator = operator
-        self.value = value
+
+        self.reading = READING_VARS[random.randint(0, 2)]
+
+        if self.reading != 'fruit_visible':
+            if random.randint(0, 1) == 1: self.operator = 'greaterThan'
+            else: self.operator = 'smallerThan'
+            self.value = random.uniform(0, 1) * (READING_LIMITS[self.reading][1] - READING_LIMITS[self.reading][0]) + READING_LIMITS[self.reading][0]
+        else:
+            self.operator = 'n.a.'
+            self.value = 0
+
 
     def to_dict(self):
         return {"type": self.__class__.__name__, "name": self.name, "reading": self.reading, "operator": self.operator,  "value": self.value}
@@ -137,7 +151,23 @@ class CompositeNode(BTNode):
         else:
             raise ValueError("Root_sequence0_selector0_action0Max number of children (6) exceeded.")
         
-    
+
+    def micromutate(self):
+        for i in range(len(self.children)):
+            if isinstance(self.children[i], ActionNode):
+                if random.uniform(0, 1) < P_MICROMUTATION:
+                    print(f"Mutation at {self.children[i].name}.")
+                    self.children[i] = ActionNode(self.name + "_action" + str(i))
+
+            elif isinstance(self.children[i], ConditionNode):
+                if random.uniform(0, 1) < P_MICROMUTATION:
+                    print(f"Mutation at {self.children[i].name}.")
+                    self.children[i] = ConditionNode(self.name + "_condition" + str(i))
+
+            else:
+                self.children[i].micromutate()
+
+
     def grow(self):
         for i in range(BT_MAX_CHILDREN):
             die = random.uniform(0, 1)
@@ -149,31 +179,14 @@ class CompositeNode(BTNode):
                 else:
                     self.add_child(SequenceNode(self.name + "_sequence" + str(i), depth=self.depth+1))
                 if self.children[-1].depth < BT_MAX_DEPTH: self.children[-1].grow()    
-                
+
             # Condition Node        
             elif die - P_BT_COMPOSITE < P_BT_CONDITION:
-                reading = READING_VARS[random.randint(0, 2)]
-
-                if reading != 'fruit_visible':
-                    if random.randint(0, 1) == 1: operator = 'greaterThan'
-                    else: operator = 'smallerThan'
-                    value = random.uniform(0, 1) * (READING_LIMITS[reading][1] - READING_LIMITS[reading][0]) + READING_LIMITS[reading][0]
-                else:
-                    operator = 'n.a.'
-                    value = 0
-
-                self.add_child(ConditionNode(self.name + "_condition" + str(i), reading=reading, operator=operator, value=value))
-
+                self.add_child(ConditionNode(self.name + "_condition" + str(i)))
 
             # Action Node
             elif die - P_BT_COMPOSITE - P_BT_CONDITION < P_BT_ACTION:
-                action = ACTION_VARS[random.randint(0, 7)]
-
-                if action in ['tofnet', 'swarmnet']:
-                    value = True
-                else:
-                    value = random.uniform(0, 1) * (ACTION_LIMITS[action][1] - ACTION_LIMITS[action][0]) + ACTION_LIMITS[action][0]
-                self.add_child(ActionNode(self.name + "_action" + str(i), action=action, value=value))
+                self.add_child(ActionNode(self.name + "_action" + str(i)))
 
 
         #self.n_children = sum([child.n_children for child in self.children if isinstance(child, CompositeNode)])
