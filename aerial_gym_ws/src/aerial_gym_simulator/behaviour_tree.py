@@ -8,7 +8,6 @@ import json
 
 class BehaviourTree:
     def __init__(self, random_tree=True):
-    
 
         if random_tree:
 
@@ -23,16 +22,13 @@ class BehaviourTree:
         
         #print(f'BT with {self.root.n_children} children created.')
 
-    def set_blackboard(self, blackboard):
-        self.blackboard = blackboard
-
     def feed_forward(self, blackboard):
         feedback, success = self.root.execute(blackboard=blackboard)
         action = torch.zeros(1, 4)
         action[0, 0] = feedback["vx"]
         action[0, 1] = feedback["vy"]
         action[0, 2] = feedback["vz"]
-        action[0, 3] = feedback["psi"]
+        action[0, 3] = feedback["r"]
         print(action.shape)
 
         return action
@@ -44,8 +40,9 @@ class BehaviourTree:
             json.dump(self.root.to_dict(), file, indent=4)
 
 
-    ### Node classes
 
+
+### Node classes
 
 class BTNode:
     """Base class for all behavior tree nodes."""
@@ -110,7 +107,7 @@ class CompositeNode(BTNode):
             "vx": 0.0,
             "vy": 0.0,
             "vz": 0.0,
-            "psi": 0.0,
+            "r": 0.0,
             "message": 0.0,
             "memory": 0.0
         }
@@ -188,9 +185,7 @@ class SequenceNode(CompositeNode):
                 return self.feedback, False
             
         print(f"Feedback of {self.name}: {self.feedback}")
-        return self.feedback, True
-        
-        
+        return self.feedback, True       
 
 class SelectorNode(CompositeNode):
     """Selector node executes children in order until one succeeds."""

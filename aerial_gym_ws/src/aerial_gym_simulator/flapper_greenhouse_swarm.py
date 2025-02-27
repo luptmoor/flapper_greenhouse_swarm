@@ -24,7 +24,7 @@ if __name__ == "__main__":
         sim_name="base_sim",
         env_name="greenhouse_env",
         robot_name="flapper",
-        controller_name="lee_position_control",
+        controller_name="lee_velocity_control",
         args=None,
         device="cuda:0",
         num_envs=5,

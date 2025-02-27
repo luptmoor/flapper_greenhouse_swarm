@@ -102,7 +102,6 @@ class BTEvolution:
 
 
                 logger.info(f"Step {i}, changing target setpoint.")
-                self.simulator.reset()
             self.simulator.step(actions=actions)
 
         fitness = self.evaluate(3);
