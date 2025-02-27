@@ -54,8 +54,8 @@ if __name__ == "__main__":
 
     bt = BehaviourTree(random_tree=True)
     bt.save2file('test_tree.json')
-    bt.root.micromutate()
-    bt.save2file('test_tree_mutated.json')
+    bt.root.macromutate()
+    bt.save2file('test_tree_macrotated.json')
 
     #bt.feed_forward(blackboard=blackboard)
 

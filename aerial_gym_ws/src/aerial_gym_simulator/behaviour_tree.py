@@ -152,6 +152,22 @@ class CompositeNode(BTNode):
             raise ValueError("Root_sequence0_selector0_action0Max number of children (6) exceeded.")
         
 
+    def clear(self):
+        self.children = []
+
+
+    def macromutate(self):
+        for i in range(len(self.children)):
+            if isinstance(self.children[i], CompositeNode):
+                if random.uniform(0, 1) < P_MACROMUTATION:
+                    print(f'Macromutation at {self.children[i].name}')
+                    self.children[i].clear()
+                    self.children[i].grow()
+
+                else:
+                    self.children[i].macromutate()
+
+
     def micromutate(self):
         for i in range(len(self.children)):
             if isinstance(self.children[i], ActionNode):
