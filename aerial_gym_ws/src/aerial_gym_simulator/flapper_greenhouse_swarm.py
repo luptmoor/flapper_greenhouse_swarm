@@ -27,12 +27,12 @@ if __name__ == "__main__":
         controller_name="lee_position_control",
         args=None,
         device="cuda:0",
-        num_envs=8,
+        num_envs=5,
         headless=args.headless,
         use_warp=args.use_warp,
     )
 
-    #evolution = BTEvolution(env_manager, population_size=POPULATION_SIZE, n_generations=N_GENERATIONS, tmax=MAX_TIME, filepath=BASEPATH + time)
+    evolution = BTEvolution(env_manager, population_size=POPULATION_SIZE, n_generations=N_GENERATIONS, tmax=MAX_TIME, filepath=BASEPATH + time)
 
     #bt = BehaviourTree(3)
 
@@ -49,14 +49,14 @@ if __name__ == "__main__":
         "peer_distances": [],
         "fruit_visible": False,
         'swarmneural': 0,
-        'memory': 0.2
+        'memory': 0.2,
     }
 
     bt = BehaviourTree(random_tree=True)
     bt.save2file('test_tree.json')
 
-    bt.feed_forward(blackboard=blackboard)
+    #bt.feed_forward(blackboard=blackboard)
 
-    #evolution.simulate_bt(bt, MAX_TIME)
+    evolution.simulate_bt(bt, MAX_TIME)
 
     

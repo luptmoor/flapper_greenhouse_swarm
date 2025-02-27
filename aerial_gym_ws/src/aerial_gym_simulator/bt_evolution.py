@@ -20,10 +20,10 @@ class BTEvolution:
         self.filepath = filepath
 
         # Initialise population
-        for i in range(self.population_size):
-            self.current_gen[i] = BehaviourTree(random=True)
+        # for i in range(self.population_size):
+        #     self.current_gen[i] = BehaviourTree(random=True)
 
-        print(self.current_gen)
+        # print(self.current_gen)
 
     def evaluate(self, x):
         fitness = x**2
@@ -79,13 +79,26 @@ class BTEvolution:
 
         # Simulate for 10,000 steps = 100s physical time,  80s computational time
         for i in range(tmax):
-            if i % 1000 == 0:
+            if i % 400 == 0:
 
 
                 # Write to blackboard
-
-
-                #actions = bt.feed_forward(blackboard)
+                blackboard = {
+                    "elapsed_battery_time": 0,
+                    "absolute_x": 0,
+                    "absolute_y": 0,
+                    "absolute_z": 0,
+                    "heading": 0,
+                    "visit_list": 0,
+                    "tof": 0,
+                    "peer_distances": [],
+                    "fruit_visible": False,
+                    'swarmneural': 0,
+                    'memory': 0.2,
+                }
+                
+                for j in range(self.simulator.num_envs):
+                    actions[j, :] = bt.feed_forward(blackboard)
 
 
                 logger.info(f"Step {i}, changing target setpoint.")
