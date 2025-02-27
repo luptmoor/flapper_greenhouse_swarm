@@ -95,6 +95,8 @@ class BTEvolution:
                     "fruit_visible": False,
                     'swarmneural': 0,
                     'memory': 0.2,
+                    'tofinput': torch.randn(1, 64),
+                    'swarminput': torch.randn(1, 20)
                 }
                 
                 for j in range(self.simulator.num_envs):

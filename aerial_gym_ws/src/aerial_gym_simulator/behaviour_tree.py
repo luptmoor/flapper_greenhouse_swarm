@@ -1,4 +1,6 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 from settings import *
 import random
 random.seed(BT_SEED)
@@ -8,6 +10,9 @@ import json
 
 class BehaviourTree:
     def __init__(self, random_tree=True):
+
+        self.tof_net = ToFNet()
+        self.swarm_net = SwarmNet()
 
         if random_tree:
 
@@ -29,7 +34,18 @@ class BehaviourTree:
         action[0, 1] = feedback["vy"]
         action[0, 2] = feedback["vz"]
         action[0, 3] = feedback["r"]
-        print(action.shape)
+
+        # Swarm net overrides independent velocity control
+        if feedback['swarmnet']:
+            action = self.swarm_net.forward(blackboard['swarminput'])
+            print(f"Aciton determined by SwarmNet: {action}")
+        
+        # Tof net overrides swarm net (collision avoidance is given a higher priority)
+        if feedback['tofnet']:
+            action = self.tof_net.forward(blackboard['tofinput'])
+            print(f"Aciton determined by ToFNet: {action}")
+
+
 
         return action
 
@@ -109,7 +125,9 @@ class CompositeNode(BTNode):
             "vz": 0.0,
             "r": 0.0,
             "message": 0.0,
-            "memory": 0.0
+            "memory": 0.0,
+            "tofnet": False,
+            "swarmnet": False
         }
 
     def add_child(self, child):
@@ -134,7 +152,7 @@ class CompositeNode(BTNode):
                 
             # Condition Node        
             elif die - P_BT_COMPOSITE < P_BT_CONDITION:
-                reading = READING_VARS[random.randint(0, 4)]
+                reading = READING_VARS[random.randint(0, 2)]
 
                 if reading != 'fruit_visible':
                     if random.randint(0, 1) == 1: operator = 'greaterThan'
@@ -149,16 +167,16 @@ class CompositeNode(BTNode):
 
             # Action Node
             elif die - P_BT_COMPOSITE - P_BT_CONDITION < P_BT_ACTION:
-                action = ACTION_VARS[random.randint(0, 5)]
+                action = ACTION_VARS[random.randint(0, 7)]
 
-                if action == 6:
-                    print('Neural command based on position')
-
-                value = random.uniform(0, 1) * (ACTION_LIMITS[action][1] - ACTION_LIMITS[action][0]) + ACTION_LIMITS[action][0]
+                if action in ['tofnet', 'swarmnet']:
+                    value = True
+                else:
+                    value = random.uniform(0, 1) * (ACTION_LIMITS[action][1] - ACTION_LIMITS[action][0]) + ACTION_LIMITS[action][0]
                 self.add_child(ActionNode(self.name + "_action" + str(i), action=action, value=value))
 
 
-        self.n_children = sum([child.n_children for child in self.children if isinstance(child, CompositeNode)])
+        #self.n_children = sum([child.n_children for child in self.children if isinstance(child, CompositeNode)])
         
 
 
@@ -169,7 +187,6 @@ class CompositeNode(BTNode):
             "name": self.name,
             "depth": self.depth,
             "children": [child.to_dict() for child in self.children],
-            "n_children": self.n_children
         }
 
 class SequenceNode(CompositeNode):
@@ -201,3 +218,50 @@ class SelectorNode(CompositeNode):
             
         print(f"Feedback of {self.name}: {self.feedback}")
         return self.feedback, False
+
+
+
+## Neural Classes
+
+class ToFNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(64, 32)  # First hidden layer
+        self.fc2 = nn.Linear(32, 16)  # Second hidden layer
+        self.fc3 = nn.Linear(16, 4)   # Output layer
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = torch.sigmoid(self.fc3(x))  # sigmoid to keep outputs bounded in (0, 1)
+
+        # Map to correct ranges
+        min_tensor = torch.tensor([V_BACKWARD_MAX, V_LEFT_MAX, V_DOWN_MAX, -YAWRATE_MAX])
+        max_tensor = torch.tensor([V_FORWARD_MAX, V_RIGHT_MAX, V_UP_MAX, YAWRATE_MAX])
+
+        x = min_tensor + (max_tensor - min_tensor) * x
+
+        return x  # vx, vy, vz, r
+    
+
+
+class SwarmNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(20, 32)  # First hidden layer
+        self.fc2 = nn.Linear(32, 16)  # Second hidden layer
+        self.fc3 = nn.Linear(16, 4)   # Output layer
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = torch.sigmoid(self.fc3(x))   # sigmoid to keep outputs bounded in (0, 1)
+
+        # Map to correct ranges
+        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_LEFT_MAX, -V_DOWN_MAX, -YAWRATE_MAX])
+        max_tensor = torch.tensor([V_FORWARD_MAX, V_RIGHT_MAX, V_UP_MAX, YAWRATE_MAX])
+
+        x = min_tensor + (max_tensor - min_tensor) * x
+
+
+        return x  # vx, vy, vz, r
