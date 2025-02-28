@@ -23,7 +23,7 @@ if __name__ == "__main__":
     env_manager = SimBuilder().build_env(
         sim_name="base_sim",
         env_name="greenhouse_env",
-        robot_name="flapper",
+        robot_name="flapper_tof",
         controller_name="lee_velocity_control",
         args=None,
         device="cuda:0",

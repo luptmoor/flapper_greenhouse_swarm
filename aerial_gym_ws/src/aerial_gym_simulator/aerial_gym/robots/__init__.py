@@ -15,7 +15,8 @@ from aerial_gym.config.robot_config.snakey5_config import Snakey5Cfg
 from aerial_gym.config.robot_config.snakey6_config import Snakey6Cfg
 from aerial_gym.config.robot_config.tinyprop_config import TinyPropCfg
 from aerial_gym.config.robot_config.lmf2_config import LMF2Cfg
-from aerial_gym.config.robot_config.flapper_config import FlapperConfig
+from aerial_gym.config.robot_config.flapper_config import FlapperConfig, FlapperWithToFConfig
+
 
 # import robot classes here
 from aerial_gym.robots.base_multirotor import BaseMultirotor
@@ -59,4 +60,5 @@ robot_registry.register("tinyprop", BaseMultirotor, TinyPropCfg)
 
 # Flapper
 robot_registry.register("flapper", Flapper, FlapperConfig)
+robot_registry.register("flapper_tof", Flapper, FlapperWithToFConfig)
 

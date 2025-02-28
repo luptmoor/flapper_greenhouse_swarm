@@ -5,6 +5,11 @@ from aerial_gym import AERIAL_GYM_DIRECTORY
 from aerial_gym.config.sensor_config.camera_config.base_depth_camera_config import (
     BaseDepthCameraConfig,
 )
+
+from aerial_gym.config.sensor_config.camera_config.tof_config import (
+    ToFConfig,
+)
+
 from aerial_gym.config.sensor_config.lidar_config.base_lidar_config import (
     BaseLidarConfig,
 )
@@ -210,6 +215,11 @@ class FlapperWithCameraCfg(FlapperConfig):
     class sensor_config(FlapperConfig.sensor_config):
         enable_camera = True
         camera_config = BaseDepthCameraConfig
+
+class FlapperWithToFConfig(FlapperConfig):
+    class sensor_config(FlapperConfig.sensor_config):
+        enable_camera = True
+        camera_config = ToFConfig
 
 class FlapperWithCameraIMUCfg(FlapperConfig):
     class sensor_config(FlapperConfig.sensor_config):
