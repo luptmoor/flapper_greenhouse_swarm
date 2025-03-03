@@ -1,0 +1,151 @@
+<?xml version="1.0" ?>
+<robot name="flapper">
+  <link name="base_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-4.19101812440002e-08 0.12776286582420185 0.0"/>
+      <mass value="0.333408595011269"/>
+      <inertia ixx="0.001649" ixy="-0.0" ixz="0.0" iyy="9.4e-05" iyz="-0.0" izz="0.001668"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="./meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="Blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="./meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+  
+  <link name="left_wing_back_1">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.06326482306657802 -0.06051126668244686 -0.07422928663834187"/>
+      <mass value="0.03802500177087531"/>
+      <inertia ixx="0.000125" ixy="-9e-06" ixz="6.4e-05" iyy="0.00013" iyz="1e-05" izz="0.000102"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.0375 -0.195 -0.0"/>
+      <geometry>
+        <mesh filename="./meshes/left_wing_back_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="Blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.0375 -0.195 -0.0"/>
+      <geometry>
+        <mesh filename="./meshes/left_wing_back_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+  
+  <link name="right_wing_back_1">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.062115755843106156 -0.06051126668244711 -0.07519346805287182"/>
+      <mass value="0.0380250017708754"/>
+      <inertia ixx="0.000125" ixy="9e-06" ixz="-6.4e-05" iyy="0.00013" iyz="1e-05" izz="0.000102"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0.0375 -0.195 -0.0"/>
+      <geometry>
+        <mesh filename="./meshes/right_wing_back_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="Blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.0375 -0.195 -0.0"/>
+      <geometry>
+        <mesh filename="./meshes/right_wing_back_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+  
+  <link name="right_wing_front_1">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.06326482250778453 -0.06051126668244711 0.07422928663834194"/>
+      <mass value="0.03802500177087537"/>
+      <inertia ixx="0.000125" ixy="9e-06" ixz="6.4e-05" iyy="0.00013" iyz="-1e-05" izz="0.000102"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0.0375 -0.195 -0.0"/>
+      <geometry>
+        <mesh filename="./meshes/right_wing_front_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="Blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.0375 -0.195 -0.0"/>
+      <geometry>
+        <mesh filename="./meshes/right_wing_front_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+  
+  <link name="left_wing_front_1">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.062115756401899584 -0.06051126668244694 0.07519346805287173"/>
+      <mass value="0.038025001770875345"/>
+      <inertia ixx="0.000125" ixy="-9e-06" ixz="-6.4e-05" iyy="0.00013" iyz="-1e-05" izz="0.000102"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.0375 -0.195 -0.0"/>
+      <geometry>
+        <mesh filename="./meshes/left_wing_front_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="Blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.0375 -0.195 -0.0"/>
+      <geometry>
+        <mesh filename="./meshes/left_wing_front_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+  
+  <joint name="left_wing_back_m" type="revolute">
+    <origin rpy="0 0 0" xyz="0.0375 0.195 0.0"/>
+    <parent link="base_link"/>
+    <child link="left_wing_back_1"/>
+    <axis xyz="0.0 -1.0 0.0"/>
+    <limit effort="100" lower="-0.785398" upper="0.0" velocity="100"/>
+  </joint>
+  
+  <joint name="right_wing_back" type="revolute">
+    <origin rpy="0 0 0" xyz="-0.0375 0.195 0.0"/>
+    <parent link="base_link"/>
+    <child link="right_wing_back_1"/>
+    <axis xyz="0.0 -1.0 0.0"/>
+    <limit effort="100" lower="0.0" upper="0.785398" velocity="100"/>
+  </joint>
+  
+  <joint name="right_wing_front_m" type="revolute">
+    <origin rpy="0 0 0" xyz="-0.0375 0.195 0.0"/>
+    <parent link="base_link"/>
+    <child link="right_wing_front_1"/>
+    <axis xyz="0.0 -1.0 0.0"/>
+    <limit effort="100" lower="-0.785398" upper="0.0" velocity="100"/>
+  </joint>
+  
+  <joint name="left_wing_front" type="revolute">
+    <origin rpy="0 0 0" xyz="0.0375 0.195 0.0"/>
+    <parent link="base_link"/>
+    <child link="left_wing_front_1"/>
+    <axis xyz="0.0 -1.0 0.0"/>
+    <limit effort="100" lower="0.0" upper="0.785398" velocity="100"/>
+  </joint>
+  
+</robot>
+

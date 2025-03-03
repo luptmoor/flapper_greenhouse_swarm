@@ -9,7 +9,7 @@ P_MACROMUTATION     =         0.1
 
 
 ## Behaviour Trees
-BT_SEED             =        41
+BT_SEED             =        42
 BT_MAX_CHILDREN     =         6
 BT_MAX_DEPTH        =         6
 P_BT_COMPOSITE      =         0.25

@@ -85,9 +85,9 @@ class FlapperConfig:
         angular_quadratic_damping_coefficient = [0.0, 0.0, 0.0]  # along the body [x, y, z] axes
 
     class robot_asset:
-        asset_folder = f"{AERIAL_GYM_DIRECTORY}/resources/robots/quad"
-        file = "quad.urdf"
-        name = "base_quadrotor"  # actor name
+        asset_folder = f"{AERIAL_GYM_DIRECTORY}/resources/robots/flapper"
+        file = "flapper_simple.urdf"
+        name = "flapper"  # actor name
         base_link_name = "base_link"
         disable_gravity = False
         collapse_fixed_joints = False  # merge bodies connected by fixed joints.

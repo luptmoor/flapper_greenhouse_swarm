@@ -59,6 +59,6 @@ if __name__ == "__main__":
 
     #bt.feed_forward(blackboard=blackboard)
 
-    #evolution.simulate_bt(bt, MAX_TIME)
+    evolution.simulate_bt(bt, MAX_TIME)
 
     

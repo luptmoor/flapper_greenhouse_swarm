@@ -16,8 +16,8 @@ class ToFConfig(BaseSensorConfig):
     height = 135  # 270
     width = 240  # 480
     horizontal_fov_deg = 87.000
-    max_range = 10.0
-    min_range = 0.2
+    max_range = 4.0
+    min_range = 0.1
 
     # Type of camera (depth, range, pointcloud, segmentation)
     # You can combine: (depth+segmentation), (range+segmentation), (pointcloud+segmentation)
@@ -28,7 +28,7 @@ class ToFConfig(BaseSensorConfig):
     )
     return_pointcloud = False  # Return a pointcloud instead of an image. Above depth option will be ignored if this is set to True
     pointcloud_in_world_frame = False
-    segmentation_camera = True
+    segmentation_camera = False
 
     # transform from sensor element coordinate frame to sensor_base_link frame
     euler_frame_rot_deg = [-90.0, 0, -90.0]
@@ -52,7 +52,7 @@ class ToFConfig(BaseSensorConfig):
     )  # Will be [-1]U[0,1] if normalize_range is True, otherwise will be value set by user in place of -1.0
 
     # randomize placement of the sensor
-    randomize_placement = True
+    randomize_placement = False
     min_translation = [0.07, -0.06, 0.01]
     max_translation = [0.12, 0.03, 0.04]
     min_euler_rotation_deg = [-5.0, -5.0, -5.0]
