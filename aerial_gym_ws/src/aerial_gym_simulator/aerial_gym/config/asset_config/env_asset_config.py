@@ -464,3 +464,49 @@ class EnvObjectConfig:
         collapse_fixed_joints = True
         semantic_id = -1  # semantic_id = WALL_SEMANTIC_ID
         color = [100, 200, 210]
+
+    class capsicum(base_asset_params):
+        num_assets = 1
+
+        asset_folder = f"{AERIAL_GYM_DIRECTORY}/resources/models/environment_assets/plants"
+
+        collision_mask = 1  # objects with the same collision mask will not collide
+
+        min_state_ratio = [
+            0.2,
+            0.05,
+            0.05,
+            0,
+            -np.pi / 6.0,
+            -np.pi,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
+        max_state_ratio = [
+            0.9,
+            0.9,
+            0.9,
+            0,
+            np.pi / 6.0,
+            np.pi,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
+
+        collapse_fixed_joints = True
+        per_link_semantic = False
+
+        semantic_id = TREE_SEMANTIC_ID
+        color = [20, 200, 100]
+
+        semantic_masked_links = {}

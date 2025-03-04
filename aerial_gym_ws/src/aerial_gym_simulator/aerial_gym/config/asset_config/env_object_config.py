@@ -322,9 +322,9 @@ class left_wall(asset_state_params):
     collision_mask = 1  # objects with the same collision mask will not collide
 
     min_state_ratio = [
-        0.5,
+        0.0,
         1.0,
-        0.5,
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -337,9 +337,9 @@ class left_wall(asset_state_params):
         0.0,
     ]
     max_state_ratio = [
-        0.5,
+        0.0,
         1.0,
-        0.5,
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -499,7 +499,7 @@ class bottom_wall(asset_state_params):
     specific_filepath = "cube.urdf"
     per_link_semantic = False
     semantic_id = BOTTOM_WALL_SEMANTIC_ID
-    color = [100, 150, 150]
+    color = [150, 150, 150]
 
 
 class front_wall(asset_state_params):
@@ -596,3 +596,51 @@ class back_wall(asset_state_params):
     per_link_semantic = False
     semantic_id = BACK_WALL_SEMANTIC_ID
     color = [100, 200, 210]
+
+
+class capsicum(asset_state_params):
+        num_assets = 2
+
+        asset_folder = f"{AERIAL_GYM_DIRECTORY}/resources/models/environment_assets/plants"
+
+        collision_mask = 1  # objects with the same collision mask will not collide
+
+        min_state_ratio = [
+            0.2,
+            0.05,
+            0.05,
+            -np.pi/2,
+            0,
+            0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
+        max_state_ratio = [
+            0.9,
+            0.9,
+            0.0,
+            -np.pi/2,
+            0,
+            0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
+
+        collapse_fixed_joints = True
+        per_link_semantic = True
+        keep_in_env = True
+
+        semantic_id = -1  # TREE_SEMANTIC_ID
+        color = [70, 200, 100]
+
+        semantic_masked_links = {}

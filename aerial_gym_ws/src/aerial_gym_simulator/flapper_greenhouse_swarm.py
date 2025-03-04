@@ -27,7 +27,7 @@ if __name__ == "__main__":
         controller_name="lee_velocity_control",
         args=None,
         device="cuda:0",
-        num_envs=5,
+        num_envs=4,
         headless=args.headless,
         use_warp=args.use_warp,
     )
