@@ -76,7 +76,7 @@ class ActionNode(BTNode):
     def __init__(self, name):
         super().__init__(name)
         
-        self.action = ACTION_VARS[random.randint(0, 7)]
+        self.action = random.choice(ACTION_VARS)
 
         if self.action in ['tofnet', 'swarmnet']:
             self.value = True
@@ -96,7 +96,7 @@ class ConditionNode(BTNode):
     def __init__(self, name):
         super().__init__(name)
 
-        self.reading = READING_VARS[random.randint(0, 2)]
+        self.reading = random.choice(READING_VARS)
 
         if self.reading != 'fruit_visible':
             if random.randint(0, 1) == 1: self.operator = 'greaterThan'

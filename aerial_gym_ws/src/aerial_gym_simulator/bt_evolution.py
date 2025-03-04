@@ -40,7 +40,7 @@ class BTEvolution:
         return 0
     
     def next_gen(self):
-       
+        
 
         return 0
     
