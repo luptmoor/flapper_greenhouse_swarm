@@ -2,10 +2,12 @@ MAX_TIME            =       600 * 100       # steps
 BASEPATH            =       "simresults/results_"
 
 ## Evolution
-POPULATION_SIZE     =        50
-N_GENERATIONS       =        50
+POPULATION_SIZE     =        100
+N_GENERATIONS       =        150
 P_MICROMUTATION     =         0.2
 P_MACROMUTATION     =         0.1
+ELITISM_RATE        =         0.04
+N_ELITE             =       int(ELITISM_RATE * POPULATION_SIZE)
 
 
 ## Behaviour Trees

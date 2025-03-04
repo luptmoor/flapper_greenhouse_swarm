@@ -1,3 +1,4 @@
+import copy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -13,6 +14,7 @@ class BehaviourTree:
 
         self.tof_net = ToFNet()
         self.swarm_net = SwarmNet()
+        self.fitness = 0
 
         if random_tree:
 
@@ -294,3 +296,16 @@ class SwarmNet(nn.Module):
 
 
         return x  # vx, vy, vz, r
+
+
+
+
+
+def crossover_averaging(parent1, parent2, alpha=0.5):
+    """Performs averaging crossover: child is a weighted sum of parent parameters."""
+    child = copy.deepcopy(parent1)  # Start with a copy of parent1
+
+    for param1, param2, child_param in zip(parent1.parameters(), parent2.parameters(), child.parameters()):
+        child_param.data = alpha * param1.data + (1 - alpha) * param2.data  # Weighted sum
+
+    return child

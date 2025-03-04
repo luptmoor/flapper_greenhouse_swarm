@@ -4,6 +4,7 @@ logger = CustomLogger(__name__)
 from behaviour_tree import BehaviourTree
 from aerial_gym.utils.logging import CustomLogger
 import torch
+from settings import *
 
 
 class BTEvolution:
@@ -39,6 +40,8 @@ class BTEvolution:
         return 0
     
     def next_gen(self):
+       
+
         return 0
     
 
