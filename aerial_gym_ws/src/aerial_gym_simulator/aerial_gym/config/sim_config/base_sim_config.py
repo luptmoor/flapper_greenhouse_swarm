@@ -3,7 +3,7 @@ class BaseSimConfig:
     class viewer:
         headless = False
         ref_env = 0
-        camera_position = [-5, -5, 4]  # [m]
+        camera_position = [0, -0.1, 7]  # [m]
         lookat = [0, 0, 0]  # [m]
         camera_orientation_euler_deg = [0, 0, 0]  # [deg]
         camera_follow_type = "FOLLOW_TRANSFORM"
