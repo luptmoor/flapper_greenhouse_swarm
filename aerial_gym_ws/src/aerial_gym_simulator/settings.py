@@ -1,5 +1,6 @@
 MAX_TIME            =       600 * 100       # steps
 BASEPATH            =       "simresults/results_"
+NUM_ROBOTS          =         5
 
 ## Evolution
 POPULATION_SIZE     =        100
@@ -8,6 +9,7 @@ P_MICROMUTATION     =         0.2
 P_MACROMUTATION     =         0.1
 ELITISM_RATE        =         0.04
 N_ELITE             =       int(ELITISM_RATE * POPULATION_SIZE)
+N_TOURNAMENTS       =        10
 
 
 ## Behaviour Trees
@@ -40,7 +42,7 @@ ACTION_LIMITS = {
     'vy':  (-V_RIGHT_MAX,    V_LEFT_MAX),
     'vz':  (-V_DOWN_MAX,     V_LEFT_MAX),
     'message':  (-1.0, 1.0),
-    'memory':   (-1.0, 1.0),
+    'memory':   (-1.0, 1.0)
 }
 
 # Conditions

@@ -27,9 +27,9 @@ if __name__ == "__main__":
         controller_name="lee_velocity_control",
         args=None,
         device="cuda:0",
-        num_envs=4,
+        num_envs=NUM_ROBOTS,
         headless=args.headless,
-        use_warp=args.use_warp,
+        use_warp=True,
     )
 
     evolution = BTEvolution(env_manager, population_size=POPULATION_SIZE, n_generations=N_GENERATIONS, tmax=MAX_TIME, filepath=BASEPATH + time)
@@ -59,6 +59,6 @@ if __name__ == "__main__":
 
     #bt.feed_forward(blackboard=blackboard)
 
-    evolution.simulate_bt(bt, MAX_TIME)
+    evolution.simulate_bt(bt, 1500)
 
     

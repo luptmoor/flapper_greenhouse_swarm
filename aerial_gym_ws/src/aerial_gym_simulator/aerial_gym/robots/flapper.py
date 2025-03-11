@@ -1,4 +1,4 @@
-from aerial_gym.robots.base_robot import BaseRobot
+from aerial_gym.robots.base_reconfigurable import BaseReconfigurable
 
 from aerial_gym.control.control_allocation import ControlAllocator
 from aerial_gym.registry.controller_registry import controller_registry
@@ -13,7 +13,7 @@ from aerial_gym.utils.logging import CustomLogger
 logger = CustomLogger("flapper")
 
 
-class Flapper(BaseRobot):
+class Flapper(BaseReconfigurable):
     """
     Class for the Flapper Nimble+ robot. Does not contain sensors or actuators.
     The controller config for the robot is used to initialize the controller for the robot.

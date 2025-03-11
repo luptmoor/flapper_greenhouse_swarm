@@ -63,6 +63,49 @@ class FlapperConfig:
             0.2,
         ]
 
+    class reconfiguration_config:
+        dof_mode = "position"  # "position", "velocity" or "effort"
+        # choosing effort means you can implement your own nonlinear response model
+
+        init_state_min = [
+            [
+                -np.pi / 2.0,
+                -0.3,
+                -np.pi / 2.0,
+                -0.3,
+                -np.pi / 2.0,
+                -0.3,
+                -np.pi / 2.0,
+                -0.3,
+            ],  # position state
+            [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],  # velocity state
+        ]
+        init_state_max = [
+            [
+                np.pi / 2.0,
+                +0.3,
+                np.pi / 2.0,
+                +0.3,
+                np.pi / 2.0,
+                +0.3,
+                np.pi / 2.0,
+                +0.3,
+            ],  # position state
+            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],  # velocity state
+        ]
+
+        if dof_mode == "position":
+            stiffness = [50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0]  # Kp
+            damping = [10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0]  # Kd
+
+        elif dof_mode == "velocity":
+            stiffness = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # Kp
+            damping = [10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0]  # Kd
+
+        elif dof_mode == "effort":
+            stiffness = [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5]  # Kp
+            damping = [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3]  # Kd
+
     class sensor_config:
         enable_camera = False
         camera_config = BaseDepthCameraConfig  # BaseNormalFaceIDCameraConfig

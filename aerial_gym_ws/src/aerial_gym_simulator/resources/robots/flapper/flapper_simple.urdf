@@ -41,12 +41,12 @@
     </visual>
   </link>
   
-  <joint name="left_wing_back_m" type="fixed">
+  <joint name="left_wing_back_m" type="revolute">
     <origin rpy="0 0 0" xyz="0.0375 0.195 0.0"/>
     <parent link="base_link"/>
     <child link="left_wing_back_1"/>
-    <axis xyz="0.0 -1.0 0.0"/>
-    <limit effort="100" lower="-0.785398" upper="0.0" velocity="100"/>
+    <axis xyz="0.0 0.0 -1.0"/>
+
   </joint>
   
   
@@ -67,12 +67,12 @@
     </visual>
   </link>
   
-  <joint name="right_wing_back" type="fixed">
+  <joint name="right_wing_back" type="revolute">
     <origin rpy="0 0 0" xyz="-0.0375 0.195 0.0"/>
     <parent link="base_link"/>
     <child link="right_wing_back_1"/>
-    <axis xyz="0.0 -1.0 0.0"/>
-    <limit effort="100" lower="0.0" upper="0.785398" velocity="100"/>
+    <axis xyz="0.0 0.0 -1.0"/>
+
   </joint>
   
   
@@ -93,12 +93,12 @@
     </visual>
   </link>
   
-  <joint name="right_wing_front_m" type="fixed">
+  <joint name="right_wing_front_m" type="revolute">
     <origin rpy="0 0 0" xyz="-0.0375 0.195 0.0"/>
     <parent link="base_link"/>
     <child link="right_wing_front_1"/>
-    <axis xyz="0.0 -1.0 0.0"/>
-    <limit effort="100" lower="-0.785398" upper="0.0" velocity="100"/>
+    <axis xyz="0.0 0.0 1.0"/>
+
   </joint>
   
   
@@ -119,12 +119,12 @@
     </visual>
   </link>
   
-  <joint name="left_wing_front" type="fixed">
+  <joint name="left_wing_front" type="revolute">
     <origin rpy="0 0 0" xyz="0.0375 0.195 0.0"/>
     <parent link="base_link"/>
     <child link="left_wing_front_1"/>
-    <axis xyz="0.0 -1.0 0.0"/>
-    <limit effort="100" lower="0.0" upper="0.785398" velocity="100"/>
+    <axis xyz="0.0 0.0 1.0"/>
+
   </joint>
   
   

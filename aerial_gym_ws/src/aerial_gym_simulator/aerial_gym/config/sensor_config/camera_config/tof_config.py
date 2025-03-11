@@ -13,9 +13,9 @@ class ToFConfig(BaseSensorConfig):
     # camera params VFOV is calcuated from the aspect ratio and HFOV
     # VFOV = 2 * atan(tan(HFOV/2) / aspect_ratio)
 
-    height = 135  # 270
-    width = 240  # 480
-    horizontal_fov_deg = 87.000
+    height = 8  # px
+    width = 8  # px
+    horizontal_fov_deg = 56.6
     max_range = 4.0
     min_range = 0.1
 
