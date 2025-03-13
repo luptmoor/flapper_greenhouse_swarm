@@ -139,8 +139,8 @@ class FlapperConfig:
         replace_cylinder_with_capsule = False  # replace collision cylinders with capsules, leads to faster/more stable simulation
         flip_visual_attachments = True  # Some .obj meshes must be flipped from y-up to z-up
         density = 0.000001
-        angular_damping = 0.01
-        linear_damping = 0.01
+        angular_damping = 1
+        linear_damping = 4.2
         max_angular_velocity = 100.0
         max_linear_velocity = 100.0
         armature = 0.001

@@ -280,31 +280,11 @@ class Flapper(BaseReconfigurable):
         self.robot_torque_tensors[:] = self.output_torques
 
     def simulate_drag(self):
-        self.robot_body_vel_drag_linear = (
-            -self.body_vel_linear_damping_coefficient * self.robot_body_linvel
-        )
-        self.robot_body_vel_drag_quadratic = (
-            -self.body_vel_quadratic_damping_coefficient
-            * torch.norm(self.robot_body_linvel, dim=-1).unsqueeze(-1)
-            * self.robot_body_linvel
-        )
-        self.robot_body_vel_drag = (
-            self.robot_body_vel_drag_linear + self.robot_body_vel_drag_quadratic
-        )
-        self.robot_force_tensors[:, 0, 0:3] += self.robot_body_vel_drag
+        self.robot_body_vel_drag_linear = -self.body_vel_linear_damping_coefficient * self.robot_body_linvel
+        self.robot_force_tensors[:, 0, 0:3] += self.robot_body_vel_drag_linear
 
-        self.robot_body_angvel_drag_linear = (
-            -self.angvel_linear_damping_coefficient * self.robot_body_angvel
-        )
-        self.robot_body_angvel_drag_quadratic = (
-            -self.angvel_quadratic_damping_coefficient
-            * self.robot_body_angvel.abs()
-            * self.robot_body_angvel
-        )
-        self.robot_body_angvel_drag = (
-            self.robot_body_angvel_drag_linear + self.robot_body_angvel_drag_quadratic
-        )
-        self.robot_torque_tensors[:, 0, 0:3] += self.robot_body_angvel_drag
+        self.robot_body_angvel_drag_linear = -self.angvel_linear_damping_coefficient * self.robot_body_angvel
+        self.robot_torque_tensors[:, 0, 0:3] += self.robot_body_angvel_drag_linear
 
     def update_states(self):
         self.robot_euler_angles[:] = ssa(get_euler_xyz_tensor(self.robot_orientation))
