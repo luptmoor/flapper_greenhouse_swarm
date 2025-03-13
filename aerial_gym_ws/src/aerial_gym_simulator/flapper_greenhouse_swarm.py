@@ -27,14 +27,12 @@ if __name__ == "__main__":
         controller_name="lee_velocity_control",
         args=None,
         device="cuda:0",
-        num_envs=NUM_ROBOTS,
+        num_envs=1,
         headless=args.headless,
         use_warp=True,
     )
 
     evolution = BTEvolution(env_manager, population_size=POPULATION_SIZE, n_generations=N_GENERATIONS, tmax=MAX_TIME, filepath=BASEPATH + time)
-
-    #bt = BehaviourTree(3)
 
    
 

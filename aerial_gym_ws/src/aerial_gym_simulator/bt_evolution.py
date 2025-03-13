@@ -117,8 +117,8 @@ class BTEvolution:
 
                 observations = self.simulator.get_obs()
                 print(f"Observed crashes: {observations['crashes']}")
-                # for j in range(self.simulator.num_envs):
-                #     actions[j, :] = bt.feed_forward(blackboard)
+                for j in range(self.simulator.num_envs):
+                    actions[j, :] = bt.feed_forward(blackboard)
                 
                 #dof_pos = 20 / 57.3 * torch.ones((self.simulator.num_envs, 4)).to("cuda:0")
                 # angle = 40

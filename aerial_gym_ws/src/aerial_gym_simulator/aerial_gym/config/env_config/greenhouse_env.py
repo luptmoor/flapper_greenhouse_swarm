@@ -1,4 +1,4 @@
-from aerial_gym.config.asset_config.env_object_config import bottom_wall, left_wall, right_wall, back_wall, front_wall, tree_asset_params, capsicum
+from aerial_gym.config.asset_config.env_object_config import *
 
 class GreenhouseEnvironmentCfg:
     class env:
@@ -31,14 +31,20 @@ class GreenhouseEnvironmentCfg:
 
     class env_config:
         include_asset_type = {
-            "bottom_wall": True,
+            "bottom_wall": False,
             "front_wall": False,
             "back_wall": False,
             "left_wall": False,
             "right_wall": False,
             "tree": False,
-            "capsicum": True
+            "capsicum1": True,
+            "capsicum2": True,
+            "capsicum3": True,
+            "capsicum4": True,
+            "capsicum5": True,
+
         }
+
 
         asset_type_to_dict_map = {
             "bottom_wall": bottom_wall,
@@ -47,5 +53,10 @@ class GreenhouseEnvironmentCfg:
             "left_wall": left_wall,
             "right_wall": right_wall,
             "tree": tree_asset_params,
-            "capsicum": capsicum
+            "capsicum1": capsicum1,
+            "capsicum2": capsicum2,
+            "capsicum3": capsicum3,
+            "capsicum4": capsicum4,
+            "capsicum5": capsicum5
+
         }

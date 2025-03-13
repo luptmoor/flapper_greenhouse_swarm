@@ -13,7 +13,7 @@ N_TOURNAMENTS       =        10
 
 
 ## Behaviour Trees
-BT_SEED             =        42
+BT_SEED             =        48
 BT_MAX_CHILDREN     =         6
 BT_MAX_DEPTH        =         6
 P_BT_COMPOSITE      =         0.25
@@ -35,11 +35,10 @@ MAX_BAT_THRESHOLD   =       600             # s
 
     
 # Actions
-ACTION_VARS = ['r', 'vx', 'vy', 'vz', 'message', 'memory', 'tofnet', 'swarmnet']
+ACTION_VARS = ['r', 'vx', 'vz', 'message', 'memory', 'tofnet', 'swarmnet']
 ACTION_LIMITS = {
     'r': (-YAWRATE_MAX, YAWRATE_MAX),    
     'vx':  (-V_BACKWARD_MAX, V_FORWARD_MAX),
-    'vy':  (-V_RIGHT_MAX,    V_LEFT_MAX),
     'vz':  (-V_DOWN_MAX,     V_LEFT_MAX),
     'message':  (-1.0, 1.0),
     'memory':   (-1.0, 1.0)

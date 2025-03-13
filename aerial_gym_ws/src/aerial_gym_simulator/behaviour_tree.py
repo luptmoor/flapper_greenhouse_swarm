@@ -33,7 +33,7 @@ class BehaviourTree:
         feedback, success = self.root.execute(blackboard=blackboard)
         action = torch.zeros(1, 4)
         action[0, 0] = feedback["vx"]
-        action[0, 1] = feedback["vy"]
+        action[0, 1] = 0  # no sidewards motion
         action[0, 2] = feedback["vz"]
         action[0, 3] = feedback["r"]
 
@@ -137,7 +137,6 @@ class CompositeNode(BTNode):
         self.depth = depth
         self.feedback = {
             "vx": 0.0,
-            "vy": 0.0,
             "vz": 0.0,
             "r": 0.0,
             "message": 0.0,
@@ -259,7 +258,7 @@ class ToFNet(nn.Module):
         super().__init__()
         self.fc1 = nn.Linear(64, 32)  # First hidden layer
         self.fc2 = nn.Linear(32, 16)  # Second hidden layer
-        self.fc3 = nn.Linear(16, 4)   # Output layer
+        self.fc3 = nn.Linear(16, 3)   # Output layer
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
@@ -267,12 +266,12 @@ class ToFNet(nn.Module):
         x = torch.sigmoid(self.fc3(x))  # sigmoid to keep outputs bounded in (0, 1)
 
         # Map to correct ranges
-        min_tensor = torch.tensor([V_BACKWARD_MAX, V_LEFT_MAX, V_DOWN_MAX, -YAWRATE_MAX])
-        max_tensor = torch.tensor([V_FORWARD_MAX, V_RIGHT_MAX, V_UP_MAX, YAWRATE_MAX])
+        min_tensor = torch.tensor([V_BACKWARD_MAX, V_DOWN_MAX, -YAWRATE_MAX])
+        max_tensor = torch.tensor([V_FORWARD_MAX, V_UP_MAX, YAWRATE_MAX])
 
         x = min_tensor + (max_tensor - min_tensor) * x
 
-        return x  # vx, vy, vz, r
+        return x  # vx, vz, r
     
 
 
@@ -281,7 +280,7 @@ class SwarmNet(nn.Module):
         super().__init__()
         self.fc1 = nn.Linear(20, 32)  # First hidden layer
         self.fc2 = nn.Linear(32, 16)  # Second hidden layer
-        self.fc3 = nn.Linear(16, 4)   # Output layer
+        self.fc3 = nn.Linear(16, 3)   # Output layer
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
@@ -289,13 +288,13 @@ class SwarmNet(nn.Module):
         x = torch.sigmoid(self.fc3(x))   # sigmoid to keep outputs bounded in (0, 1)
 
         # Map to correct ranges
-        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_LEFT_MAX, -V_DOWN_MAX, -YAWRATE_MAX])
-        max_tensor = torch.tensor([V_FORWARD_MAX, V_RIGHT_MAX, V_UP_MAX, YAWRATE_MAX])
+        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_DOWN_MAX, -YAWRATE_MAX])
+        max_tensor = torch.tensor([V_FORWARD_MAX, V_UP_MAX, YAWRATE_MAX])
 
         x = min_tensor + (max_tensor - min_tensor) * x
 
 
-        return x  # vx, vy, vz, r
+        return x  # vx, vz, r
 
 
 
