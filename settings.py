@@ -4,6 +4,7 @@ import numpy as np
 SCALE                =    1                                        # px / cm
 WIDTH                =  1500                                       # px,  28 m
 HEIGHT               =  1000                                       # px,  15 m
+BORDERSIZE           =    10                                       # px, cm
 AREA                 = WIDTH * 0.02 * HEIGHT * 0.02                # m^2
 LAUNCHPAD_FRAC       =    0.3                                      # -, used to determine drones' launchpad size
 
@@ -93,15 +94,16 @@ READING_LIMITS = {
 
 
 # RGB colours for visualisation
-GREEN                = (0, 130, 20)
+GREEN                = (50, 150, 50)
 BROWN                = (117, 60, 26)
-GREY                 = (128, 128, 128)
+GREY                 = (150, 150, 150)
 RED                  = (180, 0, 0)
 YELLOW               = (255, 255, 0)
 ORANGE               = (255, 134, 0)
 PINK                 = (255, 0, 255)
-BLUE                 = (0, 50, 255)
+BLUE                 = (50, 50, 180)
 WHITE                = (255, 255, 255)
+BLACK                = (0, 0, 0)
 
 BEETLE_COLOURS = {'idle': RED, 'land': ORANGE, 'tree': YELLOW, 'escape': PINK}
 TYPE_COLOURS = {'drone': GREY, 'tree': BROWN}

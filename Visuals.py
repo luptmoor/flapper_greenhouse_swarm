@@ -49,7 +49,8 @@ class Visuals:
                                 if event.key == pygame.K_SPACE:
                                     pause = False
 
-        self.screen.fill(GREEN)
+        self.screen.fill(BLACK)
+        pygame.draw.rect(self.screen, GREY, pygame.Rect(BORDERSIZE, BORDERSIZE, WIDTH - 2*BORDERSIZE, HEIGHT - 2*BORDERSIZE))
 
         # Simulation information texts
         text_surface, text_rect = self.font.render('Active Drones: ' + str(round(len(drones))), (0, 0, 0))
@@ -62,16 +63,15 @@ class Visuals:
 
         # Draw all trees
         for tree in trees:
-            pygame.draw.circle(self.screen, BROWN, (tree.x, tree.y), tree.r_col)
+            pygame.draw.circle(self.screen, GREEN, (tree.x, tree.y), tree.r_col)
 
 
         for drone in drones:
-            pygame.draw.circle(self.screen, GREY, (drone.x, drone.y), drone.r_col)
-            pygame.draw.line(self.screen, RED, (drone.x, drone.y), (drone.x + np.cos(drone.heading) * R_DRONE, drone.y + np.sin(drone.heading) * R_DRONE))
+            pygame.draw.circle(self.screen, BLUE, (drone.x, drone.y), drone.r_col)
+            pygame.draw.line(self.screen, RED, (drone.x, drone.y), (drone.x + np.cos(drone.heading) * R_DRONE, drone.y + np.sin(drone.heading) * R_DRONE), 2)
 
             if VIEW == 1:  # Drone vision and influenced entitites
                 pygame.draw.circle(self.screen, GREY, (drone.x, drone.y), drone.r_vis['drone'], 1)  # visual range for drones
-                pygame.draw.circle(self.screen, RED, (drone.x, drone.y), drone.r_vis['beetle'], 1)  # visual range for beetles
                 for entity in drone.visible_entities:
                     pygame.draw.line(self.screen, TYPE_COLOURS[entity.type], (drone.x, drone.y), (entity.x, entity.y), 1)
 
