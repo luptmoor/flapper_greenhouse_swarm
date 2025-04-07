@@ -41,7 +41,7 @@ class Drone(Entity):
         self.ay = 0
         self.heading = np.random.random() * 2 * np.pi
 
-    def sees(self, entity):
+    def sees(self, entity) -> bool:
         """
         determines if entity is in drone's radius of vision corresponding to the type of entity.
         :param entity: Entity that is to be checked for vision.
