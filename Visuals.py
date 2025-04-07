@@ -67,6 +67,9 @@ class Visuals:
 
         for fruit in fruits:
             pygame.draw.circle(self.screen, RED, (fruit.x, fruit.y), fruit.r_col)
+            text_surface, text_rect = self.font.render((str(round(fruit.record[-1], 1))), (0, 0, 0))
+            text_rect.center = (fruit.x, fruit.y)
+            self.screen.blit(text_surface, text_rect)
 
 
         for drone in drones:
@@ -74,7 +77,7 @@ class Visuals:
             pygame.draw.line(self.screen, RED, (drone.x, drone.y), (drone.x + np.cos(drone.heading) * R_DRONE, drone.y + np.sin(drone.heading) * R_DRONE), 2)
             
             # Height indication
-            text_surface, text_rect = self.font.render(str(round(drone.z, 0)), (0, 0, 0))
+            text_surface, text_rect = self.font.render(str(round(drone.z, 0)), (255, 255, 255))
             text_rect.center = (drone.x, drone.y)
             self.screen.blit(text_surface, text_rect)
                 

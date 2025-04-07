@@ -1,7 +1,7 @@
 import numpy as np
 from Entity import Entity
 from Drone import Drone
-from Beetle import Fruit
+from Fruit import Fruit
 from Visuals import Visuals
 from settings import *
 import random
@@ -71,7 +71,7 @@ class Simulation:
         # Lists holding simulated entities
         self.entities = []
         self.trees = []
-        self.fruit = []
+        self.fruits = []
         self.drones = []
 
         self.n0_drones = N_DRONES
@@ -121,8 +121,7 @@ class Simulation:
                 newfruit = Fruit('Fruit of ' + tree.name, x, y, z)
                 
                 if not any([check_collision(newfruit, othertree) for othertree in self.trees if not othertree.name == tree.name]):
-                    self.fruit.append(newfruit)
-                    print(f"{newfruit.name} was added")
+                    self.fruits.append(newfruit)
 
        
 
@@ -164,6 +163,9 @@ class Simulation:
             # Print time and seed every 10s
             if int(round(self.t, 0)) % 10 == 0 and abs(int(round(self.t, 0)) - self.t) < 0.001:
                 print('Seed:', self.seed, 'Time:', round(self.t, 0), 's')
+            
+            for fruit in self.fruits:
+                fruit.advance()
 
             # Drone simulation
             for drone in self.drones:
@@ -183,7 +185,7 @@ class Simulation:
                         self.entities.remove(drone)
 
 
-
+                
 
                 # Maintain list of visible entities
                 for entity in self.entities:
@@ -202,11 +204,13 @@ class Simulation:
                 for entity in drone.visible_entities:
                     if entity not in self.entities:
                         drone.visible_entities.remove(entity)
-
+            
 
             # Update screen if requested
             if VISUALISE:
-                self.visuals.update(self.trees, self.fruit, self.drones)
+                self.visuals.update(self.trees, self.fruits, self.drones)
+            
+        
 
             # Add time step
             self.t += DT
