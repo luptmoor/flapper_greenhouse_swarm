@@ -11,7 +11,6 @@ import random
 
 
 if __name__ == '__main__':
-    print('Hello World')
 
     params = 13 * [random.uniform(-1, 1)]
 

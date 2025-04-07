@@ -57,30 +57,16 @@ class Visuals:
         text_rect.center = (180, 15)
         self.screen.blit(text_surface, text_rect)
 
-        text_surface, text_rect = self.font.render('Bugs: ' + str(round(len(beetles))), (0, 0, 0))
-        text_rect.center = (320, 17)
-        self.screen.blit(text_surface, text_rect)
-
         # Draw all trees
         for tree in trees:
             pygame.draw.circle(self.screen, BROWN, (tree.x, tree.y), tree.r_col)
 
-        # Draw all beetles
-        for beetle in beetles:
-            pygame.draw.circle(self.screen, BEETLE_COLOURS[beetle.mode], (beetle.x, beetle.y), beetle.r_col)
-
-            if VIEW == 3:  # Bug vision and attached trees
-
-                pygame.draw.circle(self.screen, BEETLE_COLOURS[beetle.mode], (beetle.x, beetle.y), beetle.r_vis, 1)  # visual fields
-                if beetle.tree is not None:
-                    pygame.draw.line(self.screen, BLUE, (beetle.x, beetle.y), (beetle.tree.x, beetle.tree.y), 1)
 
         for drone in drones:
             pygame.draw.circle(self.screen, GREY, (drone.x, drone.y), drone.r_col)
 
             if VIEW == 1:  # Drone vision and influenced entitites
                 pygame.draw.circle(self.screen, GREY, (drone.x, drone.y), drone.r_vis['drone'], 1)  # visual range for drones
-                pygame.draw.circle(self.screen, BROWN, (drone.x, drone.y), drone.r_vis['tree'], 1)  # visual range for trees
                 pygame.draw.circle(self.screen, RED, (drone.x, drone.y), drone.r_vis['beetle'], 1)  # visual range for beetles
                 for entity in drone.visible_entities:
                     pygame.draw.line(self.screen, TYPE_COLOURS[entity.type], (drone.x, drone.y), (entity.x, entity.y), 1)

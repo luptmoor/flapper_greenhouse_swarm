@@ -105,20 +105,20 @@ class Simulation:
                     placing = False
 
 
-        # Initial random placement of beetles on map
-        for j in range(int(round(N_BEETLES * noise(NOISE), 0))):
-            placing = True
-            while placing:
-                x = (np.random.random() * WIDTH) // 1
-                y = (np.random.random() * HEIGHT) // 1
+        # # Initial random placement of beetles on map
+        # for j in range(int(round(N_BEETLES * noise(NOISE), 0))):
+        #     placing = True
+        #     while placing:
+        #         x = (np.random.random() * WIDTH) // 1
+        #         y = (np.random.random() * HEIGHT) // 1
 
-                newbeetle = Beetle('Bug ' + str(j), x, y)
-                if not any([check_collision(newbeetle, entity) for entity in self.entities]):
-                    self.entities.append(newbeetle)
-                    self.beetles.append(newbeetle)
-                    # print(newbeetle.name, 'placed!')
-                    placing = False
-            self.n0_beetles = len(self.beetles)
+        #         newbeetle = Beetle('Bug ' + str(j), x, y)
+        #         if not any([check_collision(newbeetle, entity) for entity in self.entities]):
+        #             self.entities.append(newbeetle)
+        #             self.beetles.append(newbeetle)
+        #             # print(newbeetle.name, 'placed!')
+        #             placing = False
+        #     self.n0_beetles = len(self.beetles)
 
         # Initial random placement of drones on launchpad (fraction of total map)
         for k in range(int(round(N_DRONES * noise(NOISE), 0))):
@@ -171,10 +171,6 @@ class Simulation:
                         self.entities.remove(otherdrone)
                         self.drones.remove(otherdrone)
 
-                for beetle in self.beetles:
-                    if check_collision(drone, beetle):
-                        self.beetles.remove(beetle)
-                        self.entities.remove(beetle)
 
                 for tree in self.trees:
                     if check_collision(drone, tree, margin=0.1*R_DRONE):
@@ -182,22 +178,6 @@ class Simulation:
                         self.entities.remove(drone)
 
 
-                # # Check collisions
-                # for entity in self.entities:
-                #     if check_collision(drone, entity):
-                #         # print('Collision between ', drone.name, 'and', entity.name)
-                #         if entity in self.drones:
-                #             if drone in self.entities:
-                #                 self.entities.remove(drone)
-                #             if drone in self.drones:
-                #                 self.drones.remove(drone)  # XXX
-                #             self.entities.remove(entity)
-                #             self.drones.remove(entity)
-                #
-                #         elif entity in self.beetles:
-                #             self.beetles.remove(entity)
-                #             self.entities.remove(entity)
-                #         elif entity in self.trees:
 
 
                 # Maintain list of visible entities
@@ -214,26 +194,6 @@ class Simulation:
                     if entity not in self.entities:
                         drone.visible_entities.remove(entity)
 
-                # Bug simulation
-
-            # Bug simulation
-            for beetle in self.beetles:
-                # 1. Check if drones nearby
-                for drone in self.drones:
-                    if beetle.sees(drone):
-                        beetle.processVisual(drone)
-                # First half step
-                beetle.advance(DT / 2)
-
-                # 2. Check if landed on tree or tree nearby
-                for tree in self.trees:
-                    if check_collision(beetle, tree):
-                        beetle.mode = 'tree'
-                        beetle.tree = tree
-                    if beetle.sees(tree):
-                        beetle.processVisual(tree)
-                # Second half step
-                beetle.advance(DT / 2)
 
             # Update screen if requested
             if VISUALISE:
@@ -243,7 +203,7 @@ class Simulation:
             self.t += DT
 
             # End conditions: 80% of drones dead, all beetles dead or time up.
-            if not self.drones or not self.beetles or self.t >= T_MAX:
+            if not self.drones or self.t >= T_MAX:
                 running = False
                 self.score = self.evaluate()
 
