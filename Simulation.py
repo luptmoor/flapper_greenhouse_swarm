@@ -63,7 +63,7 @@ class Simulation:
     Class holding all the functions and parameters for a single simulation instance.
     """
 
-    def __init__(self, params, seed=48):
+    def __init__(self, params, seed=41):
         self.score = 0  # Initialisation of fitness score for this particular simulation
         self.t = 0  # Initialisation of time [s]
 
@@ -90,9 +90,9 @@ class Simulation:
         loads simulated environment by placing trees, beetles and drones.
         :return: None
         """
+
+
         # Initial random placement of trees on map
-        
-        
         for i in range(self.n_rows):
             for j in range(int(round(N_TREES_PER_ROW * noise(NOISE), 0))):
                 placing = True
@@ -122,12 +122,14 @@ class Simulation:
         #             placing = False
         #     self.n0_beetles = len(self.beetles)
 
+
+
         # Initial random placement of drones on launchpad (fraction of total map)
         for k in range(int(round(N_DRONES * noise(NOISE), 0))):
             placing = True
             while placing:
                 x = (np.random.random() * WIDTH * LAUNCHPAD_FRAC * noise(NOISE)) // 1
-                y = (np.random.random() * HEIGHT * noise(NOISE)) // 1
+                y = random.uniform(k * HEIGHT // N_DRONES, (k+1) * HEIGHT // N_DRONES)
 
                 newdrone = Drone('Drone ' + str(k), 'drone', x, y, self.params)
                 if not any([check_collision(newdrone, entity, DRONE_MIN_DIST * noise(NOISE)) for entity in self.entities]):
