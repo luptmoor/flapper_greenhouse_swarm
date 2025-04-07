@@ -174,7 +174,7 @@ class Simulation:
 
 
                 for tree in self.trees:
-                    if check_collision(drone, tree, margin=0.1*R_DRONE):
+                    if check_collision(drone, tree, margin=0.1*R_DRONE) and drone.z <= TREE_HEIGHT:
                         self.drones.remove(drone)
                         self.entities.remove(drone)
 
@@ -191,7 +191,7 @@ class Simulation:
                 drone.codrones = [otherdrone for otherdrone in self.drones if not otherdrone == drone]
                 drone.advance()                    
 
-                if not 0 < drone.x < WIDTH or not 0 < drone.y < HEIGHT:
+                if not 0 < drone.x < WIDTH or not 0 < drone.y < HEIGHT or not drone.z < CEILING:
                     self.entities.remove(drone)
                     self.drones.remove(drone)
 

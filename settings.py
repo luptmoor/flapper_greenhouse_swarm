@@ -7,6 +7,7 @@ HEIGHT               =  1000                                       # px,  15 m
 BORDERSIZE           =    10                                       # px, cm
 AREA                 = WIDTH * 0.02 * HEIGHT * 0.02                # m^2
 LAUNCHPAD_FRAC       =    0.2                                      # -, used to determine drones' launchpad size
+CEILING              =    3.0                                      # m, maximum height of drones
 
 # Trees
 N_TREES_PER_ROW      =   30                                        # -
@@ -14,7 +15,7 @@ R_TREE_MIN           =   20                                        # px,  8 cm
 R_TREE_MAX           =   40                                        # px, 80 cm
 R_TREE_AVG           =   (R_TREE_MAX + R_TREE_MIN) / 2             # px, mean for normal distribution
 R_TREE_STD           =   (R_TREE_MAX - R_TREE_MIN) / 6             # px, standard deviation for normal distribution
-TREE_MIN_DIST        =   0                                # px, 1.00 m, minimum spacing
+TREE_HEIGHT          =    1.2                                      # m, physical quantity
 
 
 # Static Drone Parameters

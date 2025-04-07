@@ -69,11 +69,17 @@ class Visuals:
         for drone in drones:
             pygame.draw.circle(self.screen, BLUE, (drone.x, drone.y), drone.r_col)
             pygame.draw.line(self.screen, RED, (drone.x, drone.y), (drone.x + np.cos(drone.heading) * R_DRONE, drone.y + np.sin(drone.heading) * R_DRONE), 2)
-
+            
+            # Height indication
+            text_surface, text_rect = self.font.render(str(round(drone.z, 0)), (0, 0, 0))
+            text_rect.center = (drone.x, drone.y)
+            self.screen.blit(text_surface, text_rect)
+                
             if VIEW == 1:  # Drone vision and influenced entitites
                 pygame.draw.circle(self.screen, GREY, (drone.x, drone.y), drone.r_vis['drone'], 1)  # visual range for drones
                 for entity in drone.visible_entities:
                     pygame.draw.line(self.screen, TYPE_COLOURS[entity.type], (drone.x, drone.y), (entity.x, entity.y), 1)
+                    
 
             if VIEW == 2:  # Mid-range inter-drone communication, activity labels
                 pygame.draw.circle(self.screen, WHITE, (drone.x, drone.y), drone.r_fardrone, 1)

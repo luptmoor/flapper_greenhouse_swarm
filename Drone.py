@@ -37,6 +37,7 @@ class Drone(Entity):
         self.visible_entities = []
         self.codrones = []
         self.speed = self.v_min
+        self.z = 0.0
         self.ax = 0
         self.ay = 0
         self.heading = np.random.random() * 2 * np.pi
