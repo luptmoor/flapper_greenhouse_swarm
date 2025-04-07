@@ -19,7 +19,7 @@ class Visuals:
         pygame.display.flip()
 
 
-    def update(self, trees, beetles, drones):
+    def update(self, trees, drones):
         # Make sure visualisation is ended when window is closed
         global VIEW
 

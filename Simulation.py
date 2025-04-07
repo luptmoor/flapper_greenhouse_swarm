@@ -1,6 +1,5 @@
 import numpy as np
 from Entity import Entity
-from Beetle import Beetle
 from Drone import Drone
 from Visuals import Visuals
 from settings import *
@@ -63,7 +62,7 @@ class Simulation:
     Class holding all the functions and parameters for a single simulation instance.
     """
 
-    def __init__(self, params, seed=42):
+    def __init__(self, params, seed=44):
         self.score = 0  # Initialisation of fitness score for this particular simulation
         self.t = 0  # Initialisation of time [s]
 
@@ -71,10 +70,8 @@ class Simulation:
         self.entities = []
         self.trees = []
         self.drones = []
-        self.beetles = []
 
         self.n0_drones = N_DRONES
-        self.n0_beetles = N_BEETLES
 
         self.params = params  # tunable parameters chosen for this particular simulation to be evaluated
         self.seed = seed  # seed for random number generator
@@ -154,7 +151,6 @@ class Simulation:
         :return: (float) score for this particular simulation, lies in interval [0, 1].
         """
         running = True
-        print(self.n0_drones, 'drones applied to ', self.n0_beetles, 'beetles.')
         while running:
             # Print time and seed every 10s
             if int(round(self.t, 0)) % 10 == 0 and abs(int(round(self.t, 0)) - self.t) < 0.001:
@@ -197,7 +193,7 @@ class Simulation:
 
             # Update screen if requested
             if VISUALISE:
-                self.visuals.update(self.trees, self.beetles, self.drones)
+                self.visuals.update(self.trees, self.drones)
 
             # Add time step
             self.t += DT
