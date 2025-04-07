@@ -15,21 +15,10 @@ R_TREE_AVG           =   (R_TREE_MAX + R_TREE_MIN) / 2             # px, mean fo
 R_TREE_STD           =   (R_TREE_MAX - R_TREE_MIN) / 6             # px, standard deviation for normal distribution
 TREE_MIN_DIST        =   R_TREE_MAX                                # px, 1.00 m, minimum spacing
 
-# Bugs
-BEETLE_DENSITY          =    1.4                                      # -, beetles per tree
-N_BEETLES               =   int(round(BEETLE_DENSITY * AREA * TREE_DENSITY, 0))  # -, number of beetles
-R_BEETLE                =    1                                        # px, 2 cm, radius of beetle
-R_VIS_BEETLE            =  100                                        # px, 1 m, vision radius of beetle
-BEETLE_RANDOMNESS       =  120 / 57.3                                 # rad / s, beetles' maximum heading change per second
-V_BEETLE                =   62                                        # px / s (1.24 m/s) beetle velocity
-TREE_LAND_PROB       =    0.005                                    # 1 / s
-ESCAPE_PROB          =    0.20                                     # 1 / s
-TAKEOFF_PROB         =    0.001                                    # 1 / s
 
 # Static Drone Parameters
-BEETLES_PER_DRONE       =    3                                        # -
-N_DRONES             =  int(round(N_BEETLES / BEETLES_PER_DRONE, 0))     # -, number of drones
-R_DRONE              =    7                                    # px, 14 cm, drone radius
+N_DRONES             =    5                                        # -, number of drones
+R_DRONE              =    7                                        # px, 14 cm, drone radius
 DRONE_MIN_DIST       =   40                                        # px, 80 cm, minimum initial drone spacing
 V_DRONE_MAX          =  250                                        # px / s,  5 m / s
 A_DRONE_MAX          =  165                                        # px / s^2, 3.3 m / s^2
@@ -56,13 +45,13 @@ BLUE                 = (0, 50, 255)
 WHITE                = (255, 255, 255)
 
 BEETLE_COLOURS = {'idle': RED, 'land': ORANGE, 'tree': YELLOW, 'escape': PINK}
-TYPE_COLOURS = {'drone': GREY, 'tree': BROWN, 'beetle': RED}
+TYPE_COLOURS = {'drone': GREY, 'tree': BROWN}
 
 
 # CMA-ES settings
 RUNS_PER_SOLUTION     =    3                                        # -, for how many conditions each solution is tested
 N_GENERATIONS         =   90                                        # -, number of generations in CMA-ES
-N_POP                 =   20                                       # -, number of genotypes per generation
+N_POP                 =   20                                        # -, number of genotypes per generation
 
 # Parameter 0
 MIN_R_VIS_TREE        =   10

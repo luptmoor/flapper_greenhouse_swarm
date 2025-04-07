@@ -125,7 +125,7 @@ class Simulation:
             placing = True
             while placing:
                 x = (np.random.random() * WIDTH * LAUNCHPAD_FRAC * noise(NOISE)) // 1
-                y = (np.random.random() * HEIGHT * LAUNCHPAD_FRAC * noise(NOISE)) // 1
+                y = (np.random.random() * HEIGHT * noise(NOISE)) // 1
 
                 newdrone = Drone('Drone ' + str(k), 'drone', x, y, self.params)
                 if not any([check_collision(newdrone, entity, DRONE_MIN_DIST * noise(NOISE)) for entity in self.entities]):
