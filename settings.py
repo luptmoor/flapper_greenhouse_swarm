@@ -16,6 +16,8 @@ R_TREE_MAX           =   40                                        # px, 80 cm
 R_TREE_AVG           =   (R_TREE_MAX + R_TREE_MIN) / 2             # px, mean for normal distribution
 R_TREE_STD           =   (R_TREE_MAX - R_TREE_MIN) / 6             # px, standard deviation for normal distribution
 TREE_HEIGHT          =    1.2                                      # m, physical quantity
+FRUIT_PROB           =    0.6
+FRUIT_MIN_HEIGHT     =    0.2
 
 
 # Static Drone Parameters

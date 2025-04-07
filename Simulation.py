@@ -1,6 +1,7 @@
 import numpy as np
 from Entity import Entity
 from Drone import Drone
+from Beetle import Fruit
 from Visuals import Visuals
 from settings import *
 import random
@@ -70,6 +71,7 @@ class Simulation:
         # Lists holding simulated entities
         self.entities = []
         self.trees = []
+        self.fruit = []
         self.drones = []
 
         self.n0_drones = N_DRONES
@@ -77,7 +79,6 @@ class Simulation:
         self.params = params  # tunable parameters chosen for this particular simulation to be evaluated
         self.seed = seed  # seed for random number generator
         self.n_rows = random.choice([3, 4, 5])
-        print(self.n_rows)
 
         np.random.seed(self.seed)
         self.load_environment()
@@ -100,29 +101,30 @@ class Simulation:
                     y = HEIGHT / (self.n_rows + 1) * (i+1)
                     x = int(round(random.uniform(LAUNCHPAD_FRAC*WIDTH + R_TREE_MAX, WIDTH - R_TREE_MAX), 0))
 
-                    newtree = Entity('Tree ' + str(j), 'tree', x, y, round(np.random.normal(R_TREE_AVG, R_TREE_STD), 0))
+                    newtree = Entity('Tree ' + str(j + i * N_TREES_PER_ROW), 'tree', x, y, round(np.random.normal(R_TREE_AVG, R_TREE_STD), 0))
                     if not any([check_collision(newtree, entity, -30) for entity in self.entities]):
                         self.entities.append(newtree)
                         self.trees.append(newtree)
                         placing = False
 
-
-        # # Initial random placement of beetles on map
-        # for j in range(int(round(N_BEETLES * noise(NOISE), 0))):
-        #     placing = True
-        #     while placing:
-        #         x = (np.random.random() * WIDTH) // 1
-        #         y = (np.random.random() * HEIGHT) // 1
-
-        #         newbeetle = Beetle('Bug ' + str(j), x, y)
-        #         if not any([check_collision(newbeetle, entity) for entity in self.entities]):
-        #             self.entities.append(newbeetle)
-        #             self.beetles.append(newbeetle)
-        #             # print(newbeetle.name, 'placed!')
-        #             placing = False
-        #     self.n0_beetles = len(self.beetles)
+        #dummy = input(f"following trees so far: {[tree.name for tree in self.trees]}. Press enter to continue")
 
 
+        # # Initial placement of fruit
+        for tree in self.trees:
+            if random.uniform(0, 1) < FRUIT_PROB:
+                angle = random.uniform(-np.pi, np.pi)
+                x = tree.x + tree.r_col * np.cos(angle)
+                y = tree.y + tree.r_col * np.sin(angle)
+                z = random.uniform(FRUIT_MIN_HEIGHT, TREE_HEIGHT)
+                
+                newfruit = Fruit('Fruit of ' + tree.name, x, y, z)
+                
+                if not any([check_collision(newfruit, othertree) for othertree in self.trees if not othertree.name == tree.name]):
+                    self.fruit.append(newfruit)
+                    print(f"{newfruit.name} was added")
+
+       
 
         # Initial random placement of drones on launchpad (fraction of total map)
         for k in range(int(round(N_DRONES * noise(NOISE), 0))):
@@ -204,7 +206,7 @@ class Simulation:
 
             # Update screen if requested
             if VISUALISE:
-                self.visuals.update(self.trees, self.drones)
+                self.visuals.update(self.trees, self.fruit, self.drones)
 
             # Add time step
             self.t += DT

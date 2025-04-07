@@ -19,7 +19,7 @@ class Visuals:
         pygame.display.flip()
 
 
-    def update(self, trees, drones):
+    def update(self, trees, fruits, drones):
         # Make sure visualisation is ended when window is closed
         global VIEW
 
@@ -64,6 +64,9 @@ class Visuals:
         # Draw all trees
         for tree in trees:
             pygame.draw.circle(self.screen, GREEN, (tree.x, tree.y), tree.r_col)
+
+        for fruit in fruits:
+            pygame.draw.circle(self.screen, RED, (fruit.x, fruit.y), fruit.r_col)
 
 
         for drone in drones:
