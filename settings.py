@@ -1,16 +1,16 @@
 import numpy as np
 
 # Environment   scale: 1 px = 2cm
-WIDTH                = 1400                                        # px,  28 m
-HEIGHT               =  750                                        # px,  15 m
+SCALE                =    1                                        # px / cm
+WIDTH                =  1500                                       # px,  28 m
+HEIGHT               =  1000                                       # px,  15 m
 AREA                 = WIDTH * 0.02 * HEIGHT * 0.02                # m^2
 LAUNCHPAD_FRAC       =    0.3                                      # -, used to determine drones' launchpad size
 
 # Trees
-TREE_DENSITY         =    0.08                                     # trees / m^2
-N_TREES              =   int(round(AREA * TREE_DENSITY, 0))        # -
-R_TREE_MIN           =    4                                        # px,  8 cm
-R_TREE_MAX           =   40                                        # px, 80 cm
+N_TREES              =   10                                        # -
+R_TREE_MIN           =    8                                        # px,  8 cm
+R_TREE_MAX           =   80                                        # px, 80 cm
 R_TREE_AVG           =   (R_TREE_MAX + R_TREE_MIN) / 2             # px, mean for normal distribution
 R_TREE_STD           =   (R_TREE_MAX - R_TREE_MIN) / 6             # px, standard deviation for normal distribution
 TREE_MIN_DIST        =   R_TREE_MAX                                # px, 1.00 m, minimum spacing
@@ -18,10 +18,10 @@ TREE_MIN_DIST        =   R_TREE_MAX                                # px, 1.00 m,
 
 # Static Drone Parameters
 N_DRONES             =    5                                        # -, number of drones
-R_DRONE              =    7                                        # px, 14 cm, drone radius
-DRONE_MIN_DIST       =   40                                        # px, 80 cm, minimum initial drone spacing
-V_DRONE_MAX          =  250                                        # px / s,  5 m / s
-A_DRONE_MAX          =  165                                        # px / s^2, 3.3 m / s^2
+R_DRONE              =   14                                        # px, 14 cm, drone radius
+DRONE_MIN_DIST       =   80                                        # px, 80 cm, minimum initial drone spacing
+V_DRONE_MAX          =  500                                        # px / s,  5 m / s
+A_DRONE_MAX          =  330                                        # px / s^2, 3.3 m / s^2
 
 # Simulation parameters
 DT                   =    0.01                                       # s, timestep per tick

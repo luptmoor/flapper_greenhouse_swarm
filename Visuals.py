@@ -8,7 +8,7 @@ class Visuals:
         self.FPS = 1/DT  # Determine FPS from timestep setting
         pygame.init()
         self.screen = pygame.display.set_mode((width, height))
-        pygame.display.set_caption("Bug Catching Swarming Simulation")
+        pygame.display.set_caption("Flapper Greenhouse Swarm Simulation")
 
         self.font = pygame.freetype.Font(None, 12)
         self.clock = pygame.time.Clock()
