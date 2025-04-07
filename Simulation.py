@@ -159,7 +159,7 @@ class Simulation:
             # Drone simulation
             for drone in self.drones:
                 for otherdrone in self.drones:
-                    if check_collision(drone, otherdrone, margin=0.2*R_DRONE):
+                    if check_collision(drone, otherdrone, margin=0.2*R_DRONE) or not 0 < drone.x < WIDTH or not 0 < drone.y < HEIGHT:
                         if drone in self.entities:
                             self.entities.remove(drone)
                         if drone in self.drones:
@@ -184,7 +184,7 @@ class Simulation:
                         drone.visible_entities.remove(entity)
 
                 drone.codrones = [otherdrone for otherdrone in self.drones if not otherdrone == drone]
-                drone.advance()
+                drone.advance()                    
 
                 for entity in drone.visible_entities:
                     if entity not in self.entities:

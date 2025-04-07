@@ -54,12 +54,8 @@ class Drone(Entity):
             return False
 
         # Determine distance according to periodical domain
-        dx = np.abs(self.x - entity.x)
-        dy = np.abs(self.y - entity.y)
-        # limit distance in both axes to half the WIDTH or HEIGHT
-        dx = min(dx, WIDTH - dx)
-        dy = min(dy, HEIGHT - dy)
-
+        dx = self.x - entity.x
+        dy = self.y - entity.y
         d = np.sqrt(dx ** 2 + dy ** 2)  # Pythagoras
 
 
@@ -93,21 +89,12 @@ class Drone(Entity):
                 self.activity += 1
 
             # Distance calculation according to periodical domain
-            dx = np.abs(self.x - entity.x)
-            dy = np.abs(self.y - entity.y)
-            dx = min(dx, WIDTH - dx)
-            dy = min(dy, HEIGHT - dy)
+            dx = entity.x - self.x
+            dy = entity.y - self.y
             d = np.sqrt(dx ** 2 + dy ** 2) - entity.r_col
 
 
-            # Heading calculation according to periodical domain
-            dx = entity.x - self.x
-            dy = entity.y - self.y
-
-            if abs(dx) > WIDTH / 2:
-                dx = WIDTH - dx
-            if abs(dy) > HEIGHT / 2:
-                dy = HEIGHT - dy
+            # Bearing calculation according to periodical domain
             theta = np.arctan2(-dy, -dx)
 
 
@@ -117,10 +104,8 @@ class Drone(Entity):
 
         # Mid-range inter-drone communication
         for codrone in self.codrones:
-            dx = np.abs(self.x - codrone.x)
-            dy = np.abs(self.y - codrone.y)
-            dx = min(dx, WIDTH - dx)
-            dy = min(dy, HEIGHT - dy)
+            dx = codrone.x - self.x
+            dy = codrone.y - self.y
             d = np.sqrt(dx ** 2 + dy ** 2)
             theta = np.arctan2(self.y - codrone.y, self.x - codrone.x)
 
@@ -155,8 +140,8 @@ class Drone(Entity):
         self.speed = max(min(np.sqrt(vy**2 + vx**2), self.v_max), self.v_min)
 
 
-
         # Integration
-        self.x = int(round(self.x + self.speed * np.cos(self.heading) * DT, 0)) % WIDTH
-        self.y = int(round(self.y + self.speed * np.sin(self.heading) * DT, 0)) % HEIGHT
+        self.x = int(round(self.x + self.speed * np.cos(self.heading) * DT, 0))
+        self.y = int(round(self.y + self.speed * np.sin(self.heading) * DT, 0))
+
 
