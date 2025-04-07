@@ -167,7 +167,7 @@ class Simulation:
                         if drone in self.entities:
                             self.entities.remove(drone)
                         if drone in self.drones:
-                            self.drones.remove(drone)  # XXX
+                            self.drones.remove(drone)  
                         self.entities.remove(otherdrone)
                         self.drones.remove(otherdrone)
 
