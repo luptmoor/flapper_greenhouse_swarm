@@ -146,12 +146,11 @@ class Simulation:
         :return: (list): 1. score for this particular simulation, lies in interval [0, 1], 2. fraction of killed drones,
                          3. fraction of killed beetles, 4. fraction of passed time.
         """
-        F1 = F_beetles(1 - len(self.beetles) / self.n0_beetles)
-        F2 = F_time(self.t / T_MAX)
-        F3 = F_drones(1 - len(self.drones) / self.n0_drones)
-        score = F1 * F2 * F3
-
-        return [score, (1 - len(self.drones) / self.n0_drones), (1 - len(self.beetles) / self.n0_beetles), (self.t / T_MAX)]
+        scores = []
+        for fruit in self.fruits:
+            scores.append(1 - 3 *np.mean([item**2 / self.t**2 for item in fruit.record]))
+        
+        return np.mean(scores)
 
     def run(self):
         """
@@ -219,5 +218,6 @@ class Simulation:
             if not self.drones or self.t >= T_MAX:
                 running = False
                 self.score = self.evaluate()
+                print(self.score)
 
         return self.score
