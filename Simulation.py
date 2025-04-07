@@ -3,6 +3,7 @@ from Entity import Entity
 from Drone import Drone
 from Visuals import Visuals
 from settings import *
+import random
 
 
 def F_time(x):
@@ -62,7 +63,7 @@ class Simulation:
     Class holding all the functions and parameters for a single simulation instance.
     """
 
-    def __init__(self, params, seed=44):
+    def __init__(self, params, seed=48):
         self.score = 0  # Initialisation of fitness score for this particular simulation
         self.t = 0  # Initialisation of time [s]
 
@@ -75,6 +76,8 @@ class Simulation:
 
         self.params = params  # tunable parameters chosen for this particular simulation to be evaluated
         self.seed = seed  # seed for random number generator
+        self.n_rows = random.choice([3, 4, 5])
+        print(self.n_rows)
 
         np.random.seed(self.seed)
         self.load_environment()
@@ -88,18 +91,20 @@ class Simulation:
         :return: None
         """
         # Initial random placement of trees on map
-        for i in range(int(round(N_TREES * noise(NOISE), 0))):
-            placing = True
-            while placing:
-                x = np.random.random() * (WIDTH - 2 * TREE_MIN_DIST) + TREE_MIN_DIST // 1
-                y = np.random.random() * (HEIGHT - 2 * TREE_MIN_DIST) + TREE_MIN_DIST // 1
+        
+        
+        for i in range(self.n_rows):
+            for j in range(int(round(N_TREES_PER_ROW * noise(NOISE), 0))):
+                placing = True
+                while placing:
+                    y = HEIGHT / (self.n_rows + 1) * (i+1)
+                    x = int(round(random.uniform(LAUNCHPAD_FRAC*WIDTH + R_TREE_MAX, WIDTH - R_TREE_MAX), 0))
 
-                newtree = Entity('Tree ' + str(i), 'tree', x, y, round(np.random.normal(R_TREE_AVG, R_TREE_STD), 0))
-                if not any([check_collision(newtree, entity, TREE_MIN_DIST * noise(NOISE)) for entity in self.entities]):
-                    self.entities.append(newtree)
-                    self.trees.append(newtree)
-                    # print(newtree.name, 'placed!')
-                    placing = False
+                    newtree = Entity('Tree ' + str(j), 'tree', x, y, round(np.random.normal(R_TREE_AVG, R_TREE_STD), 0))
+                    if not any([check_collision(newtree, entity, -30) for entity in self.entities]):
+                        self.entities.append(newtree)
+                        self.trees.append(newtree)
+                        placing = False
 
 
         # # Initial random placement of beetles on map
