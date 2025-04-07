@@ -67,6 +67,7 @@ class Visuals:
 
         for drone in drones:
             pygame.draw.circle(self.screen, GREY, (drone.x, drone.y), drone.r_col)
+            pygame.draw.line(self.screen, RED, (drone.x, drone.y), (drone.x + np.cos(drone.heading) * R_DRONE, drone.y + np.sin(drone.heading) * R_DRONE))
 
             if VIEW == 1:  # Drone vision and influenced entitites
                 pygame.draw.circle(self.screen, GREY, (drone.x, drone.y), drone.r_vis['drone'], 1)  # visual range for drones
