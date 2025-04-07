@@ -36,6 +36,9 @@ class Visuals:
                     VIEW += 1
                     if VIEW > 3:
                         VIEW = 0
+                
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
 
                 # Pause simulation
                 elif event.key == pygame.K_SPACE:
