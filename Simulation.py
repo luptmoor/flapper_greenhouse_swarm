@@ -8,35 +8,6 @@ import random
 import torch
 
 
-def F_time(x):
-    """
-    Mathematical transfer function for time criterion.
-    :param x: (float) function argument,
-    :return: (float) partial fitness.
-    """
-    return 1 - 0.3 * x ** 2
-
-
-def F_beetles(x):
-    """
-    Mathematical transfer function for "beetles killed" criterion.
-    :param x: (float) function argument.
-    :return: (float) partial fitness.
-    """
-    a = 0.3
-    # return a ** 2 / ((1 - x) ** 2 + a ** 2)
-    return x ** 2
-
-
-def F_drones(x):
-    """
-    Mathematical transfer function for "drones died" criterion.
-    :param x: (float) function argument.
-    :return: (float) partial fitness.
-    """
-    a = 0.08
-    return a ** 2 / (x ** 2 + a ** 2)
-
 
 def check_collision(entity1, entity2, margin=0):
     """
@@ -62,10 +33,14 @@ def check_collision(entity1, entity2, margin=0):
 
 class Simulation:
     """
-    Class holding all the functions and parameters for a single simulation instance.
+    Class holding all the functions and parameters for a single simulation instance. All quantities must be in physical SI units.
+    Only the visuals instance deals with pixel dimensions.
     """
 
     def __init__(self, bt):
+        np.random.seed(SEED)
+        torch.manual_seed(SEED)
+
         self.score = 0  # Initialisation of fitness score for this particular simulation
         self.t = 0  # Initialisation of time [s]
 
@@ -76,12 +51,10 @@ class Simulation:
         self.drones = []
 
         self.n0_drones = N_DRONES
-
-        self.bt = bt  
         self.n_rows = random.choice([3, 4, 5])
 
-        np.random.seed(SEED)
-        torch.manual_seed(SEED)
+        self.bt = bt  
+        
         self.load_environment()
 
         if VISUALISE:
@@ -100,15 +73,13 @@ class Simulation:
                 placing = True
                 while placing:
                     y = HEIGHT / (self.n_rows + 1) * (i+1)
-                    x = int(round(random.uniform(LAUNCHPAD_FRAC*WIDTH + R_TREE_MAX, WIDTH - R_TREE_MAX), 0))
+                    x = random.uniform(LAUNCHPAD_FRAC*WIDTH + R_TREE_MAX, WIDTH - R_TREE_MAX)
 
-                    newtree = Entity('Tree ' + str(j + i * N_TREES_PER_ROW), 'tree', x, y, round(np.random.normal(R_TREE_AVG, R_TREE_STD), 0))
-                    if not any([check_collision(newtree, entity, -30) for entity in self.entities]):
+                    newtree = Entity('Tree ' + str(j + i * N_TREES_PER_ROW), 'tree', x, y, np.random.normal(R_TREE_AVG, R_TREE_STD))
+                    if not any([check_collision(newtree, entity, -0.3) for entity in self.entities]):
                         self.entities.append(newtree)
                         self.trees.append(newtree)
                         placing = False
-
-        #dummy = input(f"following trees so far: {[tree.name for tree in self.trees]}. Press enter to continue")
 
 
         # # Initial placement of fruit
@@ -130,11 +101,11 @@ class Simulation:
         for k in range(int(round(N_DRONES * noise(NOISE), 0))):
             placing = True
             while placing:
-                x = (np.random.random() * WIDTH * LAUNCHPAD_FRAC * noise(NOISE)) // 1
-                y = random.uniform(k * HEIGHT // N_DRONES, (k+1) * HEIGHT // N_DRONES)
+                x = (np.random.random() * WIDTH * LAUNCHPAD_FRAC * noise(NOISE))
+                y = random.uniform(k * HEIGHT / N_DRONES, (k+1) * HEIGHT / N_DRONES)
 
                 newdrone = Drone('Drone ' + str(k), 'drone', x, y, self.bt)
-                if not any([check_collision(newdrone, entity, DRONE_MIN_DIST * noise(NOISE)) for entity in self.entities]):
+                if not any([check_collision(newdrone, entity) for entity in self.entities]):
                     self.entities.append(newdrone)
                     self.drones.append(newdrone)
                     # print(newdrone.name, 'placed!')
@@ -171,7 +142,7 @@ class Simulation:
             # Drone simulation
             for drone in self.drones:
                 for otherdrone in self.drones:
-                    if check_collision(drone, otherdrone, margin=0.2*R_DRONE):
+                    if check_collision(drone, otherdrone):
                         if drone in self.entities:
                             self.entities.remove(drone)
                         if drone in self.drones:
@@ -181,7 +152,7 @@ class Simulation:
 
 
                 for tree in self.trees:
-                    if check_collision(drone, tree, margin=0.1*R_DRONE) and drone.z <= TREE_HEIGHT:
+                    if check_collision(drone, tree) and drone.z <= TREE_HEIGHT:
                         self.drones.remove(drone)
                         self.entities.remove(drone)
 

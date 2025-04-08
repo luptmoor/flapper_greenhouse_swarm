@@ -1,29 +1,27 @@
 import numpy as np
 
-# Environment   scale: 1 px = 2cm
+# Environment   scale: 1 px = 1cm
 SCALE                =    100                                      # px / m
-WIDTH                =  1500                                       # px,  28 m
-HEIGHT               =  1000                                       # px,  15 m
+WIDTH                =     15                                       # m
+HEIGHT               =     10                                       # m
 BORDERSIZE           =    10                                       # px, cm
-AREA                 = WIDTH * 0.02 * HEIGHT * 0.02                # m^2
 LAUNCHPAD_FRAC       =    0.2                                      # -, used to determine drones' launchpad size
 CEILING              =    3.0                                      # m, maximum height of drones
 
 # Trees
 N_TREES_PER_ROW      =   30                                        # -
-R_TREE_MIN           =   20                                        # px,  8 cm
-R_TREE_MAX           =   40                                        # px, 80 cm
+R_TREE_MIN           =   0.20                                      # m
+R_TREE_MAX           =   0.40                                      # m
 R_TREE_AVG           =   (R_TREE_MAX + R_TREE_MIN) / 2             # px, mean for normal distribution
 R_TREE_STD           =   (R_TREE_MAX - R_TREE_MIN) / 6             # px, standard deviation for normal distribution
 TREE_HEIGHT          =    1.2                                      # m, physical quantity
 FRUIT_PROB           =    0.6
-FRUIT_MIN_HEIGHT     =    0.2
+FRUIT_MIN_HEIGHT     =    0.2                                      # m
 
 
 # Static Drone Parameters
 N_DRONES             =    5                                        # -, number of drones
-R_DRONE              =   14                                        # px, 14 cm, drone radius
-DRONE_MIN_DIST       =   80                                        # px, 80 cm, minimum initial drone spacing
+R_DRONE              =    0.14                                        # cm drone radius
 V_DRONE_MAX          =  500                                        # px / s,  5 m / s
 A_DRONE_MAX          =  330                                        # px / s^2, 3.3 m / s^2
 

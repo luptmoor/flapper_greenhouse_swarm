@@ -85,11 +85,12 @@ class Drone(Entity):
         Function executing drone dynamics.
         :return: None
         """
+        
         for i in range(N_DRONES-1):
             if len(self.codrones) > i:
-                self.swarm_matrix[i, :] = torch.Tensor([self.codrones[i].x/SCALE, self.codrones[i].y/SCALE, self.codrones[i].z/SCALE, self.codrones[i].message])
+                self.swarm_matrix[i, :] = torch.Tensor([self.codrones[i].x, self.codrones[i].y, self.codrones[i].z, self.codrones[i].message])
             else: self.swarm_matrix[i, :] = torch.zeros(1, 4)
-        self.swarm_matrix[N_DRONES-1, :] = torch.Tensor([self.x/SCALE, self.y/SCALE, self.z/SCALE, self.memory])
+        self.swarm_matrix[N_DRONES-1, :] = torch.Tensor([self.x, self.y, self.z, self.memory])
 
         print(self.swarm_matrix)
 
@@ -109,10 +110,10 @@ class Drone(Entity):
 
 
         # Transform from body to absolute frame
-        self.x = int(round(self.x + (self.vx * SCALE  * DT) * np.cos(self.heading), 0))
-        self.y = int(round(self.y + (self.vx * SCALE  * DT) * np.sin(self.heading), 0))
+        self.x = self.x + self.vx * DT * np.cos(self.heading)
+        self.y = self.y + self.vx * DT * np.sin(self.heading)
 
-        self.z = round(self.z + self.vz * SCALE * DT, 5)
+        self.z = self.z + self.vz * DT
         if self.z < 0: self.z = 0
         if self.z > CEILING: self.z = CEILING
 
