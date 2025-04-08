@@ -15,8 +15,12 @@ if __name__ == '__main__':
 
     params = 13 * [random.uniform(-1, 1)]
 
-    bt = BehaviourTree()
-    bt.save2file()
+    # bt = BehaviourTree(random_tree=True)
+    # bt.save2file()
 
-    sim = Simulation(bt=bt);
-    sim.run();
+    bt = BehaviourTree();
+    bt.load_from_file('behaviour_tree.json')
+    bt.save2file('behaviour_tree2.json')
+
+    # sim = Simulation(bt=bt);
+    # sim.run();
