@@ -5,6 +5,7 @@ from Fruit import Fruit
 from Visuals import Visuals
 from settings import *
 import random
+import torch
 
 
 def F_time(x):
@@ -64,7 +65,7 @@ class Simulation:
     Class holding all the functions and parameters for a single simulation instance.
     """
 
-    def __init__(self, bt, seed=41):
+    def __init__(self, bt):
         self.score = 0  # Initialisation of fitness score for this particular simulation
         self.t = 0  # Initialisation of time [s]
 
@@ -77,10 +78,10 @@ class Simulation:
         self.n0_drones = N_DRONES
 
         self.bt = bt  
-        self.seed = seed  # seed for random number generator
         self.n_rows = random.choice([3, 4, 5])
 
-        np.random.seed(self.seed)
+        np.random.seed(SEED)
+        torch.manual_seed(SEED)
         self.load_environment()
 
         if VISUALISE:
@@ -150,7 +151,7 @@ class Simulation:
         for fruit in self.fruits:
             scores.append(1 - 3 *np.mean([item**2 / self.t**2 for item in fruit.record]))
         
-        print(scores)
+        
         return np.mean(scores)
 
     def run(self):
@@ -162,7 +163,7 @@ class Simulation:
         while running:
             # Print time and seed every 10s
             if int(round(self.t, 0)) % 10 == 0 and abs(int(round(self.t, 0)) - self.t) < 0.001:
-                print('Seed:', self.seed, 'Time:', round(self.t, 0), 's')
+                print('Seed:', SEED, 'Time:', round(self.t, 0), 's')
             
             for fruit in self.fruits:
                 fruit.advance()

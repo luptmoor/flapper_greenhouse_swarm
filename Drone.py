@@ -37,7 +37,8 @@ class Drone(Entity):
         self.fruit_visible = False
         self.memory = 0.0
         self.elapsed_battery_time = 0.0
-        self.swarm_matrix = torch.zeros(N_DRONES * 4)
+        self.swarm_matrix = torch.zeros(N_DRONES, 4)
+        self.message = 0.0
 
         self.bt = bt
 
@@ -84,12 +85,19 @@ class Drone(Entity):
         Function executing drone dynamics.
         :return: None
         """
+        for i in range(N_DRONES-1):
+            if len(self.codrones) > i:
+                self.swarm_matrix[i, :] = torch.Tensor([self.codrones[i].x/SCALE, self.codrones[i].y/SCALE, self.codrones[i].z/SCALE, self.codrones[i].message])
+            else: self.swarm_matrix[i, :] = torch.zeros(1, 4)
+        self.swarm_matrix[N_DRONES-1, :] = torch.Tensor([self.x/SCALE, self.y/SCALE, self.z/SCALE, self.memory])
+
+        print(self.swarm_matrix)
 
         blackboard = {
             "elapsed_battery_time": self.elapsed_battery_time,
             "fruit_visible": self.fruit_visible,
             "memory": self.memory,
-            "swarminput": self.swarm_matrix
+            "swarminput": torch.flatten(self.swarm_matrix)
         }
         self.vx, self.vz, self.r = self.bt.feed_forward(blackboard) # m/s
 

@@ -28,6 +28,7 @@ V_DRONE_MAX          =  500                                        # px / s,  5 
 A_DRONE_MAX          =  330                                        # px / s^2, 3.3 m / s^2
 
 # Simulation parameters
+SEED                 =   43 
 DT                   =    0.05                                       # s, timestep per tick
 T_MAX                =  120                                         # s, 1min, maximum simulation duration
 VISUALISE            =  True                                        # Boolean deciding if simulation shall be visualised
