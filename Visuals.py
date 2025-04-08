@@ -2,6 +2,12 @@ import numpy as np
 import pygame
 from settings import *
 
+def px(x, y=0):
+    """helper function to transform meters to pixels. Works for points or single dimensions"""
+    if y == 0:
+        return int(x * SCALE)
+    else:
+        return (int(x * SCALE), int(y * SCALE))
 
 class Visuals:
     """
@@ -11,8 +17,8 @@ class Visuals:
         self.FPS = 1/DT  # Determine FPS from timestep setting
         pygame.init()
 
-        self.screen_width = width * SCALE
-        self.screen_height = height * SCALE
+        self.screen_width = px(width)
+        self.screen_height = px(width)
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Flapper Greenhouse Swarm Simulation")
 
@@ -69,25 +75,22 @@ class Visuals:
 
         # Draw all trees
         for tree in trees:
-            pygame.draw.circle(self.screen, GREEN, (tree.x * SCALE, tree.y * SCALE), tree.r_col * SCALE)
+            pygame.draw.circle(self.screen, GREEN, px(tree.x, tree.y), px(tree.r_col))
 
         for fruit in fruits:
-            pygame.draw.circle(self.screen, RED, (fruit.x * SCALE, fruit.y * SCALE), fruit.r_col * SCALE)
+            pygame.draw.circle(self.screen, RED, px(fruit.x, fruit.y), px(fruit.r_col))
             text_surface, text_rect = self.font.render((str(round(fruit.record[-1], 1))), (0, 0, 0))
-            text_rect.center = (fruit.x*SCALE, fruit.y*SCALE)
+            text_rect.center = (px(fruit.x, fruit.y))
             self.screen.blit(text_surface, text_rect)
 
 
         for drone in drones:
-            X = int(drone.x * SCALE)
-            Y = int(drone.y * SCALE)
-
-            pygame.draw.circle(self.screen, BLUE, (X, Y), R_DRONE * SCALE)
-            pygame.draw.line(self.screen, RED, (X, Y), (float(X+ np.cos(drone.heading) * R_DRONE * SCALE), float(Y + np.sin(drone.heading) * R_DRONE * SCALE)), 2)
+            pygame.draw.circle(self.screen, BLUE, px(drone.x, drone.y), px(R_DRONE))
+            pygame.draw.line(self.screen, RED, px(drone.x, drone.y), (float(px(drone.x) + np.cos(drone.heading) * px(R_DRONE)), float(px(drone.y) + np.sin(drone.heading) * px(R_DRONE))), 2)
             
             # Height indication
             text_surface, text_rect = self.font.render(str(round(drone.z, 2)), (255, 255, 255))
-            text_rect.center = (X, Y)
+            text_rect.center = px(drone.x, drone.y)
             self.screen.blit(text_surface, text_rect)
                 
             # if VIEW == 1:  # Drone vision and influenced entitites
