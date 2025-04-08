@@ -114,6 +114,7 @@ class Drone(Entity):
 
         self.z = round(self.z + self.vz * SCALE * DT, 5)
         if self.z < 0: self.z = 0
+        if self.z > CEILING: self.z = CEILING
 
         print(f"{self.name} @ {self.x}, {self.y}, {self.z} heading {self.heading} ({self.heading * 57.3})")
 

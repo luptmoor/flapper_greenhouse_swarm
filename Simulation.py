@@ -198,7 +198,7 @@ class Simulation:
                 drone.codrones = [otherdrone for otherdrone in self.drones if not otherdrone == drone]
                 drone.advance()                    
 
-                if not 0 < drone.x < WIDTH or not 0 < drone.y < HEIGHT or not drone.z < CEILING:
+                if not 0 < drone.x < WIDTH or not 0 < drone.y < HEIGHT:
                     self.entities.remove(drone)
                     self.drones.remove(drone)
 
