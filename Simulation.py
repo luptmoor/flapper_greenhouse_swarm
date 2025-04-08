@@ -64,7 +64,7 @@ class Simulation:
     Class holding all the functions and parameters for a single simulation instance.
     """
 
-    def __init__(self, params, seed=41):
+    def __init__(self, bt, seed=41):
         self.score = 0  # Initialisation of fitness score for this particular simulation
         self.t = 0  # Initialisation of time [s]
 
@@ -76,7 +76,7 @@ class Simulation:
 
         self.n0_drones = N_DRONES
 
-        self.params = params  # tunable parameters chosen for this particular simulation to be evaluated
+        self.bt = bt  
         self.seed = seed  # seed for random number generator
         self.n_rows = random.choice([3, 4, 5])
 
@@ -132,7 +132,7 @@ class Simulation:
                 x = (np.random.random() * WIDTH * LAUNCHPAD_FRAC * noise(NOISE)) // 1
                 y = random.uniform(k * HEIGHT // N_DRONES, (k+1) * HEIGHT // N_DRONES)
 
-                newdrone = Drone('Drone ' + str(k), 'drone', x, y, self.params)
+                newdrone = Drone('Drone ' + str(k), 'drone', x, y, self.bt)
                 if not any([check_collision(newdrone, entity, DRONE_MIN_DIST * noise(NOISE)) for entity in self.entities]):
                     self.entities.append(newdrone)
                     self.drones.append(newdrone)
@@ -150,6 +150,7 @@ class Simulation:
         for fruit in self.fruits:
             scores.append(1 - 3 *np.mean([item**2 / self.t**2 for item in fruit.record]))
         
+        print(scores)
         return np.mean(scores)
 
     def run(self):
@@ -186,12 +187,12 @@ class Simulation:
 
                 
 
-                # Maintain list of visible entities
-                for entity in self.entities:
-                    if drone.sees(entity) and entity not in drone.visible_entities:
-                        drone.visible_entities.append(entity)
-                    if not drone.sees(entity) and entity in drone.visible_entities:
-                        drone.visible_entities.remove(entity)
+                # # Maintain list of visible entities
+                # for entity in self.entities:
+                #     if drone.sees(entity) and entity not in drone.visible_entities:
+                #         drone.visible_entities.append(entity)
+                #     if not drone.sees(entity) and entity in drone.visible_entities:
+                #         drone.visible_entities.remove(entity)
 
                 drone.codrones = [otherdrone for otherdrone in self.drones if not otherdrone == drone]
                 drone.advance()                    
@@ -200,9 +201,9 @@ class Simulation:
                     self.entities.remove(drone)
                     self.drones.remove(drone)
 
-                for entity in drone.visible_entities:
-                    if entity not in self.entities:
-                        drone.visible_entities.remove(entity)
+                # for entity in drone.visible_entities:
+                #     if entity not in self.entities:
+                #         drone.visible_entities.remove(entity)
             
 
             # Update screen if requested

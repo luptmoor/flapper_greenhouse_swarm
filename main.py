@@ -8,11 +8,15 @@ from settings import *
 import os
 import pandas as pd
 import random
+from behaviour_tree import BehaviourTree
 
 
 if __name__ == '__main__':
 
     params = 13 * [random.uniform(-1, 1)]
 
-    sim = Simulation(params=params);
+    bt = BehaviourTree()
+    bt.save2file()
+
+    sim = Simulation(bt=bt);
     sim.run();

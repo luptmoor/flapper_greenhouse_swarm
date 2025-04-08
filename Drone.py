@@ -4,39 +4,43 @@ from settings import *
 
 
 class Drone(Entity):
-    def __init__(self, name, type, x, y, params, r_col=R_DRONE):
+    def __init__(self, name, type, x, y, bt, r_col=R_DRONE):
         super().__init__(name, type, x, y, r_col)
 
-        # Tunable Parameters, negative ks mean attraction, positive means repulsion
-        self.r_vis_tree = params[0] * RANGE_R_VIS_TREE / 2 + MU_R_VIS_TREE
-        self.k_tree = params[1] * RANGE_K_TREE / 2 + MU_K_TREE
+        # # Tunable Parameters, negative ks mean attraction, positive means repulsion
+        # self.r_vis_tree = params[0] * RANGE_R_VIS_TREE / 2 + MU_R_VIS_TREE
+        # self.k_tree = params[1] * RANGE_K_TREE / 2 + MU_K_TREE
 
-        self.r_vis_beetle = params[2] * RANGE_R_VIS_BEETLE / 2 + MU_R_VIS_BEETLE
-        self.k_beetle = params[3] * RANGE_K_BEETLE / 2 + MU_K_BEETLE
+        # self.r_vis_beetle = params[2] * RANGE_R_VIS_BEETLE / 2 + MU_R_VIS_BEETLE
+        # self.k_beetle = params[3] * RANGE_K_BEETLE / 2 + MU_K_BEETLE
 
-        self.r_vis_neardrone = params[4] * RANGE_R_VIS_NEARDRONE / 2 + MU_R_VIS_NEARDRONE
-        self.k_neardrone = params[5] * RANGE_K_NEARDRONE / 2 + MU_K_NEARDRONE
+        # self.r_vis_neardrone = params[4] * RANGE_R_VIS_NEARDRONE / 2 + MU_R_VIS_NEARDRONE
+        # self.k_neardrone = params[5] * RANGE_K_NEARDRONE / 2 + MU_K_NEARDRONE
 
-        self.r_vis = {'tree': self.r_vis_tree, 'drone': self.r_vis_neardrone, 'beetle': self.r_vis_beetle}
-        self.gains = {'tree': self.k_tree, 'drone': self.k_neardrone, 'beetle': self.k_beetle}
+        # self.r_vis = {'tree': self.r_vis_tree, 'drone': self.r_vis_neardrone, 'beetle': self.r_vis_beetle}
+        # self.gains = {'tree': self.k_tree, 'drone': self.k_neardrone, 'beetle': self.k_beetle}
 
-        self.r_fardrone = params[6] * RANGE_R_VIS_FARDRONE / 2 + MU_R_VIS_FARDRONE
-        self.k_fardrone = params[7] * RANGE_K_FARDRONE / 2 + MU_K_FARDRONE
+        # self.r_fardrone = params[6] * RANGE_R_VIS_FARDRONE / 2 + MU_R_VIS_FARDRONE
+        # self.k_fardrone = params[7] * RANGE_K_FARDRONE / 2 + MU_K_FARDRONE
 
-        self.r_activity = params[8] * RANGE_R_ACTIVITY / 2 + MU_R_ACTIVITY
-        self.k_activity = params[9]  * RANGE_K_ACTIVITY / 2 + MU_K_ACTIVITY
+        # self.r_activity = params[8] * RANGE_R_ACTIVITY / 2 + MU_R_ACTIVITY
+        # self.k_activity = params[9]  * RANGE_K_ACTIVITY / 2 + MU_K_ACTIVITY
 
-        self.v_min = min(V_DRONE_MAX, max(0, params[10] * RANGE_V_MIN / 2 + MU_V_MIN))  # clip between 0 and V_DRONE_MAX
-        self.v_max = min(V_DRONE_MAX, max(self.v_min, params[11] * RANGE_V_MAX / 2 + MU_V_MAX))  # clip between v_min and V_DRONE_MAX
+        # self.v_min = min(V_DRONE_MAX, max(0, params[10] * RANGE_V_MIN / 2 + MU_V_MIN))  # clip between 0 and V_DRONE_MAX
+        # self.v_max = min(V_DRONE_MAX, max(self.v_min, params[11] * RANGE_V_MAX / 2 + MU_V_MAX))  # clip between v_min and V_DRONE_MAX
 
-        self.c = min(1, max(params[12] * RANGE_C / 2 + MU_C, 0))  # clip between 0 and 1
+        # self.c = min(1, max(params[12] * RANGE_C / 2 + MU_C, 0))  # clip between 0 and 1
 
 
         # Initialisation
-        self.activity = 0
-        self.visible_entities = []
-        self.codrones = []
-        self.speed = self.v_min
+        self.fruit_visible = False
+        self.memory = 0.0
+        self.elapsed_battery_time = 0.0
+
+        self.bt = bt
+
+        self.vx = 0
+        self.vz = 0
         self.z = 0.0
         self.ax = 0
         self.ay = 0
@@ -79,70 +83,19 @@ class Drone(Entity):
         :return: None
         """
 
-        # List of cartesian acceleration components
-        axs = []
-        ays = []
-
-        # Determine number of seen beetles by drone
-        self.activity = 0
-        for entity in self.visible_entities:
-            if entity.type == 'beetle':
-                self.activity += 1
-
-            # Distance calculation according to periodical domain
-            dx = entity.x - self.x
-            dy = entity.y - self.y
-            d = np.sqrt(dx ** 2 + dy ** 2) - entity.r_col
-
-
-            # Bearing calculation according to periodical domain
-            theta = np.arctan2(-dy, -dx)
-
-
-            # Local attraction/repulsion from other entities
-            ays.append((max(self.r_vis[entity.type] - d, 0)) * self.gains[entity.type] * np.sin(theta))
-            axs.append((max(self.r_vis[entity.type] - d, 0)) * self.gains[entity.type] * np.cos(theta))
-
-        # Mid-range inter-drone communication
-        for codrone in self.codrones:
-            dx = codrone.x - self.x
-            dy = codrone.y - self.y
-            d = np.sqrt(dx ** 2 + dy ** 2)
-            theta = np.arctan2(self.y - codrone.y, self.x - codrone.x)
-
-            # Attraction towards activity if within radius
-            ays.append(max(0, self.r_activity - d) * self.k_activity * codrone.activity * np.sin(theta))
-            axs.append(max(0, self.r_activity - d)  * self.k_activity * codrone.activity * np.cos(theta))
-
-            # Attraction towards other drones within a radius that determines the subflock size
-            ays.append(max(0, self.r_fardrone - d) * self.k_fardrone * np.sin(theta))
-            axs.append(max(0, self.r_fardrone - d) * self.k_fardrone * np.cos(theta))
-
-        # Check if sum of accelerations does not exceed maximum acceleration
-        ax = sum(axs)
-        ay = sum(ays)
-        a = min(np.sqrt(ay ** 2 + ax ** 2), A_DRONE_MAX)
-
-        angle = np.arctan2(ay, ax)
-
-        self.ax = a * np.cos(angle)
-        self.ay = a * np.sin(angle)
-
-        # Integration of acceleration cartesian components
-        vx = self.speed * np.cos(self.heading) + self.ax * DT
-        vy = self.speed * np.sin(self.heading) + self.ay * DT
-
-        # Brake if nothing big happens (check if this exceeds maximum acceleration)
-        if a <= 0.05 * A_DRONE_MAX:
-            self.speed = max((1 - self.c) * self.speed, self.speed - A_DRONE_MAX * DT)
-
-        # Check if speed lies within correct range
-        self.heading = np.arctan2(vy, vx) % (2 * np.pi)
-        self.speed = max(min(np.sqrt(vy**2 + vx**2), self.v_max), self.v_min)
+        blackboard = {
+            "elapsed_battery_time": self.elapsed_battery_time,
+            "fruit_visible": self.fruit_visible,
+            "memory": self.memory
+        }
+        self.vx, self.vz, self.r = self.bt.feed_forward(blackboard)
 
 
         # Integration
-        self.x = int(round(self.x + self.speed * np.cos(self.heading) * DT, 0))
-        self.y = int(round(self.y + self.speed * np.sin(self.heading) * DT, 0))
+        self.heading += self.r * DT
+        if self.heading > np.pi or self.heading < -np.pi: self.heading = (self.heading + np.pi) % (2*np.pi) - np.pi
+
+        self.x = int(round(self.x + self.vx  * DT, 0))
+        self.z = int(round(self.z + self.vz  * DT, 2))
 
 
