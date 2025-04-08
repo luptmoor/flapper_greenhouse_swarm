@@ -1,6 +1,7 @@
 import numpy as np
 from Entity import Entity
 from settings import *
+import torch
 
 
 class Drone(Entity):
@@ -36,6 +37,7 @@ class Drone(Entity):
         self.fruit_visible = False
         self.memory = 0.0
         self.elapsed_battery_time = 0.0
+        self.swarm_matrix = torch.zeros(N_DRONES * 4)
 
         self.bt = bt
 
@@ -44,7 +46,7 @@ class Drone(Entity):
         self.z = 0.0
         self.ax = 0
         self.ay = 0
-        self.heading = np.random.random() * 2 * np.pi
+        self.heading = np.random.random() * 2 * np.pi - np.pi
 
     def sees(self, entity) -> bool:
         """
@@ -86,16 +88,25 @@ class Drone(Entity):
         blackboard = {
             "elapsed_battery_time": self.elapsed_battery_time,
             "fruit_visible": self.fruit_visible,
-            "memory": self.memory
+            "memory": self.memory,
+            "swarminput": self.swarm_matrix
         }
-        self.vx, self.vz, self.r = self.bt.feed_forward(blackboard)
+        self.vx, self.vz, self.r = self.bt.feed_forward(blackboard) # m/s
 
 
         # Integration
         self.heading += self.r * DT
-        if self.heading > np.pi or self.heading < -np.pi: self.heading = (self.heading + np.pi) % (2*np.pi) - np.pi
+        if self.heading > np.pi: self.heading -= 2*np.pi
+        if self.heading <-np.pi: self.heading += 2*np.pi
 
-        self.x = int(round(self.x + self.vx  * DT, 0))
-        self.z = int(round(self.z + self.vz  * DT, 2))
+
+        # Transform from body to absolute frame
+        self.x = int(round(self.x + (self.vx * SCALE  * DT) * np.cos(self.heading), 0))
+        self.y = int(round(self.y + (self.vx * SCALE  * DT) * np.sin(self.heading), 0))
+
+        self.z = round(self.z + self.vz * SCALE * DT, 5)
+        if self.z < 0: self.z = 0
+
+        print(f"{self.name} @ {self.x}, {self.y}, {self.z} heading {self.heading} ({self.heading * 57.3})")
 
 

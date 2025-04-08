@@ -74,10 +74,10 @@ class Visuals:
 
         for drone in drones:
             pygame.draw.circle(self.screen, BLUE, (drone.x, drone.y), drone.r_col)
-            pygame.draw.line(self.screen, RED, (drone.x, drone.y), (drone.x + np.cos(drone.heading) * R_DRONE, drone.y + np.sin(drone.heading) * R_DRONE), 2)
+            pygame.draw.line(self.screen, RED, (drone.x, drone.y), (float(drone.x + np.cos(drone.heading) * R_DRONE), float(drone.y + np.sin(drone.heading) * R_DRONE)), 2)
             
             # Height indication
-            text_surface, text_rect = self.font.render(str(round(drone.z, 0)), (255, 255, 255))
+            text_surface, text_rect = self.font.render(str(round(drone.z, 2)), (255, 255, 255))
             text_rect.center = (drone.x, drone.y)
             self.screen.blit(text_surface, text_rect)
                 

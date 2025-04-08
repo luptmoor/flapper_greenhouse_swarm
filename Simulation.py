@@ -205,7 +205,7 @@ class Simulation:
                 #     if entity not in self.entities:
                 #         drone.visible_entities.remove(entity)
             
-
+            print()
             # Update screen if requested
             if VISUALISE:
                 self.visuals.update(self.trees, self.fruits, self.drones)

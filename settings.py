@@ -1,7 +1,7 @@
 import numpy as np
 
 # Environment   scale: 1 px = 2cm
-SCALE                =    1                                        # px / cm
+SCALE                =    100                                      # px / m
 WIDTH                =  1500                                       # px,  28 m
 HEIGHT               =  1000                                       # px,  15 m
 BORDERSIZE           =    10                                       # px, cm
@@ -28,7 +28,7 @@ V_DRONE_MAX          =  500                                        # px / s,  5 
 A_DRONE_MAX          =  330                                        # px / s^2, 3.3 m / s^2
 
 # Simulation parameters
-DT                   =    0.01                                       # s, timestep per tick
+DT                   =    0.05                                       # s, timestep per tick
 T_MAX                =  120                                         # s, 1min, maximum simulation duration
 VISUALISE            =  True                                        # Boolean deciding if simulation shall be visualised
 REALTIME             =  True                                       # Boolean deciding if visuals shall be real-time
@@ -39,9 +39,7 @@ NOISE                =    0.0                                     # -, Noise amp
 
 
 
-MAX_TIME            =       600 * 100       # steps
 BASEPATH            =       "simresults/results_"
-NUM_ROBOTS          =         5
 
 ## Evolution
 POPULATION_SIZE     =        100
@@ -64,7 +62,7 @@ P_BT_SEQUENCE       =         0.5
 
 
 ## Action and reading limits
-YAWRATE_MAX         =        90             # deg/s
+YAWRATE_MAX         =        np.pi/2        # rad/s
 V_FORWARD_MAX       =         2             # m/s
 V_BACKWARD_MAX      =         0.5           # m/s
 V_LEFT_MAX          =         0.5           # m/s
