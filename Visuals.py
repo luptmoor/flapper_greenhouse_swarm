@@ -13,25 +13,24 @@ class Visuals:
     """
     Class taking care of all the rendering with pygame. Here, pixels are used!
     """
-    def __init__(self, width, height, n0_drones):
+    def __init__(self, width, height):
         self.FPS = 1/DT  # Determine FPS from timestep setting
         pygame.init()
 
         self.screen_width = px(width)
-        self.screen_height = px(width)
+        self.screen_height = px(height)
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Flapper Greenhouse Swarm Simulation")
 
         self.font = pygame.freetype.Font(None, 12)
         self.clock = pygame.time.Clock()
 
-        self.n0_drones = n0_drones
 
         self.screen.fill(GREEN)
         pygame.display.flip()
 
 
-    def update(self, trees, fruits, drones):
+    def update(self, trees, fruits, drones, t):
         # Make sure visualisation is ended when window is closed
         global VIEW
 
@@ -66,11 +65,15 @@ class Visuals:
 
         # Simulation information texts
         text_surface, text_rect = self.font.render('Active Drones: ' + str(round(len(drones))), (0, 0, 0))
-        text_rect.center = (60, 15)
+        text_rect.center = (60, 17)
         self.screen.blit(text_surface, text_rect)
 
-        text_surface, text_rect = self.font.render('Dead Drones: ' + str(round(self.n0_drones - len(drones))), (0, 0, 0))
-        text_rect.center = (180, 15)
+        text_surface, text_rect = self.font.render('Dead Drones: ' + str(round(N_DRONES - len(drones))), (0, 0, 0))
+        text_rect.center = (180, 17)
+        self.screen.blit(text_surface, text_rect)
+
+        text_surface, text_rect = self.font.render('Time [s]: ' + str(round(t, 1)), (0, 0, 0))
+        text_rect.center = (300, 17)
         self.screen.blit(text_surface, text_rect)
 
         # Draw all trees
@@ -80,7 +83,7 @@ class Visuals:
         for fruit in fruits:
             pygame.draw.circle(self.screen, RED, px(fruit.x, fruit.y), px(fruit.r_col))
             text_surface, text_rect = self.font.render((str(round(fruit.record[-1], 1))), (0, 0, 0))
-            text_rect.center = (px(fruit.x, fruit.y))
+            text_rect.center = px(fruit.x, fruit.y)
             self.screen.blit(text_surface, text_rect)
 
 

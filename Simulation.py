@@ -58,7 +58,7 @@ class Simulation:
         self.load_environment()
 
         if VISUALISE:
-            self.visuals = Visuals(WIDTH, HEIGHT, self.n0_drones)
+            self.visuals = Visuals(WIDTH, HEIGHT)
 
     def load_environment(self):
         """
@@ -180,7 +180,7 @@ class Simulation:
             print()
             # Update screen if requested
             if VISUALISE:
-                self.visuals.update(self.trees, self.fruits, self.drones)
+                self.visuals.update(self.trees, self.fruits, self.drones, self.t)
             
         
 
