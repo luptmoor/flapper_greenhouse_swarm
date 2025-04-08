@@ -13,14 +13,14 @@ from behaviour_tree import BehaviourTree
 
 if __name__ == '__main__':
 
-    params = 13 * [random.uniform(-1, 1)]
+    # params = 13 * [random.uniform(-1, 1)]
 
     # bt = BehaviourTree(random_tree=True)
     # bt.save2file()
 
-    bt = BehaviourTree();
-    bt.load_from_file('behaviour_tree.json')
-    bt.save2file('behaviour_tree2.json')
-
+    bt = BehaviourTree('bt4.json', random_tree=True, seed=22);
     # sim = Simulation(bt=bt);
     # sim.run();
+    bt.save()
+    bt.show()
+    

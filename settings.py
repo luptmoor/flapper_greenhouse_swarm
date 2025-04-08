@@ -51,7 +51,7 @@ N_TOURNAMENTS       =        10
 
 
 ## Behaviour Trees
-BT_SEED             =        48
+BT_SEED             =        49
 BT_MAX_CHILDREN     =         6
 BT_MAX_DEPTH        =         6
 P_BT_COMPOSITE      =         0.25
