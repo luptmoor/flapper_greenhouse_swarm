@@ -87,10 +87,18 @@ class Drone(Entity):
         Function executing drone dynamics.
         :return: None
         """
-        
+        cpsi = np.cos(self.heading)
+        spsi = np.sin(self.heading)
+        R = np.array([
+            [cpsi, -spsi, 0],
+            [spsi,  cpsi, 0],
+            [0,        0, 1]
+        ])
+
         for i in range(N_DRONES-1):
             if len(self.codrones) > i:
-                self.swarm_matrix[i, :] = torch.Tensor([self.codrones[i].x, self.codrones[i].y, self.codrones[i].z, self.codrones[i].message])
+                relpos = np.array([self.codrones[i].x - self.x, self.codrones[i].y - self.y, self.codrones[i].z - self.z]) @ R
+                self.swarm_matrix[i, :] = torch.Tensor([relpos[0], relpos[1], relpos[2], self.codrones[i].message])
             else: self.swarm_matrix[i, :] = torch.zeros(1, 4)
         self.swarm_matrix[N_DRONES-1, :] = torch.Tensor([self.x, self.y, self.z, self.message])
 
