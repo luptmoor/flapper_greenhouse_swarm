@@ -161,7 +161,8 @@ class Simulation:
                 for fruit in self.fruits:
                     if drone.sees(fruit):
                         print(f'{drone.name} sees {fruit.name}.')
-                        fruit.counter = 0.0
+                        fruit.reset_counter()
+                        drone.inspect(fruit)
 
 
                 
@@ -182,10 +183,10 @@ class Simulation:
                                 print('fwd')
                                 drone.vx = 0.2
                             elif event.key == pygame.K_d:
-                                drone.r = np.pi / 10
+                                drone.r = np.pi / 5
                                 print('r')
                             elif event.key == pygame.K_a:
-                                drone.r = -np.pi / 10
+                                drone.r = -np.pi / 5
                                 print('l')
                             elif event.key == pygame.K_SPACE:
                                 drone.vz = 0.2
@@ -199,7 +200,7 @@ class Simulation:
                             drone.r = 0
 
                 drone.advance()
-                 
+            
 
                 if not 0 < drone.x < WIDTH or not 0 < drone.y < HEIGHT:
                     self.entities.remove(drone)

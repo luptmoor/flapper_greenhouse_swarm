@@ -69,7 +69,13 @@ class Drone(Entity):
         dh = np.sqrt(dx ** 2 + dy ** 2)  # Pythagoras
 
         elevation = np.atan(dz / dh)
-        azimuth = np.atan2(dy, dx) - self.heading
+        bearing = np.atan2(dy, dx) + np.pi          
+        if bearing > np.pi: bearing -= 2*np.pi
+        if bearing <-np.pi: bearing += 2*np.pi
+        azimuth =  bearing - self.heading 
+
+        if self.name == 'Drone 0':
+            print(f"Elevation: {round(elevation * 57.3, 2)}, Azimuth: {round(azimuth * 57.3, 2)}, Bearing: {round(self.heading * 57.3, 2)}, HDist: {round(dh, 2)}, VDist: {round(dz, 2)}")
 
         if dh <= R_TREE_AVG and np.abs(elevation) <= CAMERA_VFOV and np.abs(azimuth) <= CAMERA_HFOV:
             return True
@@ -118,3 +124,6 @@ class Drone(Entity):
         #print(f"{self.name} @ {self.x}, {self.y}, {self.z} heading {self.heading} ({self.heading * 57.3})")
 
 
+    def inspect(self, fruit):
+        self.fruit_visible = True
+        

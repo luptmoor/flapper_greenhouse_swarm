@@ -3,7 +3,7 @@ import numpy as np
 # Environment   scale: 1 px = 1cm
 SCALE                =    100                                      # px / m
 WIDTH                =     15                                       # m
-HEIGHT               =     10                                       # m
+HEIGHT               =     8                                       # m
 BORDERSIZE           =    10                                       # px, cm
 LAUNCHPAD_FRAC       =    0.2                                      # -, used to determine drones' launchpad size
 CEILING              =    3.0                                      # m, maximum height of drones
@@ -15,7 +15,7 @@ R_TREE_MAX           =   0.40                                      # m
 R_TREE_AVG           =   (R_TREE_MAX + R_TREE_MIN) / 2             # px, mean for normal distribution
 R_TREE_STD           =   (R_TREE_MAX - R_TREE_MIN) / 6             # px, standard deviation for normal distribution
 TREE_HEIGHT          =    1.2                                      # m, physical quantity
-FRUIT_PROB           =    0.6
+FRUIT_PROB           =    0.1
 FRUIT_MIN_HEIGHT     =    0.2                                      # m
 
 
@@ -28,9 +28,9 @@ CAMERA_VFOV          =  30 / 57.3                                   # rad
 CAMERA_HFOV          =  40 / 57.3                                   # rad
 
 # Simulation parameters
-SEED                 =   43 
+SEED                 =   44
 DT                   =    0.05                                       # s, timestep per tick
-T_MAX                =  120                                         # s, 1min, maximum simulation duration
+T_MAX                =  3000                                         # s, 1min, maximum simulation duration
 VISUALISE            =  True                                        # Boolean deciding if simulation shall be visualised
 REALTIME             =  True                                       # Boolean deciding if visuals shall be real-time
 VIEW                 =    0                                         # Variable for different views in visualisation
