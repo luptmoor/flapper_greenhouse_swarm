@@ -109,6 +109,9 @@ class BehaviourTree:
         """Save the behavior tree to a JSON file."""
         with open(self.path, "w") as file:
             json.dump(self.root.to_dict(), file, indent=4)
+    
+    def set_path(self, path):
+        self.path = path
 
 
     def feed_forward(self, blackboard):

@@ -44,6 +44,7 @@ class Drone(Entity):
 
         self.vx = 0
         self.vz = 0
+        self.r = 0
         self.z = 0.0
         self.ax = 0
         self.ay = 0
@@ -61,21 +62,16 @@ class Drone(Entity):
         if entity == self:
             return False
 
-        # Determine distance according to periodical domain
+        # Determine distance
         dx = self.x - entity.x
         dy = self.y - entity.y
-        d = np.sqrt(dx ** 2 + dy ** 2)  # Pythagoras
+        dz = self.z - entity.z
+        dh = np.sqrt(dx ** 2 + dy ** 2)  # Pythagoras
 
+        elevation = np.atan(dz / dh)
+        azimuth = np.atan2(dy, dx) - self.heading
 
-        obstructed = False
-        # If a beetle, check if it's behind a tree
-        if entity.type == 'beetle' and entity.tree is not None:
-            d_obs = np.sqrt((self.x - entity.tree.x) ** 2 + (self.y - entity.tree.y) ** 2)
-            # If tree is closer than beetle, beetle is probably not visible
-            if d_obs < d:
-                obstructed = True
-
-        if d <= (self.r_vis[entity.type] + entity.r_col) and not obstructed:
+        if dh <= R_TREE_AVG and np.abs(elevation) <= CAMERA_VFOV and np.abs(azimuth) <= CAMERA_HFOV:
             return True
         else:
             return False
@@ -92,15 +88,17 @@ class Drone(Entity):
             else: self.swarm_matrix[i, :] = torch.zeros(1, 4)
         self.swarm_matrix[N_DRONES-1, :] = torch.Tensor([self.x, self.y, self.z, self.memory])
 
-        print(self.swarm_matrix)
+        #print(self.swarm_matrix)
 
-        blackboard = {
-            "elapsed_battery_time": self.elapsed_battery_time,
-            "fruit_visible": self.fruit_visible,
-            "memory": self.memory,
-            "swarminput": torch.flatten(self.swarm_matrix)
-        }
-        self.vx, self.vz, self.r = self.bt.feed_forward(blackboard) # m/s
+        if not MANUAL and not self.name == 'Drone 0':
+
+            blackboard = {
+                    "elapsed_battery_time": self.elapsed_battery_time,
+                    "fruit_visible": self.fruit_visible,
+                    "memory": self.memory,
+                    "swarminput": torch.flatten(self.swarm_matrix)
+            }
+            self.vx, self.vz, self.r = self.bt.feed_forward(blackboard) # m/s
 
 
         # Integration
@@ -117,6 +115,6 @@ class Drone(Entity):
         if self.z < 0: self.z = 0
         if self.z > CEILING: self.z = CEILING
 
-        print(f"{self.name} @ {self.x}, {self.y}, {self.z} heading {self.heading} ({self.heading * 57.3})")
+        #print(f"{self.name} @ {self.x}, {self.y}, {self.z} heading {self.heading} ({self.heading * 57.3})")
 
 

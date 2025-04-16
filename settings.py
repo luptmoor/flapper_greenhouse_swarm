@@ -24,6 +24,8 @@ N_DRONES             =    5                                        # -, number o
 R_DRONE              =    0.14                                        # cm drone radius
 V_DRONE_MAX          =  500                                        # px / s,  5 m / s
 A_DRONE_MAX          =  330                                        # px / s^2, 3.3 m / s^2
+CAMERA_VFOV          =  30 / 57.3                                   # rad
+CAMERA_HFOV          =  40 / 57.3                                   # rad
 
 # Simulation parameters
 SEED                 =   43 
@@ -34,7 +36,7 @@ REALTIME             =  True                                       # Boolean dec
 VIEW                 =    0                                         # Variable for different views in visualisation
 SENSITIVITY_ANALYSIS =  False                                        # Boolean deciding if noise should be added to certain parameters
 NOISE                =    0.0                                     # -, Noise amplitude if in sensitivity analysis
-
+MANUAL               = True
 
 
 

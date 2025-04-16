@@ -6,6 +6,7 @@ from Visuals import Visuals
 from settings import *
 import random
 import torch
+import pygame
 
 
 
@@ -133,8 +134,8 @@ class Simulation:
         running = True
         while running:
             # Print time and seed every 10s
-            if int(round(self.t, 0)) % 10 == 0 and abs(int(round(self.t, 0)) - self.t) < 0.001:
-                print('Seed:', SEED, 'Time:', round(self.t, 0), 's')
+            #if int(round(self.t, 0)) % 10 == 0 and abs(int(round(self.t, 0)) - self.t) < 0.001:
+                #print('Seed:', SEED, 'Time:', round(self.t, 0), 's')
             
             for fruit in self.fruits:
                 fruit.advance()
@@ -157,6 +158,12 @@ class Simulation:
                         self.entities.remove(drone)
 
 
+                for fruit in self.fruits:
+                    if drone.sees(fruit):
+                        print(f'{drone.name} sees {fruit.name}.')
+                        fruit.counter = 0.0
+
+
                 
 
                 # # Maintain list of visible entities
@@ -167,7 +174,32 @@ class Simulation:
                 #         drone.visible_entities.remove(entity)
 
                 drone.codrones = [otherdrone for otherdrone in self.drones if not otherdrone == drone]
-                drone.advance()                    
+
+                if drone.name == 'Drone 0' and MANUAL:
+                    for event in pygame.event.get():
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_w:
+                                print('fwd')
+                                drone.vx = 0.2
+                            elif event.key == pygame.K_d:
+                                drone.r = np.pi / 10
+                                print('r')
+                            elif event.key == pygame.K_a:
+                                drone.r = -np.pi / 10
+                                print('l')
+                            elif event.key == pygame.K_SPACE:
+                                drone.vz = 0.2
+                                print('up')
+                            elif event.key == pygame.K_LSHIFT:
+                                drone.vz = -0.2
+                                print('dn')
+                        elif event.type == pygame.KEYUP:
+                            drone.vz = 0
+                            drone.vx = 0
+                            drone.r = 0
+
+                drone.advance()
+                 
 
                 if not 0 < drone.x < WIDTH or not 0 < drone.y < HEIGHT:
                     self.entities.remove(drone)
@@ -177,7 +209,7 @@ class Simulation:
                 #     if entity not in self.entities:
                 #         drone.visible_entities.remove(entity)
             
-            print()
+            #print()
             # Update screen if requested
             if VISUALISE:
                 self.visuals.update(self.trees, self.fruits, self.drones, self.t)

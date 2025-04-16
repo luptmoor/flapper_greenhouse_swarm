@@ -82,6 +82,7 @@ class Visuals:
 
         for fruit in fruits:
             pygame.draw.circle(self.screen, RED, px(fruit.x, fruit.y), px(fruit.r_col))
+            pygame.draw.circle(self.screen, RED, px(fruit.x, fruit.y), px(R_TREE_AVG), 1)
             text_surface, text_rect = self.font.render((str(round(fruit.record[-1], 1))), (0, 0, 0))
             text_rect.center = px(fruit.x, fruit.y)
             self.screen.blit(text_surface, text_rect)

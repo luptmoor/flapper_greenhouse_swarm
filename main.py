@@ -18,9 +18,16 @@ if __name__ == '__main__':
     # bt = BehaviourTree(random_tree=True)
     # bt.save2file()
 
-    bt = BehaviourTree('bt4.json', random_tree=True, seed=22);
-    # sim = Simulation(bt=bt);
-    # sim.run();
-    bt.save()
-    bt.show()
+    bt = BehaviourTree('random.json', random_tree=True, seed=47);
+    bt.show();
+    sim = Simulation(bt=bt);
+    sim.run();
+
+    bt.set_path('mutated.json')
+    bt.root.macromutate();
+    bt.show();
+    sim = Simulation(bt=bt);
+    sim.run()
     
+    # centroid of fruit visited in polar body coords
+    # aggregate, disperse
