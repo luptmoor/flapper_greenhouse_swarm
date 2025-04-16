@@ -201,7 +201,7 @@ class Simulation:
 
                 drone.advance()
             
-
+                drone.z = min(max(0, drone.z), CEILING)
                 if not 0 < drone.x < WIDTH or not 0 < drone.y < HEIGHT:
                     self.entities.remove(drone)
                     self.drones.remove(drone)

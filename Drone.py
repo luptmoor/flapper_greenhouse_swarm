@@ -116,10 +116,7 @@ class Drone(Entity):
         # Transform from body to absolute frame
         self.x = self.x + self.vx * DT * np.cos(self.heading)
         self.y = self.y + self.vx * DT * np.sin(self.heading)
-
         self.z = self.z + self.vz * DT
-        if self.z < 0: self.z = 0
-        if self.z > CEILING: self.z = CEILING
 
         #print(f"{self.name} @ {self.x}, {self.y}, {self.z} heading {self.heading} ({self.heading * 57.3})")
 
