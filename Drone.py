@@ -92,14 +92,14 @@ class Drone(Entity):
             if len(self.codrones) > i:
                 self.swarm_matrix[i, :] = torch.Tensor([self.codrones[i].x, self.codrones[i].y, self.codrones[i].z, self.codrones[i].message])
             else: self.swarm_matrix[i, :] = torch.zeros(1, 4)
-        self.swarm_matrix[N_DRONES-1, :] = torch.Tensor([self.x, self.y, self.z, self.memory])
+        self.swarm_matrix[N_DRONES-1, :] = torch.Tensor([self.x, self.y, self.z, self.message])
 
         #print(self.swarm_matrix)
 
-        if not MANUAL and not self.name == 'Drone 0':
+        if not (MANUAL and self.name == 'Drone 0'):
 
-            self.vx, self.vz, self.r = self.bt.swarm_net.forward(torch.flatten(self.swarm_matrix))
-            print(f"Action determined by SwarmNet: {self.vx}, {self.vz}, {self.r}")
+            self.vx, self.vz, self.r, self.message = self.bt.swarm_net.forward(torch.flatten(self.swarm_matrix))
+            #print(f"Action determined by SwarmNet: {self.vx}, {self.vz}, {self.r}")
 
 
         # Integration

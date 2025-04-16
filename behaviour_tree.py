@@ -403,7 +403,7 @@ class SwarmNet(nn.Module):
         super().__init__()
         self.fc1 = nn.Linear(20, 32)  # First hidden layer
         self.fc2 = nn.Linear(32, 16)  # Second hidden layer
-        self.fc3 = nn.Linear(16, 3)   # Output layer
+        self.fc3 = nn.Linear(16, 4)   # Output layer
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
@@ -411,13 +411,13 @@ class SwarmNet(nn.Module):
         x = torch.sigmoid(self.fc3(x))   # sigmoid to keep outputs bounded in (0, 1)
 
         # Map to correct ranges
-        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_DOWN_MAX, -YAWRATE_MAX])
-        max_tensor = torch.tensor([V_FORWARD_MAX, V_UP_MAX, YAWRATE_MAX])
+        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_DOWN_MAX, -YAWRATE_MAX, -1])
+        max_tensor = torch.tensor([V_FORWARD_MAX, V_UP_MAX, YAWRATE_MAX, 1])
 
         x = min_tensor + (max_tensor - min_tensor) * x
         x = x.detach().numpy()
 
-        return x[0], x[1], x[2]  # vx, vz, r
+        return x[0], x[1], x[2], x[3]  # vx, vz, r, msg
 
 
 

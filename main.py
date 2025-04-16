@@ -17,17 +17,16 @@ if __name__ == '__main__':
 
     # bt = BehaviourTree(random_tree=True)
     # bt.save2file()
+    for i in range(20):
+        bt = BehaviourTree('random.json', random_tree=True, seed=i);
+        sim = Simulation(bt=bt);
+        sim.run();
 
-    bt = BehaviourTree('random.json', random_tree=True, seed=47);
-    bt.show();
-    sim = Simulation(bt=bt);
-    sim.run();
-
-    bt.set_path('mutated.json')
-    bt.root.macromutate();
-    bt.show();
-    sim = Simulation(bt=bt);
-    sim.run()
+    # bt.set_path('mutated.json')
+    # bt.root.macromutate();
+    # bt.show();
+    # sim = Simulation(bt=bt);
+    # sim.run()
     
     # centroid of fruit visited in polar body coords
     # aggregate, dispersea
