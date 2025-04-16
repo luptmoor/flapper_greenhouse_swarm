@@ -17,6 +17,7 @@ R_TREE_STD           =   (R_TREE_MAX - R_TREE_MIN) / 6             # px, standar
 TREE_HEIGHT          =    1.2                                      # m, physical quantity
 FRUIT_PROB           =    0.1
 FRUIT_MIN_HEIGHT     =    0.2                                      # m
+R_FRUIT              =    0.05                                     # m
 
 
 # Static Drone Parameters
