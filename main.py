@@ -30,4 +30,7 @@ if __name__ == '__main__':
     sim.run()
     
     # centroid of fruit visited in polar body coords
-    # aggregate, disperse
+    # aggregate, dispersea
+    # first explore to identify fruit locations, then exploit centroid
+    # Train attraction-repulsion swarming in obstacle-free environment to learn behaviour for exploration/exploitation tradeoff
+    # Train tofnet without fruits to learn collision avoidance  OR use serban's RL solution

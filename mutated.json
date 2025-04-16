@@ -1,0 +1,17 @@
+// Behavior Tree
+digraph {
+	nodesep=0.3 ranksep=1.5
+	135047098327248 [label="-->" shape=box]
+	135047135905232 [label="Condtion
+elapsed_battery_time > 161.882 ?" shape=ellipse]
+	135047098327248 -> 135047135905232
+	135047142470288 [label="Condtion
+memory < 0.59 ?" shape=ellipse]
+	135047098327248 -> 135047142470288
+	135047136168528 [label="Action
+ r = -1.569" shape=box]
+	135047098327248 -> 135047136168528
+	135047035402384 [label="Action
+ r = 1.311" shape=box]
+	135047098327248 -> 135047035402384
+}

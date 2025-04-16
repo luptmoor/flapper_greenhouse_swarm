@@ -152,12 +152,6 @@ class Simulation:
                         self.drones.remove(otherdrone)
 
 
-                for tree in self.trees:
-                    if check_collision(drone, tree) and drone.z <= TREE_HEIGHT:
-                        self.drones.remove(drone)
-                        self.entities.remove(drone)
-
-
                 for fruit in self.fruits:
                     if drone.sees(fruit):
                         print(f'{drone.name} sees {fruit.name}.')
@@ -201,11 +195,10 @@ class Simulation:
 
                 drone.advance()
             
-
-                if not 0 < drone.x < WIDTH or not 0 < drone.y < HEIGHT:
-                    self.entities.remove(drone)
-                    self.drones.remove(drone)
-
+                drone.x = min(max(drone.x, 0.01), WIDTH)
+                drone.y = min(max(drone.y, 0.01), HEIGHT)
+                drone.z = min(max(drone.z, 0.01), CEILING)
+                    
                 # for entity in drone.visible_entities:
                 #     if entity not in self.entities:
                 #         drone.visible_entities.remove(entity)

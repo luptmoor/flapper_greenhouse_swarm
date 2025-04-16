@@ -1,0 +1,144 @@
+// Behavior Tree
+digraph {
+	nodesep=0.3 ranksep=1.5
+	140262231036880 [label=SelectorNode]
+	140262337068880 [label=SelectorNode]
+	140262231036880 -> 140262337068880
+	140262231037008 [label="ConditionNode
+Reading: memory
+Op: smallerThan
+Val: 0.428"]
+	140262337068880 -> 140262231037008
+	140262367813840 [label="ConditionNode
+Reading: fruit_visible
+Op: n.a.
+Val: 0"]
+	140262337068880 -> 140262367813840
+	140262367677584 [label=SelectorNode]
+	140262337068880 -> 140262367677584
+	140262231037200 [label=SelectorNode]
+	140262367677584 -> 140262231037200
+	140262231037392 [label=SequenceNode]
+	140262231037200 -> 140262231037392
+	140262376432528 [label=SequenceNode]
+	140262231037392 -> 140262376432528
+	140262231037712 [label="ConditionNode
+Reading: fruit_visible
+Op: n.a.
+Val: 0"]
+	140262376432528 -> 140262231037712
+	140262231037840 [label="ConditionNode
+Reading: memory
+Op: greaterThan
+Val: 0.873"]
+	140262376432528 -> 140262231037840
+	140262231037904 [label="ActionNode
+Action: r
+Val: 1.073"]
+	140262376432528 -> 140262231037904
+	140262262253392 [label="ConditionNode
+Reading: memory
+Op: smallerThan
+Val: 0.872"]
+	140262376432528 -> 140262262253392
+	140262231037776 [label="ActionNode
+Action: vz
+Val: 0.131"]
+	140262376432528 -> 140262231037776
+	140262231037968 [label="ConditionNode
+Reading: elapsed_battery_time
+Op: smallerThan
+Val: 127.974"]
+	140262231037392 -> 140262231037968
+	140262231038160 [label="ActionNode
+Action: r
+Val: -0.42"]
+	140262231037392 -> 140262231038160
+	140262231038224 [label="ConditionNode
+Reading: elapsed_battery_time
+Op: greaterThan
+Val: 421.136"]
+	140262231037392 -> 140262231038224
+	140262231038288 [label=SelectorNode]
+	140262231037200 -> 140262231038288
+	140262231038416 [label="ConditionNode
+Reading: memory
+Op: greaterThan
+Val: 0.564"]
+	140262231038288 -> 140262231038416
+	140262231038544 [label=SequenceNode]
+	140262231038288 -> 140262231038544
+	140262231038672 [label="ConditionNode
+Reading: elapsed_battery_time
+Op: greaterThan
+Val: 10.445"]
+	140262231038544 -> 140262231038672
+	140262231038800 [label="ActionNode
+Action: tofnet
+Val: 1"]
+	140262231038544 -> 140262231038800
+	140262231038864 [label="ActionNode
+Action: message
+Val: -0.144"]
+	140262231038544 -> 140262231038864
+	140262231038928 [label="ConditionNode
+Reading: elapsed_battery_time
+Op: smallerThan
+Val: 285.346"]
+	140262231038544 -> 140262231038928
+	140262231038992 [label="ConditionNode
+Reading: memory
+Op: smallerThan
+Val: -0.554"]
+	140262231038544 -> 140262231038992
+	140262231038736 [label=SelectorNode]
+	140262231038288 -> 140262231038736
+	140262231039248 [label="ActionNode
+Action: swarmnet
+Val: 1"]
+	140262231038736 -> 140262231039248
+	140262231039376 [label="ActionNode
+Action: message
+Val: 0.138"]
+	140262231038288 -> 140262231039376
+	140262231039440 [label="ActionNode
+Action: message
+Val: 0.153"]
+	140262231037200 -> 140262231039440
+	140262231039504 [label="ActionNode
+Action: r
+Val: 1.267"]
+	140262367677584 -> 140262231039504
+	140262231039568 [label="ActionNode
+Action: r
+Val: 0.428"]
+	140262337068880 -> 140262231039568
+	140262231039632 [label=SelectorNode]
+	140262231036880 -> 140262231039632
+	140262231039760 [label="ActionNode
+Action: vz
+Val: -0.132"]
+	140262231039632 -> 140262231039760
+	140262231039888 [label=SelectorNode]
+	140262231036880 -> 140262231039888
+	140262231040016 [label="ActionNode
+Action: memory
+Val: 0.727"]
+	140262231039888 -> 140262231040016
+	140262231040144 [label="ConditionNode
+Reading: elapsed_battery_time
+Op: smallerThan
+Val: 294.819"]
+	140262231036880 -> 140262231040144
+	140262231040208 [label=SelectorNode]
+	140262231036880 -> 140262231040208
+	140262231040400 [label="ActionNode
+Action: vx
+Val: 1.633"]
+	140262231040208 -> 140262231040400
+	140262231040528 [label="ConditionNode
+Reading: elapsed_battery_time
+Op: greaterThan
+Val: 31.357"]
+	140262231036880 -> 140262231040528
+}

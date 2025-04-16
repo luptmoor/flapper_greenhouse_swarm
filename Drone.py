@@ -74,8 +74,8 @@ class Drone(Entity):
         if bearing <-np.pi: bearing += 2*np.pi
         azimuth =  bearing - self.heading 
 
-        if self.name == 'Drone 0':
-            print(f"Elevation: {round(elevation * 57.3, 2)}, Azimuth: {round(azimuth * 57.3, 2)}, Bearing: {round(self.heading * 57.3, 2)}, HDist: {round(dh, 2)}, VDist: {round(dz, 2)}")
+        # if self.name == 'Drone 0':
+        #     print(f"Elevation: {round(elevation * 57.3, 2)}, Azimuth: {round(azimuth * 57.3, 2)}, Bearing: {round(self.heading * 57.3, 2)}, HDist: {round(dh, 2)}, VDist: {round(dz, 2)}")
 
         if dh <= R_TREE_AVG and np.abs(elevation) <= CAMERA_VFOV and np.abs(azimuth) <= CAMERA_HFOV:
             return True
@@ -98,13 +98,8 @@ class Drone(Entity):
 
         if not MANUAL and not self.name == 'Drone 0':
 
-            blackboard = {
-                    "elapsed_battery_time": self.elapsed_battery_time,
-                    "fruit_visible": self.fruit_visible,
-                    "memory": self.memory,
-                    "swarminput": torch.flatten(self.swarm_matrix)
-            }
-            self.vx, self.vz, self.r = self.bt.feed_forward(blackboard) # m/s
+            self.vx, self.vz, self.r = self.bt.swarm_net.forward(torch.flatten(self.swarm_matrix))
+            print(f"Action determined by SwarmNet: {self.vx}, {self.vz}, {self.r}")
 
 
         # Integration
@@ -116,14 +111,11 @@ class Drone(Entity):
         # Transform from body to absolute frame
         self.x = self.x + self.vx * DT * np.cos(self.heading)
         self.y = self.y + self.vx * DT * np.sin(self.heading)
-
         self.z = self.z + self.vz * DT
-        if self.z < 0: self.z = 0
-        if self.z > CEILING: self.z = CEILING
+    
 
         #print(f"{self.name} @ {self.x}, {self.y}, {self.z} heading {self.heading} ({self.heading * 57.3})")
 
 
     def inspect(self, fruit):
         self.fruit_visible = True
-        

@@ -1,0 +1,24 @@
+// Behavior Tree
+digraph {
+	nodesep=0.3 ranksep=1.5
+	128165690494224 [label=SequenceNode]
+	128165810759888 [label="ConditionNode
+Reading: fruit_visible
+Op: n.a.
+Val: 0"]
+	128165690494224 -> 128165810759888
+	128165810765712 [label="ConditionNode
+Reading: memory
+Op: smallerThan
+Val: 0.36"]
+	128165690494224 -> 128165810765712
+	128165690494288 [label="ConditionNode
+Reading: elapsed_battery_time
+Op: smallerThan
+Val: 381.962"]
+	128165690494224 -> 128165690494288
+	128165690494352 [label="ActionNode
+Action: swarmnet
+Val: 1"]
+	128165690494224 -> 128165690494352
+}

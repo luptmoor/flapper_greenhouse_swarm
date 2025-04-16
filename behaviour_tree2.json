@@ -1,0 +1,253 @@
+{
+    "type": "SelectorNode",
+    "name": "RootSelector",
+    "depth": 0,
+    "children": [
+        {
+            "type": "SelectorNode",
+            "name": "RootSelector_selector0",
+            "depth": 1,
+            "children": [
+                {
+                    "type": "ConditionNode",
+                    "name": "RootSelector_selector0_condition0",
+                    "reading": "memory",
+                    "operator": "smallerThan",
+                    "value": 0.42773517611600465
+                },
+                {
+                    "type": "ConditionNode",
+                    "name": "RootSelector_selector0_condition1",
+                    "reading": "fruit_visible",
+                    "operator": "n.a.",
+                    "value": 0
+                },
+                {
+                    "type": "SelectorNode",
+                    "name": "RootSelector_selector0_selector4",
+                    "depth": 2,
+                    "children": [
+                        {
+                            "type": "SelectorNode",
+                            "name": "RootSelector_selector0_selector4_selector0",
+                            "depth": 3,
+                            "children": [
+                                {
+                                    "type": "SequenceNode",
+                                    "name": "RootSelector_selector0_selector4_selector0_sequence1",
+                                    "depth": 4,
+                                    "children": [
+                                        {
+                                            "type": "SequenceNode",
+                                            "name": "RootSelector_selector0_selector4_selector0_sequence1_sequence0",
+                                            "depth": 5,
+                                            "children": [
+                                                {
+                                                    "type": "ConditionNode",
+                                                    "name": "RootSelector_selector0_selector4_selector0_sequence1_sequence0_condition0",
+                                                    "reading": "fruit_visible",
+                                                    "operator": "n.a.",
+                                                    "value": 0
+                                                },
+                                                {
+                                                    "type": "ConditionNode",
+                                                    "name": "RootSelector_selector0_selector4_selector0_sequence1_sequence0_condition2",
+                                                    "reading": "memory",
+                                                    "operator": "greaterThan",
+                                                    "value": 0.872811307595486
+                                                },
+                                                {
+                                                    "type": "ActionNode",
+                                                    "name": "RootSelector_selector0_selector4_selector0_sequence1_sequence0_action3",
+                                                    "action": "r",
+                                                    "value": 1.0732379511212824
+                                                },
+                                                {
+                                                    "type": "ConditionNode",
+                                                    "name": "RootSelector_selector0_selector4_selector0_sequence1_sequence0_condition4",
+                                                    "reading": "memory",
+                                                    "operator": "smallerThan",
+                                                    "value": 0.8715559971588773
+                                                },
+                                                {
+                                                    "type": "ActionNode",
+                                                    "name": "RootSelector_selector0_selector4_selector0_sequence1_sequence0_action5",
+                                                    "action": "vz",
+                                                    "value": 0.13133715941149093
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "ConditionNode",
+                                            "name": "RootSelector_selector0_selector4_selector0_sequence1_condition1",
+                                            "reading": "elapsed_battery_time",
+                                            "operator": "smallerThan",
+                                            "value": 127.97408124084085
+                                        },
+                                        {
+                                            "type": "ActionNode",
+                                            "name": "RootSelector_selector0_selector4_selector0_sequence1_action4",
+                                            "action": "r",
+                                            "value": -0.41987939512770334
+                                        },
+                                        {
+                                            "type": "ConditionNode",
+                                            "name": "RootSelector_selector0_selector4_selector0_sequence1_condition5",
+                                            "reading": "elapsed_battery_time",
+                                            "operator": "greaterThan",
+                                            "value": 421.1356287352902
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "SelectorNode",
+                                    "name": "RootSelector_selector0_selector4_selector0_selector3",
+                                    "depth": 4,
+                                    "children": [
+                                        {
+                                            "type": "ConditionNode",
+                                            "name": "RootSelector_selector0_selector4_selector0_selector3_condition0",
+                                            "reading": "memory",
+                                            "operator": "greaterThan",
+                                            "value": 0.5640937452075689
+                                        },
+                                        {
+                                            "type": "SequenceNode",
+                                            "name": "RootSelector_selector0_selector4_selector0_selector3_sequence1",
+                                            "depth": 5,
+                                            "children": [
+                                                {
+                                                    "type": "ConditionNode",
+                                                    "name": "RootSelector_selector0_selector4_selector0_selector3_sequence1_condition0",
+                                                    "reading": "elapsed_battery_time",
+                                                    "operator": "greaterThan",
+                                                    "value": 10.444673761032192
+                                                },
+                                                {
+                                                    "type": "ActionNode",
+                                                    "name": "RootSelector_selector0_selector4_selector0_selector3_sequence1_action1",
+                                                    "action": "tofnet",
+                                                    "value": true
+                                                },
+                                                {
+                                                    "type": "ActionNode",
+                                                    "name": "RootSelector_selector0_selector4_selector0_selector3_sequence1_action2",
+                                                    "action": "message",
+                                                    "value": -0.14433511190652415
+                                                },
+                                                {
+                                                    "type": "ConditionNode",
+                                                    "name": "RootSelector_selector0_selector4_selector0_selector3_sequence1_condition3",
+                                                    "reading": "elapsed_battery_time",
+                                                    "operator": "smallerThan",
+                                                    "value": 285.3456101783986
+                                                },
+                                                {
+                                                    "type": "ConditionNode",
+                                                    "name": "RootSelector_selector0_selector4_selector0_selector3_sequence1_condition5",
+                                                    "reading": "memory",
+                                                    "operator": "smallerThan",
+                                                    "value": -0.5537237203843495
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "SelectorNode",
+                                            "name": "RootSelector_selector0_selector4_selector0_selector3_selector2",
+                                            "depth": 5,
+                                            "children": [
+                                                {
+                                                    "type": "ActionNode",
+                                                    "name": "RootSelector_selector0_selector4_selector0_selector3_selector2_action0",
+                                                    "action": "swarmnet",
+                                                    "value": true
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "ActionNode",
+                                            "name": "RootSelector_selector0_selector4_selector0_selector3_action3",
+                                            "action": "message",
+                                            "value": 0.13820160221705757
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "ActionNode",
+                                    "name": "RootSelector_selector0_selector4_selector0_action4",
+                                    "action": "message",
+                                    "value": 0.15274999185699079
+                                }
+                            ]
+                        },
+                        {
+                            "type": "ActionNode",
+                            "name": "RootSelector_selector0_selector4_action2",
+                            "action": "r",
+                            "value": 1.2672460322694947
+                        }
+                    ]
+                },
+                {
+                    "type": "ActionNode",
+                    "name": "RootSelector_selector0_action5",
+                    "action": "r",
+                    "value": 0.42778667079995847
+                }
+            ]
+        },
+        {
+            "type": "SelectorNode",
+            "name": "RootSelector_selector1",
+            "depth": 1,
+            "children": [
+                {
+                    "type": "ActionNode",
+                    "name": "RootSelector_selector1_action0",
+                    "action": "vz",
+                    "value": -0.13226807938984053
+                }
+            ]
+        },
+        {
+            "type": "SelectorNode",
+            "name": "RootSelector_selector2",
+            "depth": 1,
+            "children": [
+                {
+                    "type": "ActionNode",
+                    "name": "RootSelector_selector2_action0",
+                    "action": "memory",
+                    "value": 0.7268700128870516
+                }
+            ]
+        },
+        {
+            "type": "ConditionNode",
+            "name": "RootSelector_condition3",
+            "reading": "elapsed_battery_time",
+            "operator": "smallerThan",
+            "value": 294.8190535174955
+        },
+        {
+            "type": "SelectorNode",
+            "name": "RootSelector_selector4",
+            "depth": 1,
+            "children": [
+                {
+                    "type": "ActionNode",
+                    "name": "RootSelector_selector4_action2",
+                    "action": "vx",
+                    "value": 1.633485288223294
+                }
+            ]
+        },
+        {
+            "type": "ConditionNode",
+            "name": "RootSelector_condition5",
+            "reading": "elapsed_battery_time",
+            "operator": "greaterThan",
+            "value": 31.356731880638186
+        }
+    ]
+}

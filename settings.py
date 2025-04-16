@@ -15,8 +15,9 @@ R_TREE_MAX           =   0.40                                      # m
 R_TREE_AVG           =   (R_TREE_MAX + R_TREE_MIN) / 2             # px, mean for normal distribution
 R_TREE_STD           =   (R_TREE_MAX - R_TREE_MIN) / 6             # px, standard deviation for normal distribution
 TREE_HEIGHT          =    1.2                                      # m, physical quantity
-FRUIT_PROB           =    0.1
+FRUIT_PROB           =    0.5
 FRUIT_MIN_HEIGHT     =    0.2                                      # m
+R_FRUIT              =    0.05                                     # m
 
 
 # Static Drone Parameters
@@ -36,7 +37,7 @@ REALTIME             =  True                                       # Boolean dec
 VIEW                 =    0                                         # Variable for different views in visualisation
 SENSITIVITY_ANALYSIS =  False                                        # Boolean deciding if noise should be added to certain parameters
 NOISE                =    0.0                                     # -, Noise amplitude if in sensitivity analysis
-MANUAL               = True
+MANUAL               = False
 
 
 
