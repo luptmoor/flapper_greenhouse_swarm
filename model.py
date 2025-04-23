@@ -20,9 +20,15 @@ c1 = 0.0114;
 c2 = -0.0449;
 c_corr = 0.175;
 
+Kp = -0.651;
+Kd = -0.0654;
+
 def dx(x, inp):
     u, w, theta, q, ld, f, G, gamma = x;
-    gamma_ref, f_ref = inp;
+    theta_ref, q_ref, f_ref = inp;
+
+    # Control law
+    gamma_ref = Kp * (theta_ref - theta) + Kd * (q_ref - q)
 
     # Actuator dynamics
     d_f = (f_ref - f) / tau; # works
@@ -43,9 +49,10 @@ def dx(x, inp):
 
 # Input signal function
 def inp(t):
-    gamma_ref = 0.01
-    f_ref = (m*g - 2*c2 )/ (2*c1)
-    return gamma_ref, f_ref
+    theta_ref = 10 / 57.3
+    q_ref = 0
+    f_ref = (m*g - 2*c2 )/ (2*c1) + 0
+    return theta_ref, q_ref, f_ref
 
 # Time-dependent version for solve_ivp
 def f_wrapped(t, x):
@@ -56,14 +63,20 @@ def y(x):
 
     u_abs = - u * np.cos(theta) - w * np.sin(theta)
     w_abs = - w * np.cos(theta) + u * np.sin(theta)
+    theta = theta / np.pi * 180
+    q = q / np.pi * 180
 
-    return u_abs, w_abs, theta, q
+    return u_abs, w_abs, theta, q, ld
+
+
+
+
 
 x0 = np.zeros(8)
 x0[5] = (m*g - 2*c2 )/ (2*c1)
 
-t_span = (0, 1)
-t_eval = np.linspace(*t_span, int(round((1 // dt))))
+t_span = (0, 20)
+t_eval = np.linspace(*t_span, int(round((20 // dt))))
 
 sol = solve_ivp(f_wrapped, t_span, x0, t_eval=t_eval, method='RK45')
 
@@ -71,7 +84,7 @@ output = y(sol.y)
 
 # Plot states
 for i in range(5):
-    plt.plot(sol.t, sol.y[i], label=state_names[i])
+    plt.plot(sol.t, output[i], label=state_names[i])
 #plt.plot(sol.t, lw * np.sin(sol.y[5]) + 0.01, label='ld calc')
 plt.xlabel('Time [s]')
 plt.ylabel('States')
