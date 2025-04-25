@@ -64,13 +64,13 @@ P_BT_SEQUENCE       =         0.5
 
 
 ## Action and reading limits
-YAWRATE_MAX         =        np.pi/2        # rad/s
-V_FORWARD_MAX       =         2             # m/s
-V_BACKWARD_MAX      =         0.5           # m/s
-V_LEFT_MAX          =         0.5           # m/s
-V_RIGHT_MAX         =         0.5           # m/s
+YAWRATE_MAX         =        np.pi/4        # rad/s
+V_FORWARD_MAX       =         1.0           # m/s
+V_BACKWARD_MAX      =         0.0           # m/s
+V_LEFT_MAX          =         0.0           # m/s
+V_RIGHT_MAX         =         0.0           # m/s
 V_UP_MAX            =         0.5           # m/s
-V_DOWN_MAX          =         0.5           # m/slee_velocity_control
+V_DOWN_MAX          =         0.5           # m/s
 MIN_BAT_THRESHOLD   =        10             # s
 MAX_BAT_THRESHOLD   =       600             # s
 

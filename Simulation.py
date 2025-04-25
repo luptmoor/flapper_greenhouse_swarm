@@ -132,6 +132,7 @@ class Simulation:
         :return: (float) score for this particular simulation, lies in interval [0, 1].
         """
         running = True
+        #dummy = input('Press enter to start')
         while running:
             # Print time and seed every 10s
             #if int(round(self.t, 0)) % 10 == 0 and abs(int(round(self.t, 0)) - self.t) < 0.001:

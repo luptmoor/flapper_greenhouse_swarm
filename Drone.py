@@ -2,6 +2,7 @@ import numpy as np
 from Entity import Entity
 from settings import *
 import torch
+from model import FlapperModel
 
 
 class Drone(Entity):
@@ -49,6 +50,8 @@ class Drone(Entity):
         self.ax = 0
         self.ay = 0
         self.heading = np.random.random() * 2 * np.pi - np.pi
+
+        self.model = FlapperModel()
 
     def sees(self, entity) -> bool:
         """
@@ -105,10 +108,16 @@ class Drone(Entity):
         #print(self.swarm_matrix)
 
         if not (MANUAL and self.name == 'Drone 0'):
-
-            self.vx, self.vz, self.r, self.message = self.bt.swarm_net.forward(torch.flatten(self.swarm_matrix))
+            vx_cmd, vz_cmd, r_cmd, self.message = self.bt.swarm_net.forward(torch.flatten(self.swarm_matrix))
             #print(f"Action determined by SwarmNet: {self.vx}, {self.vz}, {self.r}")
 
+        self.model.set_input(vx_cmd, vz_cmd, r_cmd);
+        self.model.advance(DT)
+        y = self.model.to_output(self.model.x)
+
+        self.vx = y[0]
+        self.vz = y[1]
+        self.r = y[4]
 
         # Integration
         self.heading += self.r * DT
@@ -120,6 +129,10 @@ class Drone(Entity):
         self.x = self.x + self.vx * DT * np.cos(self.heading)
         self.y = self.y + self.vx * DT * np.sin(self.heading)
         self.z = self.z + self.vz * DT
+
+        if self.name == 'Drone 0':
+            print(f'cmd: {vx_cmd}, {vz_cmd}, {r_cmd}')
+            print(f'actual: {self.vx}, {self.vz}, {self.r}')
     
 
         #print(f"{self.name} @ {self.x}, {self.y}, {self.z} heading {self.heading} ({self.heading * 57.3})")
