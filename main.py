@@ -19,7 +19,7 @@ if __name__ == '__main__':
     # bt = BehaviourTree(random_tree=True)
     # bt.save2file()
 
-    i = 1;
+    i = 0;
     start_time = time.perf_counter();
     bt = BehaviourTree('random.json', random_tree=True, seed=i);
     sim = Simulation(bt=bt);

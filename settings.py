@@ -28,6 +28,11 @@ A_DRONE_MAX          =  330                                        # px / s^2, 3
 CAMERA_VFOV          =  30 / 57.3                                   # rad
 CAMERA_HFOV          =  40 / 57.3                                   # rad
 
+# First order lag drone model
+TAU_VX               =   0.1
+TAU_VZ               =   0.1
+TAU_R                =   0.05
+
 # Simulation parameters
 SEED                 =   44
 DT                   =    0.05                                       # s, timestep per tick

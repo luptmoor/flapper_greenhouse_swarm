@@ -8,6 +8,7 @@ import random
 import torch
 import pygame
 import FlapperModel
+from FlapperModel import advance_dynamics
 from numba import jit, njit
 import torch.nn as nn
 import torch.nn.functional as F
@@ -69,6 +70,9 @@ drone_dtype = np.dtype([
     ('mem', 'f8'),
     ('msg', 'f8'),
     ('swarm_matrix', 'f8', (N_DRONES, 4)),
+    ('vx_cmd', 'f8'),
+    ('vz_cmd', 'f8'),
+    ('r_cmd', 'f8'),
 ])
 
 drones = np.zeros(N_DRONES, dtype=drone_dtype)
@@ -94,49 +98,47 @@ def drone_sees(drone, entity):
     else:
         return False
 
+
 @njit
-def update_swarm_matrices():
+def first_order_lag(x, x_cmd, tau):
+    alpha = DT / tau;
+    return (1 - alpha) * x + alpha * x_cmd;
+
+@njit
+def update_swarm_matrices(drones):
     for i in range(N_DRONES):
         cpsi = np.cos(drones[i]['heading'])
         spsi = np.sin(drones[i]['heading'])
-        R = np.array([
-            [cpsi, -spsi, 0.0],
-            [spsi,  cpsi, 0.0],
-            [0.0,    0.0, 1.0]
-        ])
 
         for j in range(N_DRONES):
             if i != j and drones[j]['active']:
-                relpos = np.array([
-                    drones[i]['x'] - drones[j]['x'],
-                    drones[i]['y'] - drones[j]['y'],
-                    drones[i]['z'] - drones[j]['z']
-                ]) @ R
-                drones[i]['swarm_matrix'][j] = [*relpos, drones[j]['msg']]
+                drones[i]['swarm_matrix'][j, 0] = drones[i]['x'] - drones[j]['x'] * cpsi - drones[i]['y'] - drones[j]['y'] * spsi;
+                drones[i]['swarm_matrix'][j, 1] = drones[i]['x'] - drones[j]['x'] * spsi + drones[i]['y'] - drones[j]['y'] * cpsi;
+                drones[i]['swarm_matrix'][j, 2] = drones[i]['z'] - drones[j]['z']
+                drones[i]['swarm_matrix'][j, 3] = drones[j]['msg']
+            
             else:
-                drones[i]['swarm_matrix'][j] = [0.0, 0.0, 0.0, 0.0]
+                drones[i]['swarm_matrix'][j, 0] = 0.0
+                drones[i]['swarm_matrix'][j, 1] = 0.0
+                drones[i]['swarm_matrix'][j, 2] = 0.0
+                drones[i]['swarm_matrix'][j, 3] = 0.0
 
 
+@njit
 def drone_advance(drone):
-
-    update_swarm_matrices();
-
     # if not (MANUAL and drone['entity']['name'] == 'Drone 0'):
     #     drone['message'] = msg
     # else:
     #     vx_cmd = vz_cmd = r_cmd = 0.0
     
-    vx_cmd, vz_cmd, r_cmd, drone['msg'] = swarm_net.forward(torch.tensor(drone['swarm_matrix'], dtype=torch.float32).flatten())
     # , drone['mem']
 
     #print(drone['swarm_matrix'])
 
-    model_state = FlapperModel.advance(vx_cmd, vz_cmd, r_cmd, DT)
-    y = FlapperModel.to_output(model_state)
+    drone['vx'] = first_order_lag(drone['vx'], drone['vx_cmd'], TAU_VX)
+    drone['vz'] = first_order_lag(drone['vz'], drone['vz_cmd'], TAU_VZ)
+    drone['r'] = first_order_lag(drone['r'], drone['r_cmd'], TAU_R)
 
-    drone['vx'] = y[0]
-    drone['vz'] = y[1]
-    drone['r'] = y[4]
 
     drone['heading'] += drone['r'] * DT
     drone['heading'] = (drone['heading'] + np.pi) % (2 * np.pi) - np.pi
@@ -259,6 +261,8 @@ class Simulation:
                 fruit.advance()
 
             # Drone simulation, TODO consider order of drones
+            update_swarm_matrices(drones);
+
             for i in range(N_DRONES):
                 # for otherdrone in self.drones:
                 #     if check_collision(drone, otherdrone):
@@ -310,8 +314,12 @@ class Simulation:
                 #             drone.vz = 0
                 #             drone.vx = 0
                 #             drone.r = 0
-
+                
+                #print(drones[i]['swarm_matrix'])
+                drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'], drones[i]['msg'] = swarm_net.forward(torch.tensor(drones[i]['swarm_matrix'], dtype=torch.float32).flatten())
+                #drones[i]['vx'], drones[i]['vz'], drones[i]['r'] = advance_dynamics(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'], DT)
                 drone_advance(drones[i])
+                #print(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'])
             
                 
                     
