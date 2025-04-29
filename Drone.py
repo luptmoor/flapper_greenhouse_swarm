@@ -2,37 +2,11 @@ import numpy as np
 from Entity import Entity
 from settings import *
 import torch
-from model import FlapperModel
-
+import FlapperModel
 
 class Drone(Entity):
     def __init__(self, name, type, x, y, bt, r_col=R_DRONE):
         super().__init__(name, type, x, y, r_col)
-
-        # # Tunable Parameters, negative ks mean attraction, positive means repulsion
-        # self.r_vis_tree = params[0] * RANGE_R_VIS_TREE / 2 + MU_R_VIS_TREE
-        # self.k_tree = params[1] * RANGE_K_TREE / 2 + MU_K_TREE
-
-        # self.r_vis_beetle = params[2] * RANGE_R_VIS_BEETLE / 2 + MU_R_VIS_BEETLE
-        # self.k_beetle = params[3] * RANGE_K_BEETLE / 2 + MU_K_BEETLE
-
-        # self.r_vis_neardrone = params[4] * RANGE_R_VIS_NEARDRONE / 2 + MU_R_VIS_NEARDRONE
-        # self.k_neardrone = params[5] * RANGE_K_NEARDRONE / 2 + MU_K_NEARDRONE
-
-        # self.r_vis = {'tree': self.r_vis_tree, 'drone': self.r_vis_neardrone, 'beetle': self.r_vis_beetle}
-        # self.gains = {'tree': self.k_tree, 'drone': self.k_neardrone, 'beetle': self.k_beetle}
-
-        # self.r_fardrone = params[6] * RANGE_R_VIS_FARDRONE / 2 + MU_R_VIS_FARDRONE
-        # self.k_fardrone = params[7] * RANGE_K_FARDRONE / 2 + MU_K_FARDRONE
-
-        # self.r_activity = params[8] * RANGE_R_ACTIVITY / 2 + MU_R_ACTIVITY
-        # self.k_activity = params[9]  * RANGE_K_ACTIVITY / 2 + MU_K_ACTIVITY
-
-        # self.v_min = min(V_DRONE_MAX, max(0, params[10] * RANGE_V_MIN / 2 + MU_V_MIN))  # clip between 0 and V_DRONE_MAX
-        # self.v_max = min(V_DRONE_MAX, max(self.v_min, params[11] * RANGE_V_MAX / 2 + MU_V_MAX))  # clip between v_min and V_DRONE_MAX
-
-        # self.c = min(1, max(params[12] * RANGE_C / 2 + MU_C, 0))  # clip between 0 and 1
-
 
         # Initialisation
         self.fruit_visible = False
@@ -47,11 +21,7 @@ class Drone(Entity):
         self.vz = 0
         self.r = 0
         self.z = 0.0
-        self.ax = 0
-        self.ay = 0
         self.heading = np.random.random() * 2 * np.pi - np.pi
-
-        self.model = FlapperModel()
 
     def sees(self, entity) -> bool:
         """
@@ -111,9 +81,8 @@ class Drone(Entity):
             vx_cmd, vz_cmd, r_cmd, self.message = self.bt.swarm_net.forward(torch.flatten(self.swarm_matrix))
             #print(f"Action determined by SwarmNet: {self.vx}, {self.vz}, {self.r}")
 
-        self.model.set_input(vx_cmd, vz_cmd, r_cmd);
-        self.model.advance(DT)
-        y = self.model.to_output(self.model.x)
+        model_state = FlapperModel.advance(vx_cmd, vz_cmd, r_cmd, DT)
+        y = FlapperModel.to_output(model_state)
 
         self.vx = y[0]
         self.vz = y[1]
@@ -130,13 +99,10 @@ class Drone(Entity):
         self.y = self.y + self.vx * DT * np.sin(self.heading)
         self.z = self.z + self.vz * DT
 
-        if self.name == 'Drone 0':
-            print(f'cmd: {vx_cmd}, {vz_cmd}, {r_cmd}')
-            print(f'actual: {self.vx}, {self.vz}, {self.r}')
-    
-
-        #print(f"{self.name} @ {self.x}, {self.y}, {self.z} heading {self.heading} ({self.heading * 57.3})")
-
 
     def inspect(self, fruit):
         self.fruit_visible = True
+
+
+#########################################################
+

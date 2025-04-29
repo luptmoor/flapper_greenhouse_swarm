@@ -7,8 +7,35 @@ from settings import *
 import random
 import torch
 import pygame
+import FlapperModel
+from numba import jit, njit
+import torch.nn as nn
+import torch.nn.functional as F
 
 
+class SwarmNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(20, 32)  # First hidden layer
+        self.fc2 = nn.Linear(32, 16)  # Second hidden layer
+        self.fc3 = nn.Linear(16, 4)   # Output layer
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = torch.sigmoid(self.fc3(x))   # sigmoid to keep outputs bounded in (0, 1)
+
+        # Map to correct ranges
+        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_DOWN_MAX, -YAWRATE_MAX, -1])
+        max_tensor = torch.tensor([V_FORWARD_MAX, V_UP_MAX, YAWRATE_MAX, 1])
+
+        x = min_tensor + (max_tensor - min_tensor) * x
+        x = x.detach().numpy()
+
+        return x[0], x[1], x[2], x[3]  # vx, vz, r, msg
+
+
+swarm_net = SwarmNet();
 
 def check_collision(entity1, entity2, margin=0):
     """
@@ -29,6 +56,98 @@ def check_collision(entity1, entity2, margin=0):
     else:
         return False
 
+
+drone_dtype = np.dtype([
+    ('active', 'b'),
+    ('x', 'f8'),
+    ('y', 'f8'),
+    ('z', 'f8'),
+    ('heading', 'f8'),
+    ('vx', 'f8'),
+    ('vz', 'f8'),
+    ('r', 'f8'),
+    ('mem', 'f8'),
+    ('msg', 'f8'),
+    ('swarm_matrix', 'f8', (N_DRONES, 4)),
+])
+
+drones = np.zeros(N_DRONES, dtype=drone_dtype)
+
+def drone_sees(drone, entity):
+    
+    if entity is None:
+        return False
+    
+    dx = drone['x'] - entity.x
+    dy = drone['y'] - entity.y
+    dz = drone['z'] - entity.z
+    dh = np.sqrt(dx ** 2 + dy ** 2)  # Pythagoras
+
+    elevation = np.atan(dz / dh)
+    bearing = np.atan2(dy, dx) + np.pi          
+    if bearing > np.pi: bearing -= 2*np.pi
+    if bearing <-np.pi: bearing += 2*np.pi
+    azimuth =  bearing - drone['heading']
+
+    if dh <= R_TREE_AVG and np.abs(elevation) <= CAMERA_VFOV and np.abs(azimuth) <= CAMERA_HFOV:
+        return True
+    else:
+        return False
+
+@njit
+def update_swarm_matrices():
+    for i in range(N_DRONES):
+        cpsi = np.cos(drones[i]['heading'])
+        spsi = np.sin(drones[i]['heading'])
+        R = np.array([
+            [cpsi, -spsi, 0.0],
+            [spsi,  cpsi, 0.0],
+            [0.0,    0.0, 1.0]
+        ])
+
+        for j in range(N_DRONES):
+            if i != j and drones[j]['active']:
+                relpos = np.array([
+                    drones[i]['x'] - drones[j]['x'],
+                    drones[i]['y'] - drones[j]['y'],
+                    drones[i]['z'] - drones[j]['z']
+                ]) @ R
+                drones[i]['swarm_matrix'][j] = [*relpos, drones[j]['msg']]
+            else:
+                drones[i]['swarm_matrix'][j] = [0.0, 0.0, 0.0, 0.0]
+
+
+def drone_advance(drone):
+
+    update_swarm_matrices();
+
+    # if not (MANUAL and drone['entity']['name'] == 'Drone 0'):
+    #     drone['message'] = msg
+    # else:
+    #     vx_cmd = vz_cmd = r_cmd = 0.0
+    
+    vx_cmd, vz_cmd, r_cmd, drone['msg'] = swarm_net.forward(torch.tensor(drone['swarm_matrix'], dtype=torch.float32).flatten())
+    # , drone['mem']
+
+    #print(drone['swarm_matrix'])
+
+    model_state = FlapperModel.advance(vx_cmd, vz_cmd, r_cmd, DT)
+    y = FlapperModel.to_output(model_state)
+
+    drone['vx'] = y[0]
+    drone['vz'] = y[1]
+    drone['r'] = y[4]
+
+    drone['heading'] += drone['r'] * DT
+    drone['heading'] = (drone['heading'] + np.pi) % (2 * np.pi) - np.pi
+
+    drone['x'] += drone['vx'] * DT * np.cos(drone['heading'])
+    drone['y'] += drone['vx'] * DT * np.sin(drone['heading'])
+    drone['z'] += drone['vz'] * DT
+
+    drone['x'] = min(max(drone['x'], 0.01), WIDTH)
+    drone['y'] = min(max(drone['y'], 0.01), HEIGHT)
+    drone['z'] = min(max(drone['z'], 0.01), CEILING)
 
 
 
@@ -99,19 +218,17 @@ class Simulation:
        
 
         # Initial random placement of drones on launchpad (fraction of total map)
-        for k in range(int(round(N_DRONES * noise(NOISE), 0))):
-            placing = True
-            while placing:
-                x = (np.random.random() * WIDTH * LAUNCHPAD_FRAC * noise(NOISE))
-                y = random.uniform(k * HEIGHT / N_DRONES, (k+1) * HEIGHT / N_DRONES)
+        for k in range(N_DRONES):
+            x = (np.random.random() * WIDTH * LAUNCHPAD_FRAC)
+            y = random.uniform(k * HEIGHT / N_DRONES, (k+1) * HEIGHT / N_DRONES)
 
-                newdrone = Drone('Drone ' + str(k), 'drone', x, y, self.bt)
-                if not any([check_collision(newdrone, entity) for entity in self.entities]):
-                    self.entities.append(newdrone)
-                    self.drones.append(newdrone)
-                    # print(newdrone.name, 'placed!')
-                    placing = False
-            self.n0_drones = len(self.drones)
+            drones[k]['x'] = x;
+            drones[k]['y'] = y;
+            drones[k]['z'] = 0.01;
+            drones[k]['heading'] = np.random.uniform(-np.pi, np.pi)
+            drones[k]['active'] = True
+        
+        self.n0_drones = N_DRONES
 
     def evaluate(self):
         """
@@ -141,23 +258,23 @@ class Simulation:
             for fruit in self.fruits:
                 fruit.advance()
 
-            # Drone simulation
-            for drone in self.drones:
-                for otherdrone in self.drones:
-                    if check_collision(drone, otherdrone):
-                        if drone in self.entities:
-                            self.entities.remove(drone)
-                        if drone in self.drones:
-                            self.drones.remove(drone)  
-                        self.entities.remove(otherdrone)
-                        self.drones.remove(otherdrone)
+            # Drone simulation, TODO consider order of drones
+            for i in range(N_DRONES):
+                # for otherdrone in self.drones:
+                #     if check_collision(drone, otherdrone):
+                #         if drone in self.entities:
+                #             self.entities.remove(drone)
+                #         if drone in self.drones:
+                #             self.drones.remove(drone)  
+                #         self.entities.remove(otherdrone)
+                #         self.drones.remove(otherdrone)
 
 
                 for fruit in self.fruits:
-                    if drone.sees(fruit):
-                        print(f'{drone.name} sees {fruit.name}.')
+                    if drone_sees(drones[i], fruit):
+                        #print(f'{drone.name} sees {fruit.name}.')
                         fruit.reset_counter()
-                        drone.inspect(fruit)
+                        #drone.inspect(fruit)
 
 
                 
@@ -169,36 +286,34 @@ class Simulation:
                 #     if not drone.sees(entity) and entity in drone.visible_entities:
                 #         drone.visible_entities.remove(entity)
 
-                drone.codrones = [otherdrone for otherdrone in self.drones if not otherdrone == drone]
+                # drone.codrones = [otherdrone for otherdrone in self.drones if not otherdrone == drone]
 
-                if drone.name == 'Drone 0' and MANUAL:
-                    for event in pygame.event.get():
-                        if event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_w:
-                                print('fwd')
-                                drone.vx = 0.2
-                            elif event.key == pygame.K_d:
-                                drone.r = np.pi / 5
-                                print('r')
-                            elif event.key == pygame.K_a:
-                                drone.r = -np.pi / 5
-                                print('l')
-                            elif event.key == pygame.K_SPACE:
-                                drone.vz = 0.2
-                                print('up')
-                            elif event.key == pygame.K_LSHIFT:
-                                drone.vz = -0.2
-                                print('dn')
-                        elif event.type == pygame.KEYUP:
-                            drone.vz = 0
-                            drone.vx = 0
-                            drone.r = 0
+                # if drone.name == 'Drone 0' and MANUAL:
+                #     for event in pygame.event.get():
+                #         if event.type == pygame.KEYDOWN:
+                #             if event.key == pygame.K_w:
+                #                 print('fwd')
+                #                 drone.vx = 0.2
+                #             elif event.key == pygame.K_d:
+                #                 drone.r = np.pi / 5
+                #                 print('r')
+                #             elif event.key == pygame.K_a:
+                #                 drone.r = -np.pi / 5
+                #                 print('l')
+                #             elif event.key == pygame.K_SPACE:
+                #                 drone.vz = 0.2
+                #                 print('up')
+                #             elif event.key == pygame.K_LSHIFT:
+                #                 drone.vz = -0.2
+                #                 print('dn')
+                #         elif event.type == pygame.KEYUP:
+                #             drone.vz = 0
+                #             drone.vx = 0
+                #             drone.r = 0
 
-                drone.advance()
+                drone_advance(drones[i])
             
-                drone.x = min(max(drone.x, 0.01), WIDTH)
-                drone.y = min(max(drone.y, 0.01), HEIGHT)
-                drone.z = min(max(drone.z, 0.01), CEILING)
+                
                     
                 # for entity in drone.visible_entities:
                 #     if entity not in self.entities:
@@ -207,7 +322,7 @@ class Simulation:
             #print()
             # Update screen if requested
             if VISUALISE:
-                self.visuals.update(self.trees, self.fruits, self.drones, self.t)
+                self.visuals.update(self.trees, self.fruits, drones, self.t)
             
         
 
@@ -215,7 +330,7 @@ class Simulation:
             self.t += DT
 
             # End conditions: 80% of drones dead, all beetles dead or time up.
-            if not self.drones or self.t >= T_MAX:
+            if self.t >= T_MAX:
                 running = False
                 self.score = self.evaluate()
                 print(self.score)

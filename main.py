@@ -9,6 +9,7 @@ import os
 import pandas as pd
 import random
 from behaviour_tree import BehaviourTree
+import time
 
 
 if __name__ == '__main__':
@@ -17,10 +18,14 @@ if __name__ == '__main__':
 
     # bt = BehaviourTree(random_tree=True)
     # bt.save2file()
-    for i in range(20):
-        bt = BehaviourTree('random.json', random_tree=True, seed=i);
-        sim = Simulation(bt=bt);
-        sim.run();
+
+    i = 1;
+    start_time = time.perf_counter();
+    bt = BehaviourTree('random.json', random_tree=True, seed=i);
+    sim = Simulation(bt=bt);
+    sim.run();
+    end_time = time.perf_counter();
+    print(f"Sim time: {end_time - start_time} s")
 
     # bt.set_path('mutated.json')
     # bt.root.macromutate();

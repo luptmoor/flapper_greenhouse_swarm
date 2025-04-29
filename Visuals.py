@@ -64,13 +64,13 @@ class Visuals:
         pygame.draw.rect(self.screen, GREY, pygame.Rect(BORDERSIZE, BORDERSIZE, self.screen_width - 2*BORDERSIZE, self.screen_height - 2*BORDERSIZE))
 
         # Simulation information texts
-        text_surface, text_rect = self.font.render('Active Drones: ' + str(round(len(drones))), (0, 0, 0))
-        text_rect.center = (60, 17)
-        self.screen.blit(text_surface, text_rect)
+        # text_surface, text_rect = self.font.render('Active Drones: ' + str(round(len(drones))), (0, 0, 0))
+        # text_rect.center = (60, 17)
+        # self.screen.blit(text_surface, text_rect)
 
-        text_surface, text_rect = self.font.render('Dead Drones: ' + str(round(N_DRONES - len(drones))), (0, 0, 0))
-        text_rect.center = (180, 17)
-        self.screen.blit(text_surface, text_rect)
+        # text_surface, text_rect = self.font.render('Dead Drones: ' + str(round(N_DRONES - len(drones))), (0, 0, 0))
+        # text_rect.center = (180, 17)
+        # self.screen.blit(text_surface, text_rect)
 
         text_surface, text_rect = self.font.render('Time [s]: ' + str(round(t, 1)), (0, 0, 0))
         text_rect.center = (300, 17)
@@ -88,14 +88,15 @@ class Visuals:
             self.screen.blit(text_surface, text_rect)
 
 
-        for drone in drones:
-            pygame.draw.circle(self.screen, BLUE, px(drone.x, drone.y), px(R_DRONE))
-            pygame.draw.line(self.screen, RED, px(drone.x, drone.y), (float(px(drone.x) + np.cos(drone.heading) * px(R_DRONE)), float(px(drone.y) + np.sin(drone.heading) * px(R_DRONE))), 2)
-            
-            # Height indication
-            text_surface, text_rect = self.font.render(str(round(drone.z, 2)), (255, 255, 255))
-            text_rect.center = px(drone.x, drone.y)
-            self.screen.blit(text_surface, text_rect)
+        for i in range(N_DRONES):
+            if drones[i]['active']:
+                pygame.draw.circle(self.screen, BLUE, px(drones[i]['x'], drones[i]['y']), px(R_DRONE))
+                pygame.draw.line(self.screen, RED, px(drones[i]['x'], drones[i]['y']), (float(px(drones[i]['x']) + np.cos(drones[i]['heading']) * px(R_DRONE)), float(px(drones[i]['y']) + np.sin(drones[i]['heading']) * px(R_DRONE))), 2)
+                
+                # Height indication
+                text_surface, text_rect = self.font.render(str(round(drones[i]['z'], 2)), (255, 255, 255))
+                text_rect.center = px(drones[i]['x'], drones[i]['y'])
+                self.screen.blit(text_surface, text_rect)
                 
             # if VIEW == 1:  # Drone vision and influenced entitites
             #     pygame.draw.circle(self.screen, GREY, (X, Y), drone.r_vis['drone'], 1)  # visual range for drones
