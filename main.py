@@ -20,10 +20,10 @@ if __name__ == '__main__':
     # bt.save2file()
 
     start_time = time.perf_counter();
-    for i in range(3):
-        bt = BehaviourTree('random.json', random_tree=True, seed=i);
-        sim = Simulation(bt=bt);
-        sim.run();
+    i = 3
+    bt = BehaviourTree('random.json', random_tree=True, seed=i);
+    sim = Simulation(bt=bt);
+    sim.run();
     
     end_time = time.perf_counter();
     print(f"Sim time: {end_time - start_time} s")

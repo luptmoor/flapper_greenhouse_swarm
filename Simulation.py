@@ -18,7 +18,7 @@ class SwarmNet(nn.Module):
     def __init__(self):
         super().__init__()
         # In N x (N*4) = N x 20
-        self.fc1 = nn.Linear(20, 32)  # First hidden layer
+        self.fc1 = nn.Linear(N_DRONES * 4, 32)  # First hidden layer
         # N x 16
         self.fc2 = nn.Linear(32, 16)  # Second hidden layer
         # N x 16
@@ -101,7 +101,7 @@ def drone_sees(drone, entity):
 
 
 
-#@njit
+@njit
 def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array):
     cpsi = np.cos(heading_array)
     spsi = np.sin(heading_array)
@@ -125,7 +125,7 @@ def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, s
         swarm_array[:, 4*j + 3] = msg_mat[:, j]
 
 
-#@njit
+@njit
 def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array):
     # if not (MANUAL and drone['entity']['name'] == 'Drone 0'):
     #     drone['message'] = msg
