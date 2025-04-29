@@ -29,9 +29,9 @@ CAMERA_VFOV          =  30 / 57.3                                   # rad
 CAMERA_HFOV          =  40 / 57.3                                   # rad
 
 # First order lag drone model
-TAU_VX               =   0.1
-TAU_VZ               =   0.1
-TAU_R                =   0.05
+TAU_VX               =   0.3
+TAU_VZ               =   0.5
+TAU_R                =   0.1
 
 # Simulation parameters
 SEED                 =   44
