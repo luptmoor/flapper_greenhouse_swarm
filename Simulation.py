@@ -17,9 +17,13 @@ import torch.nn.functional as F
 class SwarmNet(nn.Module):
     def __init__(self):
         super().__init__()
+        # In N x (N*4) = N x 20
         self.fc1 = nn.Linear(20, 32)  # First hidden layer
+        # N x 16
         self.fc2 = nn.Linear(32, 16)  # Second hidden layer
-        self.fc3 = nn.Linear(16, 4)   # Output layer
+        # N x 16
+        self.fc3 = nn.Linear(16, 5)   # Output layer
+        # N x 5
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
@@ -27,13 +31,13 @@ class SwarmNet(nn.Module):
         x = torch.sigmoid(self.fc3(x))   # sigmoid to keep outputs bounded in (0, 1)
 
         # Map to correct ranges
-        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_DOWN_MAX, -YAWRATE_MAX, -1])
-        max_tensor = torch.tensor([V_FORWARD_MAX, V_UP_MAX, YAWRATE_MAX, 1])
+        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_DOWN_MAX, -YAWRATE_MAX, -1.0, -1.0])
+        max_tensor = torch.tensor([V_FORWARD_MAX, V_UP_MAX, YAWRATE_MAX, 1.0, 1.0])
 
         x = min_tensor + (max_tensor - min_tensor) * x
         x = x.detach().numpy()
 
-        return x[0], x[1], x[2], x[3]  # vx, vz, r, msg
+        return x[:, 0], x[:, 1], x[:, 2], x[:, 3], x[:, 4]  # vx, vz, r, msg, mem
 
 
 swarm_net = SwarmNet();
@@ -58,24 +62,21 @@ def check_collision(entity1, entity2, margin=0):
         return False
 
 
-drone_dtype = np.dtype([
-    ('active', 'b'),
-    ('x', 'f8'),
-    ('y', 'f8'),
-    ('z', 'f8'),
-    ('heading', 'f8'),
-    ('vx', 'f8'),
-    ('vz', 'f8'),
-    ('r', 'f8'),
-    ('mem', 'f8'),
-    ('msg', 'f8'),
-    ('swarm_matrix', 'f8', (N_DRONES, 4)),
-    ('vx_cmd', 'f8'),
-    ('vz_cmd', 'f8'),
-    ('r_cmd', 'f8'),
-])
+active_array = np.ones(N_DRONES, dtype=np.bool)
+x_array = np.random.uniform(0.1, WIDTH * LAUNCHPAD_FRAC, N_DRONES).astype(np.float32)
+y_array = np.random.uniform(0.1, HEIGHT / N_DRONES, N_DRONES).astype(np.float32) + np.arange(N_DRONES) * HEIGHT / N_DRONES
+z_array = 0.01 * np.ones(N_DRONES, dtype=np.float32)
+heading_array = np.random.uniform(-np.pi, np.pi, N_DRONES).astype(np.float32)
+vx_array = np.zeros(N_DRONES, dtype=np.float32)
+vz_array = np.zeros(N_DRONES, dtype=np.float32)
+r_array = np.zeros(N_DRONES, dtype=np.float32)
+mem_array = np.zeros(N_DRONES, dtype=np.float32)
+msg_array = np.zeros(N_DRONES, dtype=np.float32)
+vxcmd_array = np.zeros(N_DRONES, dtype=np.float32)
+vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
+rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
+swarm_array = np.zeros((N_DRONES, N_DRONES*4), dtype=np.float32)
 
-drones = np.zeros(N_DRONES, dtype=drone_dtype)
 
 def drone_sees(drone, entity):
     
@@ -99,33 +100,33 @@ def drone_sees(drone, entity):
         return False
 
 
-@njit
-def first_order_lag(x, x_cmd, tau):
-    alpha = DT / tau;
-    return (1 - alpha) * x + alpha * x_cmd;
 
-@njit
-def update_swarm_matrices(drones):
+#@njit
+def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array):
+    cpsi = np.cos(heading_array)
+    spsi = np.sin(heading_array)
+
+    dx = x_array[:, None] - x_array[None, :]
+    dy = y_array[:, None] - y_array[None, :]
+    dz = z_array[:, None] - z_array[None, :]
+
+    dx_rot = dx * cpsi + dy * spsi
+    dy_rot = dy * -spsi + dy * cpsi
+
+    msg_mat = np.empty((N_DRONES, N_DRONES), dtype=np.float32)
     for i in range(N_DRONES):
-        cpsi = np.cos(drones[i]['heading'])
-        spsi = np.sin(drones[i]['heading'])
+        msg_mat[i, :] = msg_array
+        msg_mat[i, i] = 0.0
 
-        for j in range(N_DRONES):
-            if i != j and drones[j]['active']:
-                drones[i]['swarm_matrix'][j, 0] = drones[i]['x'] - drones[j]['x'] * cpsi - drones[i]['y'] - drones[j]['y'] * spsi;
-                drones[i]['swarm_matrix'][j, 1] = drones[i]['x'] - drones[j]['x'] * spsi + drones[i]['y'] - drones[j]['y'] * cpsi;
-                drones[i]['swarm_matrix'][j, 2] = drones[i]['z'] - drones[j]['z']
-                drones[i]['swarm_matrix'][j, 3] = drones[j]['msg']
-            
-            else:
-                drones[i]['swarm_matrix'][j, 0] = 0.0
-                drones[i]['swarm_matrix'][j, 1] = 0.0
-                drones[i]['swarm_matrix'][j, 2] = 0.0
-                drones[i]['swarm_matrix'][j, 3] = 0.0
+    for j in range(N_DRONES):
+        swarm_array[:, 4*j + 0] = dx_rot[:, j]
+        swarm_array[:, 4*j + 1] = dy_rot[:, j]
+        swarm_array[:, 4*j + 2] = dz[:, j]
+        swarm_array[:, 4*j + 3] = msg_mat[:, j]
 
 
-@njit
-def drone_advance(drone):
+#@njit
+def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array):
     # if not (MANUAL and drone['entity']['name'] == 'Drone 0'):
     #     drone['message'] = msg
     # else:
@@ -135,22 +136,17 @@ def drone_advance(drone):
 
     #print(drone['swarm_matrix'])
 
-    drone['vx'] = first_order_lag(drone['vx'], drone['vx_cmd'], TAU_VX)
-    drone['vz'] = first_order_lag(drone['vz'], drone['vz_cmd'], TAU_VZ)
-    drone['r'] = first_order_lag(drone['r'], drone['r_cmd'], TAU_R)
+    # First order lag
+    vx_array[:] = (1 - DT/TAU_VX) * vx_array + DT/TAU_VX * vxcmd_array;
+    vz_array[:] = (1 - DT/TAU_VZ) * vz_array + DT/TAU_VZ * vzcmd_array;
+    r_array[:] = (1 - DT/TAU_R) * r_array + DT/TAU_R * rcmd_array;
 
+    heading_array[:] += r_array * DT
+    heading_array[:] = (heading_array + np.pi) % (2 * np.pi) - np.pi
 
-    drone['heading'] += drone['r'] * DT
-    drone['heading'] = (drone['heading'] + np.pi) % (2 * np.pi) - np.pi
-
-    drone['x'] += drone['vx'] * DT * np.cos(drone['heading'])
-    drone['y'] += drone['vx'] * DT * np.sin(drone['heading'])
-    drone['z'] += drone['vz'] * DT
-
-    drone['x'] = min(max(drone['x'], 0.01), WIDTH)
-    drone['y'] = min(max(drone['y'], 0.01), HEIGHT)
-    drone['z'] = min(max(drone['z'], 0.01), CEILING)
-
+    x_array[:] = np.clip(x_array + vx_array * DT * np.cos(heading_array), 0.01, WIDTH)
+    y_array[:] = np.clip(y_array + vx_array * DT * np.sin(heading_array), 0.01, HEIGHT)
+    z_array[:] = np.clip(z_array + vz_array * DT, 0.01, CEILING)
 
 
 class Simulation:
@@ -217,20 +213,6 @@ class Simulation:
                 if not any([check_collision(newfruit, othertree) for othertree in self.trees if not othertree.name == tree.name]):
                     self.fruits.append(newfruit)
 
-       
-
-        # Initial random placement of drones on launchpad (fraction of total map)
-        for k in range(N_DRONES):
-            x = (np.random.random() * WIDTH * LAUNCHPAD_FRAC)
-            y = random.uniform(k * HEIGHT / N_DRONES, (k+1) * HEIGHT / N_DRONES)
-
-            drones[k]['x'] = x;
-            drones[k]['y'] = y;
-            drones[k]['z'] = 0.01;
-            drones[k]['heading'] = np.random.uniform(-np.pi, np.pi)
-            drones[k]['active'] = True
-        
-        self.n0_drones = N_DRONES
 
     def evaluate(self):
         """
@@ -250,6 +232,7 @@ class Simulation:
         loads environment, starts simulation loop and finally calls evaluation function.
         :return: (float) score for this particular simulation, lies in interval [0, 1].
         """
+        global x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, mem_array, msg_array, vxcmd_array, vzcmd_array, rcmd_array, swarm_array
         running = True
         #dummy = input('Press enter to start')
         while running:
@@ -261,25 +244,22 @@ class Simulation:
                 fruit.advance()
 
             # Drone simulation, TODO consider order of drones
-            update_swarm_matrices(drones);
-
-            for i in range(N_DRONES):
-                # for otherdrone in self.drones:
-                #     if check_collision(drone, otherdrone):
-                #         if drone in self.entities:
-                #             self.entities.remove(drone)
-                #         if drone in self.drones:
-                #             self.drones.remove(drone)  
-                #         self.entities.remove(otherdrone)
-                #         self.drones.remove(otherdrone)
+            update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array);
+            #print(drones[i]['swarm_matrix'])
+            vxcmd_array, vzcmd_array, rcmd_array, msg_array, mem_array = swarm_net.forward(torch.Tensor(swarm_array))
+            #drones[i]['vx'], drones[i]['vz'], drones[i]['r'] = advance_dynamics(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'], DT)
+            advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array)
+            #print(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'])
 
 
-                for fruit in self.fruits:
-                    if drone_sees(drones[i], fruit):
-                        #print(f'{drone.name} sees {fruit.name}.')
-                        fruit.reset_counter()
-                        #drone.inspect(fruit)
-
+            # for i in range(N_DRONES):
+            #     for fruit in self.fruits:
+            #         if drone_sees(drones[i], fruit):
+            #             #print(f'{drone.name} sees {fruit.name}.')
+            #             fruit.reset_counter()
+            #             #drone.inspect(fruit)
+                
+                
 
                 
 
@@ -314,12 +294,6 @@ class Simulation:
                 #             drone.vz = 0
                 #             drone.vx = 0
                 #             drone.r = 0
-                
-                #print(drones[i]['swarm_matrix'])
-                drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'], drones[i]['msg'] = swarm_net.forward(torch.tensor(drones[i]['swarm_matrix'], dtype=torch.float32).flatten())
-                #drones[i]['vx'], drones[i]['vz'], drones[i]['r'] = advance_dynamics(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'], DT)
-                drone_advance(drones[i])
-                #print(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'])
             
                 
                     
@@ -330,7 +304,7 @@ class Simulation:
             #print()
             # Update screen if requested
             if VISUALISE:
-                self.visuals.update(self.trees, self.fruits, drones, self.t)
+                self.visuals.update(self.trees, self.fruits, x_array, y_array, z_array, heading_array, active_array, self.t)
             
         
 
