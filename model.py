@@ -33,10 +33,10 @@ class FlapperModel:
         self.tau_r = 0.05;
 
         # Controller gains
-        self.Kp_theta = -0.711;
+        self.Kp_theta = -0.511;
         self.Kd_theta = -0.0654;
         self.Kp_vx = 0.35
-        self.Kp_vz = 80
+        self.Kp_vz = 20
 
         # Initialise state
         self.x = np.array([u0, w0, theta0, q0, r0, ld0, f0, G0, gamma0])
@@ -52,7 +52,7 @@ class FlapperModel:
 
         # Control law
         theta_ref = self.Kp_vx * (self.vx_cmd - u_abs)
-        f_ref = self.Kp_vz * (self.vz_cmd - w_abs)
+        f_ref = self.Kp_vz * (self.vz_cmd - w_abs) + (self.m * self.g - self.c2) / self.c1
         gamma_ref = self.Kp_theta * (theta_ref - theta) + self.Kd_theta * (0 - q)
         d_r = (self.r_cmd - r) / self.tau_r
 
@@ -108,8 +108,8 @@ class FlapperModel:
         q_ref = 0
         f_ref = (self.m*self.g - 2*self.c2 )/ (2*self.c1) + 0
 
-        vx_ref = 1.5;
-        vz_ref = 0;
+        vx_ref = 10;
+        vz_ref = 10;
         r_ref = 0.2;
         return vx_ref, vz_ref, r_ref
     
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     output = np.zeros([1000, 10])
 
     for i in range(1, 1000):
-        model.set_input(1.5, 0.0, 0.2);
+        model.set_input(1, 1, 0.2);
         model.advance(dt)
         y = model.to_output(model.x)
         t += dt;
@@ -135,7 +135,7 @@ if __name__ == '__main__':
         output[i, 9] = t
         
 
-    for j in range(6):
+    for j in range(3):
         plt.plot(output[:, 9], output[:, j], label=state_names[j])
     plt.xlabel('Time [s]')
     plt.ylabel('States')
