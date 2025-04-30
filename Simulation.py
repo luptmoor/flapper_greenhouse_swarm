@@ -14,6 +14,63 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+
+
+class WeightedDeepSet(nn.Module):
+    def __init__(self, in_dim=3, hidden_dim=16, out_dim=5):
+        super().__init__()
+
+        # Preparation
+        self.reshape = nn.Sequential(
+            nn.Unflatten(1, (N_DRONES-1, 4))
+        )
+        
+        # Embedding
+        self.q = nn.Sequential(
+            nn.Linear(in_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim)
+        )
+
+        # to output
+        self.rho = nn.Sequential(
+            nn.Linear(hidden_dim, out_dim),
+            nn.ReLU()
+        )
+
+    def forward(self, tensor):
+        # positions: [n_points, 3]
+        # weights: [n_points, 1]
+        
+        # in: N x 4(N-1) = N x 16
+        x = self.reshape(tensor) # N x 4 x 4
+        coords  = x[:, :, :3] # N x 4 x 3
+        print(coords)
+        weights = x[:, :, -1].unsqueeze(-1) # N x 4 x 1
+        print(weights)
+
+        embedded = self.q(coords)       # N x 4 x 16
+        weighted = weights * embedded        # N x 4 x 16
+        pooled = weighted.sum(dim=1)      # N x 16
+
+        x = torch.sigmoid(self.rho(pooled))           # N x 5
+
+        # Map to correct ranges
+        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_DOWN_MAX, -YAWRATE_MAX, -1.0, -1.0])
+        max_tensor = torch.tensor([V_FORWARD_MAX, V_UP_MAX, YAWRATE_MAX, 1.0, 1.0])
+
+        x = min_tensor + (max_tensor - min_tensor) * x
+        x = x.detach().numpy()
+        #print(x)
+
+        return x[:, 0], x[:, 1], x[:, 2], x[:, 3], x[:, 4]  # vx, vz, r, msg, mem
+
+
+
+
+
+
+
 class SwarmNet(nn.Module):
     def __init__(self):
         super().__init__()
@@ -40,7 +97,8 @@ class SwarmNet(nn.Module):
         return x[:, 0], x[:, 1], x[:, 2], x[:, 3], x[:, 4]  # vx, vz, r, msg, mem
 
 
-swarm_net = SwarmNet();
+#swarm_net = SwarmNet();
+swarm_net = WeightedDeepSet();
 # for name, param in swarm_net.named_parameters():
 #     print(f"{name}: {param.shape}")
 #     print(param.data)  # O
@@ -261,6 +319,8 @@ class Simulation:
             mem_array[:] = mem_array * active_array
             #drones[i]['vx'], drones[i]['vz'], drones[i]['r'] = advance_dynamics(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'], DT)
             advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array)
+            print(np.round(swarm_array, 2))
+            dummy = input();
             #print(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'])
             check_drone_collisions(x_array, y_array, z_array, active_array)
             #dummy = input('enter');
