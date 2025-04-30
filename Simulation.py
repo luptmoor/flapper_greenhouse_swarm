@@ -110,8 +110,8 @@ def drone_sees(drone, entity):
 
 
 
-@njit
-def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array):
+#@njit
+def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array, active_array):
     cpsi = np.cos(heading_array)
     spsi = np.sin(heading_array)
 
@@ -133,23 +133,15 @@ def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, s
             j = j % N_DRONES
             
             # Update swarm array with rotated distances and messages
-            swarm_array[i, idx + 0] = dx_rot[i, j]  # dx
-            swarm_array[i, idx + 1] = dy_rot[i, j]  # dy
-            swarm_array[i, idx + 2] = dz[i, j]      # dz
-            swarm_array[i, idx + 3] = msg_array[j]  # message
+            swarm_array[i, idx + 0] = dx_rot[i, j] * active_array[j]  # dx
+            swarm_array[i, idx + 1] = dy_rot[i, j] * active_array[j]  # dy
+            swarm_array[i, idx + 2] = dz[i, j] * active_array[j]      # dz
+            swarm_array[i, idx + 3] = msg_array[j] * active_array[j]  # message
 
 
 
-@njit
-def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array):
-    # if not (MANUAL and drone['entity']['name'] == 'Drone 0'):
-    #     drone['message'] = msg
-    # else:
-    #     vx_cmd = vz_cmd = r_cmd = 0.0
-    
-    # , drone['mem']
-
-    #print(drone['swarm_matrix'])
+#@njit
+def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array):
 
     # First order lag
     vx_array[:] = (1 - DT/TAU_VX) * vx_array + DT/TAU_VX * vxcmd_array;
@@ -159,9 +151,22 @@ def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_arra
     heading_array[:] += r_array * DT
     heading_array[:] = (heading_array + np.pi) % (2 * np.pi) - np.pi
 
-    x_array[:] = np.clip(x_array + vx_array * DT * np.cos(heading_array), 0.01, WIDTH)
-    y_array[:] = np.clip(y_array + vx_array * DT * np.sin(heading_array), 0.01, HEIGHT)
-    z_array[:] = np.clip(z_array + vz_array * DT, 0.01, CEILING)
+    x_array[:] = np.clip((x_array + vx_array * DT * np.cos(heading_array)) * active_array, 0.01, WIDTH)
+    y_array[:] = np.clip((y_array + vx_array * DT * np.sin(heading_array)) * active_array, 0.01, HEIGHT)
+    z_array[:] = np.clip((z_array + vz_array * DT)                         * active_array, 0.01, CEILING)
+
+
+#@njit
+def check_drone_collisions(x_array, y_array, z_array, active_array):
+    dx = x_array[np.newaxis, :] - x_array[:, np.newaxis]
+    dy = y_array[np.newaxis, :] - y_array[:, np.newaxis]
+    dz = z_array[np.newaxis, :] - z_array[:, np.newaxis]
+
+    distance = np.sqrt(np.pow(dx, 2) + np.pow(dy, 2) + np.pow(dz, 2))
+    collision_free = distance > 2*R_DRONE
+ 
+    active_array[:] = (np.sum(collision_free, axis=1) >= (N_DRONES-1)) * active_array
+
 
 
 class Simulation:
@@ -239,7 +244,7 @@ class Simulation:
         loads environment, starts simulation loop and finally calls evaluation function.
         :return: (float) score for this particular simulation, lies in interval [0, 1].
         """
-        global x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, mem_array, msg_array, vxcmd_array, vzcmd_array, rcmd_array, swarm_array
+        global x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, mem_array, msg_array, vxcmd_array, vzcmd_array, rcmd_array, swarm_array, active_array
         #dummy = input('Press enter to start')
         for i in range(MAX_TICKS):
             # Print time and seed every 10s
@@ -249,14 +254,16 @@ class Simulation:
             if i < MAX_TICKS-1: fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
 
             # Drone simulation, TODO consider order of drones
-            update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array);
+            update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array, active_array);
             #print(drones[i]['swarm_matrix'])
             vxcmd_array, vzcmd_array, rcmd_array, msg_array, mem_array = swarm_net.forward(torch.Tensor(swarm_array))
+            msg_array[:] = msg_array * active_array
+            mem_array[:] = mem_array * active_array
             #drones[i]['vx'], drones[i]['vz'], drones[i]['r'] = advance_dynamics(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'], DT)
-            advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array)
+            advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array)
             #print(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'])
-
-
+            check_drone_collisions(x_array, y_array, z_array, active_array)
+            #dummy = input('enter');
             # for i in range(N_DRONES):
             #     for fruit in self.fruits:
             #         if drone_sees(drones[i], fruit):

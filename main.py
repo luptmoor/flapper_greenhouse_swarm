@@ -15,7 +15,6 @@ import torch
 
 if __name__ == '__main__':
 
-    # params = 13 * [random.uniform(-1, 1)]
 
     # bt = BehaviourTree(random_tree=True)
     # bt.save2file()
