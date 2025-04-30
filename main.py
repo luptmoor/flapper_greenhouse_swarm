@@ -10,6 +10,7 @@ import pandas as pd
 import random
 from behaviour_tree import BehaviourTree
 import time
+import torch
 
 
 if __name__ == '__main__':
@@ -20,9 +21,9 @@ if __name__ == '__main__':
     # bt.save2file()
 
     start_time = time.perf_counter();
-    i = 3
-    bt = BehaviourTree('random.json', random_tree=True, seed=i);
-    sim = Simulation(bt=bt);
+    s = 2;   
+    bt = BehaviourTree('random.json', random_tree=True, seed=s);
+    sim = Simulation(bt=bt, seed=s);
     sim.run();
     
     end_time = time.perf_counter();

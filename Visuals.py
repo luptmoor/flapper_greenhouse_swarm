@@ -30,7 +30,7 @@ class Visuals:
         pygame.display.flip()
 
 
-    def update(self, trees, fruits, x_array, y_array, z_array, heading_array, active_array, t):
+    def update(self, trees, fruit_x_array, fruit_y_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, t, tick):
         # Make sure visualisation is ended when window is closed
         global VIEW
 
@@ -80,11 +80,11 @@ class Visuals:
         for tree in trees:
             pygame.draw.circle(self.screen, GREEN, px(tree.x, tree.y), px(tree.r_col))
 
-        for fruit in fruits:
-            pygame.draw.circle(self.screen, RED, px(fruit.x, fruit.y), px(fruit.r_col))
-            pygame.draw.circle(self.screen, RED, px(fruit.x, fruit.y), px(R_TREE_AVG), 1)
-            text_surface, text_rect = self.font.render((str(round(fruit.record[-1], 1))), (0, 0, 0))
-            text_rect.center = px(fruit.x, fruit.y)
+        for j in range(N_FRUIT):
+            pygame.draw.circle(self.screen, RED, px(fruit_x_array[j], fruit_y_array[j]), px(R_FRUIT))
+            pygame.draw.circle(self.screen, RED, px(fruit_x_array[j], fruit_y_array[j]), px(R_TREE_AVG), 1)
+            text_surface, text_rect = self.font.render((str(round(fruit_t_array[j, tick], 1))), (0, 0, 0))
+            text_rect.center = px(fruit_x_array[j], fruit_y_array[j])
             self.screen.blit(text_surface, text_rect)
 
 

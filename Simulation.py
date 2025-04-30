@@ -41,6 +41,10 @@ class SwarmNet(nn.Module):
 
 
 swarm_net = SwarmNet();
+# for name, param in swarm_net.named_parameters():
+#     print(f"{name}: {param.shape}")
+#     print(param.data)  # O
+
 
 def check_collision(entity1, entity2, margin=0):
     """
@@ -76,6 +80,11 @@ vxcmd_array = np.zeros(N_DRONES, dtype=np.float32)
 vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
 rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
 swarm_array = np.zeros((N_DRONES, (N_DRONES-1)*4), dtype=np.float32)
+
+fruit_x_array = np.zeros(N_FRUIT, dtype=np.float32)
+fruit_y_array = np.zeros(N_FRUIT, dtype=np.float32)
+fruit_z_array = np.zeros(N_FRUIT, dtype=np.float32)
+fruit_t_array = np.zeros((N_FRUIT, MAX_TICKS), dtype=np.float32)
 
 
 def drone_sees(drone, entity):
@@ -161,9 +170,9 @@ class Simulation:
     Only the visuals instance deals with pixel dimensions.
     """
 
-    def __init__(self, bt):
-        np.random.seed(SEED)
-        torch.manual_seed(SEED)
+    def __init__(self, bt, seed=SEED):
+        np.random.seed(seed)
+        torch.manual_seed(seed)
 
         self.score = 0  # Initialisation of fitness score for this particular simulation
         self.t = 0  # Initialisation of time [s]
@@ -171,8 +180,6 @@ class Simulation:
         # Lists holding simulated entities
         self.entities = []
         self.trees = []
-        self.fruits = []
-        self.drones = []
 
         self.n0_drones = N_DRONES
         self.n_rows = random.choice([3, 4, 5])
@@ -207,47 +214,39 @@ class Simulation:
 
 
         # # Initial placement of fruit
-        for tree in self.trees:
-            if random.uniform(0, 1) < FRUIT_PROB:
-                angle = random.uniform(-np.pi, np.pi)
-                x = tree.x + tree.r_col * np.cos(angle)
-                y = tree.y + tree.r_col * np.sin(angle)
-                z = random.uniform(FRUIT_MIN_HEIGHT, TREE_HEIGHT)
+        f = 0;
+        while f < N_FRUIT:
+            for tree in self.trees:
+                if random.uniform(0, 1) < FRUIT_PROB:
+                    angle = random.uniform(-np.pi, np.pi)
+                    x = tree.x + tree.r_col * np.cos(angle)
+                    y = tree.y + tree.r_col * np.sin(angle)
+                    z = random.uniform(FRUIT_MIN_HEIGHT, TREE_HEIGHT)
+                    
+                    newfruit = Fruit('Fruit of ' + tree.name, x, y, z)
+                    
+                    if not any([check_collision(newfruit, othertree) for othertree in self.trees if not othertree.name == tree.name]):
+                        fruit_x_array[f] = x;
+                        fruit_y_array[f] = y;
+                        fruit_z_array[f] = z;
+                        f += 1;
+                        if f >= N_FRUIT: break
+
                 
-                newfruit = Fruit('Fruit of ' + tree.name, x, y, z)
-                
-                if not any([check_collision(newfruit, othertree) for othertree in self.trees if not othertree.name == tree.name]):
-                    self.fruits.append(newfruit)
-
-
-    def evaluate(self):
-        """
-        called when simulation is over to evaluate the fitness of a solution using three transfer functions: one for each criterion.
-        :return: (list): 1. score for this particular simulation, lies in interval [0, 1], 2. fraction of killed drones,
-                         3. fraction of killed beetles, 4. fraction of passed time.
-        """
-        scores = []
-        for fruit in self.fruits:
-            scores.append(1 - 3 *np.mean([item**2 / self.t**2 for item in fruit.record]))
         
-        
-        return np.mean(scores)
-
     def run(self):
         """
         loads environment, starts simulation loop and finally calls evaluation function.
         :return: (float) score for this particular simulation, lies in interval [0, 1].
         """
         global x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, mem_array, msg_array, vxcmd_array, vzcmd_array, rcmd_array, swarm_array
-        running = True
         #dummy = input('Press enter to start')
-        while running:
+        for i in range(MAX_TICKS):
             # Print time and seed every 10s
             #if int(round(self.t, 0)) % 10 == 0 and abs(int(round(self.t, 0)) - self.t) < 0.001:
                 #print('Seed:', SEED, 'Time:', round(self.t, 0), 's')
             
-            for fruit in self.fruits:
-                fruit.advance()
+            if i < MAX_TICKS-1: fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
 
             # Drone simulation, TODO consider order of drones
             update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array);
@@ -310,17 +309,15 @@ class Simulation:
             #print()
             # Update screen if requested
             if VISUALISE:
-                self.visuals.update(self.trees, self.fruits, x_array, y_array, z_array, heading_array, active_array, self.t)
+                self.visuals.update(self.trees, fruit_x_array, fruit_y_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, self.t, i)
             
-        
+
 
             # Add time step
             self.t += DT
 
-            # End conditions: 80% of drones dead, all beetles dead or time up.
-            if self.t >= T_MAX:
-                running = False
-                self.score = self.evaluate()
-                print(self.score)
+            
+        self.score = np.mean(1 - 3 *np.mean(fruit_t_array**2 / T_MAX**2, axis=1))
+        print(self.score)
 
         return self.score

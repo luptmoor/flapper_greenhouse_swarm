@@ -18,6 +18,7 @@ TREE_HEIGHT          =    1.2                                      # m, physical
 FRUIT_PROB           =    0.5
 FRUIT_MIN_HEIGHT     =    0.2                                      # m
 R_FRUIT              =    0.05                                     # m
+N_FRUIT              =   30
 
 
 # Static Drone Parameters
@@ -37,6 +38,7 @@ TAU_R                =   0.1
 SEED                 =   44
 DT                   =    0.05                                       # s, timestep per tick
 T_MAX                =  120                                         # s, 1min, maximum simulation duration
+MAX_TICKS            = int(T_MAX // DT)
 VISUALISE            =  True                                        # Boolean deciding if simulation shall be visualised
 REALTIME             =  False                                       # Boolean deciding if visuals shall be real-time
 VIEW                 =    0                                         # Variable for different views in visualisation
