@@ -18,7 +18,7 @@ class SwarmNet(nn.Module):
     def __init__(self):
         super().__init__()
         # In N x (N*4) = N x 20
-        self.fc1 = nn.Linear(N_DRONES * 4, 32)  # First hidden layer
+        self.fc1 = nn.Linear((N_DRONES-1) * 4, 32)  # First hidden layer
         # N x 16
         self.fc2 = nn.Linear(32, 16)  # Second hidden layer
         # N x 16
@@ -75,7 +75,7 @@ msg_array = np.zeros(N_DRONES, dtype=np.float32)
 vxcmd_array = np.zeros(N_DRONES, dtype=np.float32)
 vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
 rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
-swarm_array = np.zeros((N_DRONES, N_DRONES*4), dtype=np.float32)
+swarm_array = np.zeros((N_DRONES, (N_DRONES-1)*4), dtype=np.float32)
 
 
 def drone_sees(drone, entity):
@@ -106,23 +106,29 @@ def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, s
     cpsi = np.cos(heading_array)
     spsi = np.sin(heading_array)
 
+    # 3 N x N arrays of distances with zero diagonal
     dx = x_array[:, None] - x_array[None, :]
     dy = y_array[:, None] - y_array[None, :]
     dz = z_array[:, None] - z_array[None, :]
 
-    dx_rot = dx * cpsi + dy * spsi
-    dy_rot = dy * -spsi + dy * cpsi
+    # Rotate by heading
+    dx_rot = dx *  cpsi + dy * spsi
+    dy_rot = dx * -spsi + dy * cpsi
 
-    msg_mat = np.empty((N_DRONES, N_DRONES), dtype=np.float32)
+    # Create an N x 4(N-1) matrix
     for i in range(N_DRONES):
-        msg_mat[i, :] = msg_array
-        msg_mat[i, i] = 0.0
+        for j in range(N_DRONES-1):
+            idx = 4 * j  # Starting index for each drone's set of 4 columns
 
-    for j in range(N_DRONES):
-        swarm_array[:, 4*j + 0] = dx_rot[:, j]
-        swarm_array[:, 4*j + 1] = dy_rot[:, j]
-        swarm_array[:, 4*j + 2] = dz[:, j]
-        swarm_array[:, 4*j + 3] = msg_mat[:, j]
+            if j >= i: j += 1
+            j = j % N_DRONES
+            
+            # Update swarm array with rotated distances and messages
+            swarm_array[i, idx + 0] = dx_rot[i, j]  # dx
+            swarm_array[i, idx + 1] = dy_rot[i, j]  # dy
+            swarm_array[i, idx + 2] = dz[i, j]      # dz
+            swarm_array[i, idx + 3] = msg_array[j]  # message
+
 
 
 @njit
