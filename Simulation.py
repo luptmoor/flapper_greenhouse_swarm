@@ -113,6 +113,7 @@ swarm_net = WeightedDeepSet();
 #     print(param.data)  # O
 
 
+
 def check_collision(entity1, entity2, margin=0):
     """
     checks if entities 1 and 2 have intersecting pixels.
@@ -131,27 +132,6 @@ def check_collision(entity1, entity2, margin=0):
         return True
     else:
         return False
-
-
-active_array = np.ones(N_DRONES, dtype=np.bool)
-x_array = np.random.uniform(0.1, WIDTH * LAUNCHPAD_FRAC, N_DRONES).astype(np.float32)
-y_array = np.random.uniform(0.1, HEIGHT / N_DRONES, N_DRONES).astype(np.float32) + np.arange(N_DRONES) * HEIGHT / N_DRONES
-z_array = 0.01 * np.ones(N_DRONES, dtype=np.float32)
-heading_array = np.random.uniform(-np.pi, np.pi, N_DRONES).astype(np.float32)
-vx_array = np.zeros(N_DRONES, dtype=np.float32)
-vz_array = np.zeros(N_DRONES, dtype=np.float32)
-r_array = np.zeros(N_DRONES, dtype=np.float32)
-mem_array = np.zeros(N_DRONES, dtype=np.float32)
-msg_array = np.random.uniform(1.0, 2.0, N_DRONES).astype(np.float32)
-vxcmd_array = np.zeros(N_DRONES, dtype=np.float32)
-vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
-rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
-swarm_array = np.zeros((N_DRONES, (N_DRONES-1)*4), dtype=np.float32)
-
-fruit_x_array = np.zeros(N_FRUIT, dtype=np.float32)
-fruit_y_array = np.zeros(N_FRUIT, dtype=np.float32)
-fruit_z_array = np.zeros(N_FRUIT, dtype=np.float32)
-fruit_t_array = np.zeros((N_FRUIT, MAX_TICKS+1), dtype=np.float32)
 
 
 def drone_sees(drone, entity):
@@ -242,28 +222,20 @@ class Simulation:
     Only the visuals instance deals with pixel dimensions.
     """
 
-    def __init__(self, bt, seed=SEED):
+    def __init__(self, seed=SEED):
         np.random.seed(seed)
         torch.manual_seed(seed)
-
-        self.score = 0  # Initialisation of fitness score for this particular simulation
-        self.t = 0  # Initialisation of time [s]
 
         # Lists holding simulated entities
         self.entities = []
         self.trees = []
 
-        self.n0_drones = N_DRONES
         self.n_rows = random.choice([3, 4, 5])
-
-        self.bt = bt  
         
-        self.load_environment()
-
         if VISUALISE:
             self.visuals = Visuals(WIDTH, HEIGHT)
 
-    def load_environment(self):
+    def load_environment(self, fruit_x_array, fruit_y_array, fruit_z_array):
         """
         loads simulated environment by placing trees, beetles and drones.
         :return: None
@@ -304,95 +276,120 @@ class Simulation:
                         f += 1;
                         if f >= N_FRUIT: break
 
+        return fruit_x_array, fruit_y_array, fruit_z_array
+
                 
         
-    def run(self):
-        """
-        loads environment, starts simulation loop and finally calls evaluation function.
-        :return: (float) score for this particular simulation, lies in interval [0, 1].
-        """
-        global x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, mem_array, msg_array, vxcmd_array, vzcmd_array, rcmd_array, swarm_array, active_array
-        for i in range(MAX_TICKS):
-            # Print time and seed every 10s
-            #if int(round(self.t, 0)) % 10 == 0 and abs(int(round(self.t, 0)) - self.t) < 0.001:
-                #print('Seed:', SEED, 'Time:', round(self.t, 0), 's')
-            
-            fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
+def run(sim):
+    """
+    loads environment, starts simulation loop and finally calls evaluation function.
+    :return: (float) score for this particular simulation, lies in interval [0, 1].
+    """
+    t = 0.0;
+    score = 0.0;
 
-            # Drone simulation, TODO consider order of drones
-            update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array, active_array);
-            #print(drones[i]['swarm_matrix'])
-            vxcmd_array, vzcmd_array, rcmd_array, msg_array, mem_array = swarm_net.forward(torch.Tensor(swarm_array))
-            msg_array[:] = msg_array * active_array
-            mem_array[:] = mem_array * active_array
-            #drones[i]['vx'], drones[i]['vz'], drones[i]['r'] = advance_dynamics(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'], DT)
-            advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array)
-            # print(np.round(swarm_array, 2))
-            #dummy = input();
-            #print(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'])
-            check_drone_collisions(x_array, y_array, z_array, active_array)
-            #dummy = input('enter');
-            # for i in range(N_DRONES):
-            #     for fruit in self.fruits:
-            #         if drone_sees(drones[i], fruit):
-            #             #print(f'{drone.name} sees {fruit.name}.')
-            #             fruit.reset_counter()
-            #             #drone.inspect(fruit)
+    active_array = np.ones(N_DRONES, dtype=np.bool)
+    x_array = np.random.uniform(0.1, WIDTH * LAUNCHPAD_FRAC, N_DRONES).astype(np.float32)
+    y_array = np.random.uniform(0.1, HEIGHT / N_DRONES, N_DRONES).astype(np.float32) + np.arange(N_DRONES) * HEIGHT / N_DRONES
+    z_array = 0.01 * np.ones(N_DRONES, dtype=np.float32)
+    heading_array = np.random.uniform(-np.pi, np.pi, N_DRONES).astype(np.float32)
+    vx_array = np.zeros(N_DRONES, dtype=np.float32)
+    vz_array = np.zeros(N_DRONES, dtype=np.float32)
+    r_array = np.zeros(N_DRONES, dtype=np.float32)
+    mem_array = np.zeros(N_DRONES, dtype=np.float32)
+    msg_array = np.random.uniform(1.0, 2.0, N_DRONES).astype(np.float32)
+    vxcmd_array = np.zeros(N_DRONES, dtype=np.float32)
+    vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
+    rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
+    swarm_array = np.zeros((N_DRONES, (N_DRONES-1)*4), dtype=np.float32)
+
+    fruit_x_array = np.zeros(N_FRUIT, dtype=np.float32)
+    fruit_y_array = np.zeros(N_FRUIT, dtype=np.float32)
+    fruit_z_array = np.zeros(N_FRUIT, dtype=np.float32)
+    fruit_t_array = np.zeros((N_FRUIT, MAX_TICKS+1), dtype=np.float32)
+
+    fruit_x_array, fruit_y_array, fruit_z_array = sim.load_environment(fruit_x_array, fruit_y_array, fruit_z_array)
+
+
+    for i in range(MAX_TICKS):
+        # Print time and seed every 10s
+        #if int(round(self.t, 0)) % 10 == 0 and abs(int(round(self.t, 0)) - self.t) < 0.001:
+            #print('Seed:', SEED, 'Time:', round(self.t, 0), 's')
+        
+        fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
+
+        # Drone simulation, TODO consider order of drones
+        update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array, active_array);
+        #print(drones[i]['swarm_matrix'])
+        vxcmd_array, vzcmd_array, rcmd_array, msg_array, mem_array = swarm_net.forward(torch.Tensor(swarm_array))
+        msg_array[:] = msg_array * active_array
+        mem_array[:] = mem_array * active_array
+        #drones[i]['vx'], drones[i]['vz'], drones[i]['r'] = advance_dynamics(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'], DT)
+        advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array)
+        # print(np.round(swarm_array, 2))
+        #dummy = input();
+        #print(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'])
+        check_drone_collisions(x_array, y_array, z_array, active_array)
+        #dummy = input('enter');
+        # for i in range(N_DRONES):
+        #     for fruit in self.fruits:
+        #         if drone_sees(drones[i], fruit):
+        #             #print(f'{drone.name} sees {fruit.name}.')
+        #             fruit.reset_counter()
+        #             #drone.inspect(fruit)
+            
+            
+
+            
+
+            # # Maintain list of visible entities
+            # for entity in self.entities:
+            #     if drone.sees(entity) and entity not in drone.visible_entities:
+            #         drone.visible_entities.append(entity)
+            #     if not drone.sees(entity) and entity in drone.visible_entities:
+            #         drone.visible_entities.remove(entity)
+
+            # drone.codrones = [otherdrone for otherdrone in self.drones if not otherdrone == drone]
+
+            # if drone.name == 'Drone 0' and MANUAL:
+            #     for event in pygame.event.get():
+            #         if event.type == pygame.KEYDOWN:
+            #             if event.key == pygame.K_w:
+            #                 print('fwd')
+            #                 drone.vx = 0.2
+            #             elif event.key == pygame.K_d:
+            #                 drone.r = np.pi / 5
+            #                 print('r')
+            #             elif event.key == pygame.K_a:
+            #                 drone.r = -np.pi / 5
+            #                 print('l')
+            #             elif event.key == pygame.K_SPACE:
+            #                 drone.vz = 0.2
+            #                 print('up')
+            #             elif event.key == pygame.K_LSHIFT:
+            #                 drone.vz = -0.2
+            #                 print('dn')
+            #         elif event.type == pygame.KEYUP:
+            #             drone.vz = 0
+            #             drone.vx = 0
+            #             drone.r = 0
+        
+            
                 
-                
-
-                
-
-                # # Maintain list of visible entities
-                # for entity in self.entities:
-                #     if drone.sees(entity) and entity not in drone.visible_entities:
-                #         drone.visible_entities.append(entity)
-                #     if not drone.sees(entity) and entity in drone.visible_entities:
-                #         drone.visible_entities.remove(entity)
-
-                # drone.codrones = [otherdrone for otherdrone in self.drones if not otherdrone == drone]
-
-                # if drone.name == 'Drone 0' and MANUAL:
-                #     for event in pygame.event.get():
-                #         if event.type == pygame.KEYDOWN:
-                #             if event.key == pygame.K_w:
-                #                 print('fwd')
-                #                 drone.vx = 0.2
-                #             elif event.key == pygame.K_d:
-                #                 drone.r = np.pi / 5
-                #                 print('r')
-                #             elif event.key == pygame.K_a:
-                #                 drone.r = -np.pi / 5
-                #                 print('l')
-                #             elif event.key == pygame.K_SPACE:
-                #                 drone.vz = 0.2
-                #                 print('up')
-                #             elif event.key == pygame.K_LSHIFT:
-                #                 drone.vz = -0.2
-                #                 print('dn')
-                #         elif event.type == pygame.KEYUP:
-                #             drone.vz = 0
-                #             drone.vx = 0
-                #             drone.r = 0
-            
-                
-                    
-                # for entity in drone.visible_entities:
-                #     if entity not in self.entities:
-                #         drone.visible_entities.remove(entity)
-            
-            #print()
-            # Update screen if requested
-            if VISUALISE:
-                self.visuals.update(self.trees, fruit_x_array, fruit_y_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, self.t, i)
-            
+            # for entity in drone.visible_entities:
+            #     if entity not in self.entities:
+            #         drone.visible_entities.remove(entity)
+        
+        #print()
+        # Update screen if requested
+        if VISUALISE:
+            sim.visuals.update(sim.trees, fruit_x_array, fruit_y_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, t, i)
+        
 
 
-            # Add time step
-            self.t += DT
+        # Add time step
+        t += DT
 
-            
-        self.score = np.mean(1 - 3 *np.mean(fruit_t_array**2 / T_MAX**2, axis=1))
-        print(self.score)
-
-        return self.score
+        
+    score = np.mean(1 - 3 *np.mean(fruit_t_array**2 / T_MAX**2, axis=1))
+    print(score)

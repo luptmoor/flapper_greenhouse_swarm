@@ -1,5 +1,5 @@
 
-from Simulation import Simulation
+from Simulation import Simulation, run
 import cma
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,9 +21,9 @@ if __name__ == '__main__':
     start_time = time.perf_counter();
 
     for s in range(20):
-        bt = BehaviourTree('random.json', random_tree=True, seed=s);
-        sim = Simulation(bt=bt, seed=s);
-        sim.run();
+       
+        sim = Simulation(seed=s);
+        run(sim);
         
     end_time = time.perf_counter();
     print(f"Sim time: {end_time - start_time} s")
