@@ -134,26 +134,31 @@ def check_collision(entity1, entity2, margin=0):
         return False
 
 
-def drone_sees(drone, entity):
-    
-    if entity is None:
-        return False
-    
-    dx = drone['x'] - entity.x
-    dy = drone['y'] - entity.y
-    dz = drone['z'] - entity.z
+def check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array):
+    dx = x_array[:, np.newaxis] - fruit_x_array[np.newaxis, :]
+    dy = y_array[:, np.newaxis] - fruit_y_array[np.newaxis, :]
+    dz = z_array[:, np.newaxis] - fruit_z_array[np.newaxis, :]
     dh = np.sqrt(dx ** 2 + dy ** 2)  # Pythagoras
 
     elevation = np.atan(dz / dh)
-    bearing = np.atan2(dy, dx) + np.pi          
-    if bearing > np.pi: bearing -= 2*np.pi
-    if bearing <-np.pi: bearing += 2*np.pi
-    azimuth =  bearing - drone['heading']
+    bearing = np.atan2(dy, dx) + np.pi
 
-    if dh <= R_TREE_AVG and np.abs(elevation) <= CAMERA_VFOV and np.abs(azimuth) <= CAMERA_HFOV:
-        return True
-    else:
-        return False
+    bearing[bearing > np.pi] -= 2*np.pi
+    bearing[bearing <-np.pi] += 2*np.pi
+
+    azimuth = bearing - heading_array[:, np.newaxis]
+
+    drone_side_array = heading_array >= 0
+
+    discovery_array = (
+        (dh <= R_DISCOVERY) &
+        (np.abs(elevation) <= CAMERA_VFOV) &
+        (np.abs(azimuth) <= CAMERA_HFOV) &
+        (drone_side_array[:, np.newaxis] == fruit_side_array[np.newaxis, :])
+    ) # 5 x 30
+
+    fruit_disc_array[:] = (np.sum(discovery_array, axis=0) >= 1) | fruit_disc_array
+
 
 
 
@@ -249,7 +254,7 @@ class Simulation:
         if VISUALISE:
             self.visuals = Visuals(WIDTH, HEIGHT)
 
-    def load_environment(self, fruit_x_array, fruit_y_array, fruit_z_array):
+    def load_environment(self, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array):
         """
         loads simulated environment by placing trees, beetles and drones.
         :return: None
@@ -287,10 +292,11 @@ class Simulation:
                         fruit_x_array[f] = x;
                         fruit_y_array[f] = y;
                         fruit_z_array[f] = z;
+                        fruit_side_array[f] = angle >= 0;
                         f += 1;
                         if f >= N_FRUIT: break
 
-        return fruit_x_array, fruit_y_array, fruit_z_array
+        return fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array
 
                 
         
@@ -324,7 +330,7 @@ def run(sim):
     fruit_side_array = np.zeros(N_FRUIT, dtype=np.bool_)
     fruit_disc_array = np.zeros(N_FRUIT, dtype=np.bool_)
 
-    fruit_x_array, fruit_y_array, fruit_z_array = sim.load_environment(fruit_x_array, fruit_y_array, fruit_z_array)
+    fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array = sim.load_environment(fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array)
 
     swarm_net = WeightedDeepSet();
 
@@ -344,12 +350,12 @@ def run(sim):
 
         advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array)
      
-        check_drone_collisions(x_array, y_array, z_array, active_array)
-      
+        #check_drone_collisions(x_array, y_array, z_array, active_array)
+        check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array)
         
         # Update screen if requested
         if VISUALISE:
-            sim.visuals.update(sim.trees, fruit_x_array, fruit_y_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, fruit_disc_array, t, i)
+            sim.visuals.update(sim.trees, fruit_x_array, fruit_y_array, fruit_z_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, fruit_disc_array, t, i)
         
         # Add time step
         t += DT
@@ -358,5 +364,5 @@ def run(sim):
             break
 
         
-    score = np.mean(1 - 3 *np.mean(fruit_t_array**2 / T_MAX**2, axis=1))
+    score = np.sum(active_array) / N_DRONES * np.sum(fruit_disc_array) / N_FRUIT
     print(score)
