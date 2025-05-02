@@ -107,7 +107,7 @@ class SwarmNet(nn.Module):
 
 
 #swarm_net = SwarmNet();
-swarm_net = WeightedDeepSet();
+
 # for name, param in swarm_net.named_parameters():
 #     print(f"{name}: {param.shape}")
 #     print(param.data)  # O
@@ -321,8 +321,12 @@ def run(sim):
     fruit_y_array = np.zeros(N_FRUIT, dtype=np.float32)
     fruit_z_array = np.zeros(N_FRUIT, dtype=np.float32)
     fruit_t_array = np.zeros((N_FRUIT, MAX_TICKS+1), dtype=np.float32)
+    fruit_side_array = np.zeros(N_FRUIT, dtype=np.bool_)
+    fruit_disc_array = np.zeros(N_FRUIT, dtype=np.bool_)
 
     fruit_x_array, fruit_y_array, fruit_z_array = sim.load_environment(fruit_x_array, fruit_y_array, fruit_z_array)
+
+    swarm_net = WeightedDeepSet();
 
 
     for i in range(MAX_TICKS):
@@ -342,39 +346,11 @@ def run(sim):
      
         check_drone_collisions(x_array, y_array, z_array, active_array)
       
-            
-
-    
-            # if drone.name == 'Drone 0' and MANUAL:
-            #     for event in pygame.event.get():
-            #         if event.type == pygame.KEYDOWN:
-            #             if event.key == pygame.K_w:
-            #                 print('fwd')
-            #                 drone.vx = 0.2
-            #             elif event.key == pygame.K_d:
-            #                 drone.r = np.pi / 5
-            #                 print('r')
-            #             elif event.key == pygame.K_a:
-            #                 drone.r = -np.pi / 5
-            #                 print('l')
-            #             elif event.key == pygame.K_SPACE:
-            #                 drone.vz = 0.2
-            #                 print('up')
-            #             elif event.key == pygame.K_LSHIFT:
-            #                 drone.vz = -0.2
-            #                 print('dn')
-            #         elif event.type == pygame.KEYUP:
-            #             drone.vz = 0
-            #             drone.vx = 0
-            #             drone.r = 0
-        
         
         # Update screen if requested
         if VISUALISE:
-            sim.visuals.update(sim.trees, fruit_x_array, fruit_y_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, t, i)
+            sim.visuals.update(sim.trees, fruit_x_array, fruit_y_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, fruit_disc_array, t, i)
         
-
-
         # Add time step
         t += DT
 

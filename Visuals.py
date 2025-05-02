@@ -8,6 +8,9 @@ def px(x, y=0):
         return int(x * SCALE)
     else:
         return (int(x * SCALE), int(y * SCALE))
+    
+
+
 
 class Visuals:
     """
@@ -30,7 +33,22 @@ class Visuals:
         pygame.display.flip()
 
 
-    def update(self, trees, fruit_x_array, fruit_y_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, t, tick):
+    def draw_fov_triangle(self, tip, fov, height, theta, color=(0, 255, 255)):
+        # Compute base half-width from FOV and height
+        height = height / np.cos(fov
+                                 )            
+        rx = int(tip[0] + height * np.cos(theta + fov/2))
+        ry = int(tip[1] + height * np.sin(theta + fov/2))
+
+        lx = int(tip[0] + height * np.cos(theta - fov/2))
+        ly = int(tip[1] + height * np.sin(theta - fov/2))
+
+        points = [tip, (rx, ry), (lx, ly)]
+
+        pygame.draw.polygon(self.screen, color, points)
+
+
+    def update(self, trees, fruit_x_array, fruit_y_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, fruit_disc_array, t, tick):
         # Make sure visualisation is ended when window is closed
         global VIEW
 
@@ -76,13 +94,17 @@ class Visuals:
         text_rect.center = (300, 17)
         self.screen.blit(text_surface, text_rect)
 
+        text_surface, text_rect = self.font.render('Discovered Fruit: ' + str(round(sum(fruit_disc_array))), (0, 0, 0))
+        text_rect.center = (180, 17)
+        self.screen.blit(text_surface, text_rect)
+
         # Draw all trees
         for tree in trees:
             pygame.draw.circle(self.screen, GREEN, px(tree.x, tree.y), px(tree.r_col))
 
         for j in range(N_FRUIT):
             pygame.draw.circle(self.screen, RED, px(fruit_x_array[j], fruit_y_array[j]), px(R_FRUIT))
-            pygame.draw.circle(self.screen, RED, px(fruit_x_array[j], fruit_y_array[j]), px(R_TREE_AVG), 1)
+            pygame.draw.circle(self.screen, RED, px(fruit_x_array[j], fruit_y_array[j]), px(0.8), 1)
             text_surface, text_rect = self.font.render((str(round(fruit_t_array[j, tick], 1))), (0, 0, 0))
             text_rect.center = px(fruit_x_array[j], fruit_y_array[j])
             self.screen.blit(text_surface, text_rect)
@@ -92,7 +114,8 @@ class Visuals:
             if active_array[i]:
                 pygame.draw.circle(self.screen, BLUE, px(x_array[i], y_array[i]), px(R_DRONE))
                 pygame.draw.line(self.screen, RED, px(x_array[i], y_array[i]), (float(px(x_array[i]) + np.cos(heading_array[i]) * px(R_DRONE)), float(px(y_array[i]) + np.sin(heading_array[i]) * px(R_DRONE))), 2)
-                
+                self.draw_fov_triangle(px(x_array[i], y_array[i]), CAMERA_HFOV, px(0.8), heading_array[i])
+
                 # Height indication
                 text_surface, text_rect = self.font.render(str(round(z_array[i], 2)), (255, 255, 255))
                 text_rect.center = px(x_array[i], y_array[i])
