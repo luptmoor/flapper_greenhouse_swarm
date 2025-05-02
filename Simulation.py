@@ -198,9 +198,9 @@ def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_arra
     heading_array[:] += r_array * DT
     heading_array[:] = (heading_array + np.pi) % (2 * np.pi) - np.pi
 
-    x_array[:] = np.clip((x_array + vx_array * DT * np.cos(heading_array)) * active_array, 0.01, WIDTH)
-    y_array[:] = np.clip((y_array + vx_array * DT * np.sin(heading_array)) * active_array, 0.01, HEIGHT)
-    z_array[:] = np.clip((z_array + vz_array * DT)                         * active_array, 0.01, CEILING)
+    x_array[:] = np.clip((x_array + vx_array * DT * np.cos(heading_array)) * active_array, 0.2, WIDTH)
+    y_array[:] = np.clip((y_array + vx_array * DT * np.sin(heading_array)) * active_array, 0.2, HEIGHT)
+    z_array[:] = np.clip((z_array + vz_array * DT)                         * active_array, 0.2, CEILING)
 
 
 @njit
@@ -214,6 +214,20 @@ def check_drone_collisions(x_array, y_array, z_array, active_array):
  
     active_array[:] = (np.sum(collision_free, axis=1) >= (N_DRONES-1)) * active_array
 
+@njit
+def envelope_ellipse(z):
+    return V_UP_MAX / SQUEEZE_RANGE * np.sqrt(SQUEEZE_RANGE**2 - (z - SQUEEZE_RANGE)**2)
+
+@njit
+def squeeze_vertical_speed(z_array, vzcmd_array):
+    for i in range(N_DRONES):
+        if z_array[i] + SQUEEZE_RANGE >= CEILING:
+            vzcmd_array[i] = min(vzcmd_array[i], envelope_ellipse(CEILING - z_array[i]))
+
+        elif z_array[i] <= SQUEEZE_RANGE + 0.2:
+            vzcmd_array[i] = max(vzcmd_array[i], -envelope_ellipse(z_array[i] - 0.2))
+    
+    return vzcmd_array
 
 
 class Simulation:
@@ -312,45 +326,25 @@ def run(sim):
 
 
     for i in range(MAX_TICKS):
-        # Print time and seed every 10s
-        #if int(round(self.t, 0)) % 10 == 0 and abs(int(round(self.t, 0)) - self.t) < 0.001:
-            #print('Seed:', SEED, 'Time:', round(self.t, 0), 's')
         
         fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
 
         # Drone simulation, TODO consider order of drones
+        
         update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array, active_array);
-        #print(drones[i]['swarm_matrix'])
         vxcmd_array, vzcmd_array, rcmd_array, msg_array, mem_array = swarm_net.forward(torch.Tensor(swarm_array))
+        vzcmd_array = squeeze_vertical_speed(z_array, vzcmd_array)
+
         msg_array[:] = msg_array * active_array
         mem_array[:] = mem_array * active_array
-        #drones[i]['vx'], drones[i]['vz'], drones[i]['r'] = advance_dynamics(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'], DT)
+
         advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array)
-        # print(np.round(swarm_array, 2))
-        #dummy = input();
-        #print(drones[i]['vx_cmd'], drones[i]['vz_cmd'], drones[i]['r_cmd'])
+     
         check_drone_collisions(x_array, y_array, z_array, active_array)
-        #dummy = input('enter');
-        # for i in range(N_DRONES):
-        #     for fruit in self.fruits:
-        #         if drone_sees(drones[i], fruit):
-        #             #print(f'{drone.name} sees {fruit.name}.')
-        #             fruit.reset_counter()
-        #             #drone.inspect(fruit)
-            
+      
             
 
-            
-
-            # # Maintain list of visible entities
-            # for entity in self.entities:
-            #     if drone.sees(entity) and entity not in drone.visible_entities:
-            #         drone.visible_entities.append(entity)
-            #     if not drone.sees(entity) and entity in drone.visible_entities:
-            #         drone.visible_entities.remove(entity)
-
-            # drone.codrones = [otherdrone for otherdrone in self.drones if not otherdrone == drone]
-
+    
             # if drone.name == 'Drone 0' and MANUAL:
             #     for event in pygame.event.get():
             #         if event.type == pygame.KEYDOWN:
@@ -374,13 +368,7 @@ def run(sim):
             #             drone.vx = 0
             #             drone.r = 0
         
-            
-                
-            # for entity in drone.visible_entities:
-            #     if entity not in self.entities:
-            #         drone.visible_entities.remove(entity)
         
-        #print()
         # Update screen if requested
         if VISUALISE:
             sim.visuals.update(sim.trees, fruit_x_array, fruit_y_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, t, i)
@@ -389,6 +377,9 @@ def run(sim):
 
         # Add time step
         t += DT
+
+        if np.sum(active_array) < 2:
+            break
 
         
     score = np.mean(1 - 3 *np.mean(fruit_t_array**2 / T_MAX**2, axis=1))

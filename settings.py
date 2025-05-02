@@ -7,6 +7,7 @@ HEIGHT               =     8                                       # m
 BORDERSIZE           =    10                                       # px, cm
 LAUNCHPAD_FRAC       =    0.2                                      # -, used to determine drones' launchpad size
 CEILING              =    3.0                                      # m, maximum height of drones
+SQUEEZE_RANGE      =      0.5                                      # m, distance from ground and ceiling in which vertical velocity is gradually limited
 
 # Trees
 N_TREES_PER_ROW      =   30                                        # -
