@@ -18,16 +18,15 @@ if __name__ == '__main__':
 
     # bt = BehaviourTree(random_tree=True)
     # bt.save2file()
-
     start_time = time.perf_counter();
-    s = 2;   
-    bt = BehaviourTree('random.json', random_tree=True, seed=s);
-    sim = Simulation(bt=bt, seed=s);
-    sim.run();
-    
+
+    for s in range(20):
+        bt = BehaviourTree('random.json', random_tree=True, seed=s);
+        sim = Simulation(bt=bt, seed=s);
+        sim.run();
+        
     end_time = time.perf_counter();
     print(f"Sim time: {end_time - start_time} s")
-
 
     # bt.set_path('mutated.json')
     # bt.root.macromutate();
