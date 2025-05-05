@@ -1,17 +1,15 @@
 import numpy as np
 from Entity import Entity
-from Drone import Drone
 from Fruit import Fruit
 from Visuals import Visuals
 from settings import *
 import random
 import torch
 import pygame
-import FlapperModel
-from FlapperModel import advance_dynamics
 from numba import jit, njit
 import torch.nn as nn
 import torch.nn.functional as F
+import matplotlib.pyplot as plt
 
 
 
@@ -335,7 +333,7 @@ def run(sim):
     vz_array = np.zeros(N_DRONES, dtype=np.float32)
     r_array = np.zeros(N_DRONES, dtype=np.float32)
     mem_array = np.zeros(N_DRONES, dtype=np.float32)
-    msg_array = np.random.uniform(1.0, 2.0, N_DRONES).astype(np.float32)
+    msg_array = np.random.uniform(1.0, 2.0, (N_DRONES, MAX_TICKS)).astype(np.float32)
     vxcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
@@ -352,17 +350,19 @@ def run(sim):
 
     swarm_net = WeightedDeepSet();
 
+    #fig, axes, lines = live_plot_init(N_DRONES)
+
 
     for i in range(MAX_TICKS):
         fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
 
         # Drone simulation, TODO consider order of drones
         
-        update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array, active_array);
-        vxcmd_array, vzcmd_array, rcmd_array, msg_array, mem_array = swarm_net.forward(torch.Tensor(swarm_array))
+        update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array[:, i], swarm_array, active_array);
+        vxcmd_array, vzcmd_array, rcmd_array, msg_array[:, i], mem_array = swarm_net.forward(torch.Tensor(swarm_array))
         vzcmd_array = squeeze_vertical_speed(z_array, vzcmd_array)
 
-        msg_array[:] = msg_array * active_array
+        msg_array[:, i] = msg_array[:, i] * active_array
         mem_array[:] = mem_array * active_array
 
         advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array)
@@ -370,6 +370,10 @@ def run(sim):
         check_drone_collisions(x_array, y_array, z_array, active_array)
         check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array)
         
+
+        #live_plot_update(lines, msg_array[:, :i+1])
+
+
         # Update screen if requested
         if VISUALISE:
             sim.visuals.update(sim.trees, fruit_x_array, fruit_y_array, fruit_z_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, fruit_disc_array, t, i)
@@ -383,11 +387,56 @@ def run(sim):
         
     score = np.sum(active_array) / N_DRONES * np.sum(fruit_disc_array) / N_FRUIT
     print(score)
+
+    #plot_message_array(msg_array)
     return score
 
 
 
+def plot_message_array(msg_array, filename="message_array_plot.png"):
+    N, T = msg_array.shape
+
+    fig, axes = plt.subplots(N, 1, figsize=(10, 2 * N), sharex=True)
+
+    if N == 1:
+        axes = [axes]  # Ensure axes is always iterable
+
+    for i in range(N):
+        axes[i].plot(msg_array[i])
+        axes[i].grid(True)
+        axes[i].set_ylabel(f"Drone {i}")
+
+    axes[-1].set_xlabel("Timestep")
+    plt.tight_layout()
+    plt.savefig(filename, dpi=150)
+    plt.show()
+    plt.close()
+    print(f"[✔] Saved plot to {filename}")
 
 
 
 
+
+def live_plot_init(N):
+    plt.ion()
+    fig, axes = plt.subplots(N, 1, figsize=(10, 2 * N), sharex=True)
+    if N == 1:
+        axes = [axes]
+
+    lines = []
+    for ax in axes:
+        line, = ax.plot([], [])
+        ax.grid(True)
+        lines.append(line)
+
+    plt.tight_layout()
+    return fig, axes, lines
+
+def live_plot_update(lines, data_array):
+    for i, line in enumerate(lines):
+        line.set_xdata(np.arange(data_array.shape[1]))
+        line.set_ydata(data_array[i])
+        line.axes.relim()
+        line.axes.autoscale_view()
+
+    plt.pause(0.01)  # allow GUI event loop to run
