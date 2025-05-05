@@ -20,7 +20,7 @@ FRUIT_PROB           =    0.5
 FRUIT_MIN_HEIGHT     =    0.2                                      # m
 R_FRUIT              =    0.05                                     # m
 N_FRUIT              =   30
-R_DISCOVERY          =    0.8
+R_DISCOVERY          =    1.5
 
 
 # Static Drone Parameters
@@ -28,7 +28,7 @@ N_DRONES             =    5                                        # -, number o
 R_DRONE              =    0.14                                        # cm drone radius
 V_DRONE_MAX          =  500                                        # px / s,  5 m / s
 A_DRONE_MAX          =  330                                        # px / s^2, 3.3 m / s^2
-CAMERA_VFOV          =  30 / 57.3                                   # rad
+CAMERA_VFOV          =  40 / 57.3                                   # rad
 CAMERA_HFOV          =  40 / 57.3                                   # rad
 
 # First order lag drone model
@@ -39,7 +39,7 @@ TAU_R                =   0.1
 # Simulation parameters
 SEED                 =   44
 DT                   =    0.05                                       # s, timestep per tick
-T_MAX                =  300                                         # s, 1min, maximum simulation duration
+T_MAX                =  120                                         # s, 1min, maximum simulation duration
 MAX_TICKS            = int(T_MAX // DT)
 VISUALISE            =  True                                        # Boolean deciding if simulation shall be visualised
 REALTIME             =  False                                       # Boolean deciding if visuals shall be real-time

@@ -20,7 +20,7 @@ if __name__ == '__main__':
     # bt.save2file()
     start_time = time.perf_counter();
 
-    for s in range(20):
+    for s in range(50):
        
         sim = Simulation(seed=s);
         run(sim);

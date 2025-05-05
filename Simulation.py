@@ -35,7 +35,6 @@ class WeightedDeepSet(nn.Module):
         # to output
         self.rho = nn.Sequential(
             nn.Linear(hidden_dim, out_dim),
-            # nn.ReLU()
         )
 
     def forward(self, tensor):
@@ -43,25 +42,16 @@ class WeightedDeepSet(nn.Module):
         # weights: [n_points, 1]
         
         # in: N x 4(N-1) = N x 16
-        #print(tensor)
         x = self.reshape(tensor) # N x 4 x 4
-        #print(x)
         coords  = x[:, :, :3] # N x 4 x 3
-        #print(coords)
         weights = x[:, :, -1].unsqueeze(-1) # N x 4 x 1
-        #print(weights)
 
         embedded = self.q(coords)       # N x 4 x 16
-        #print(embedded)
         weighted = embedded * weights      # N x 4 x 16
-        #print(weighted)
         pooled = weighted.sum(dim=1)      # N x 16
-        #print(pooled)
         
         raw_output = self.rho(pooled)     # N x 5
-        #print(raw_output)
         x = torch.sigmoid(raw_output)     # N x 5
-        #print(x)
         
 
         # Map to correct ranges
@@ -70,7 +60,6 @@ class WeightedDeepSet(nn.Module):
 
         x = min_tensor + (max_tensor - min_tensor) * x
         x = x.detach().numpy()
-        #print(x)
 
         return x[:, 0], x[:, 1], x[:, 2], x[:, 3], x[:, 4]  # vx, vz, r, msg, mem
 
@@ -106,13 +95,6 @@ class SwarmNet(nn.Module):
         return x[:, 0], x[:, 1], x[:, 2], x[:, 3], x[:, 4]  # vx, vz, r, msg, mem
 
 
-#swarm_net = SwarmNet();
-
-# for name, param in swarm_net.named_parameters():
-#     print(f"{name}: {param.shape}")
-#     print(param.data)  # O
-
-
 
 def check_collision(entity1, entity2, margin=0):
     """
@@ -134,32 +116,71 @@ def check_collision(entity1, entity2, margin=0):
         return False
 
 
-def check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array):
-    dx = x_array[:, np.newaxis] - fruit_x_array[np.newaxis, :]
-    dy = y_array[:, np.newaxis] - fruit_y_array[np.newaxis, :]
-    dz = z_array[:, np.newaxis] - fruit_z_array[np.newaxis, :]
-    dh = np.sqrt(dx ** 2 + dy ** 2)  # Pythagoras
+# def check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array):
+#     dx = x_array[:, np.newaxis] - fruit_x_array[np.newaxis, :]
+#     dy = y_array[:, np.newaxis] - fruit_y_array[np.newaxis, :]
+#     dz = z_array[:, np.newaxis] - fruit_z_array[np.newaxis, :]
+#     dh = np.sqrt(dx ** 2 + dy ** 2)  # Pythagoras
 
-    elevation = np.atan(dz / dh)
-    bearing = np.atan2(dy, dx) + np.pi
+#     elevation = np.atan(dz / dh)
+#     bearing = np.atan2(dy, dx) + np.pi
 
-    bearing[bearing > np.pi] -= 2*np.pi
-    bearing[bearing <-np.pi] += 2*np.pi
+#     bearing[bearing > np.pi] -= 2*np.pi
+#     bearing[bearing <-np.pi] += 2*np.pi
 
-    azimuth = bearing - heading_array[:, np.newaxis]
+#     azimuth = bearing - heading_array[:, np.newaxis]
 
-    drone_side_array = heading_array >= 0
+#     drone_side_array = heading_array >= 0
 
-    discovery_array = (
-        (dh <= R_DISCOVERY) &
-        (np.abs(elevation) <= CAMERA_VFOV) &
-        (np.abs(azimuth) <= CAMERA_HFOV) &
-        (drone_side_array[:, np.newaxis] == fruit_side_array[np.newaxis, :])
-    ) # 5 x 30
+#     discovery_array = (
+#         (dh <= R_DISCOVERY) &
+#         (np.abs(elevation) <= CAMERA_VFOV) &
+#         (np.abs(azimuth) <= CAMERA_HFOV) &
+#         (drone_side_array[:, np.newaxis] == fruit_side_array[np.newaxis, :])
+#     ) # 5 x 30
 
-    fruit_disc_array[:] = (np.sum(discovery_array, axis=0) >= 1) | fruit_disc_array
+#     fruit_disc_array[:] = (np.sum(discovery_array, axis=0) >= 1) | fruit_disc_array
 
+@njit
+def check_fruit_discoveries(
+    x_array, y_array, z_array, heading_array,
+    fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array,
+    fruit_disc_array
+):
+    num_drones = x_array.shape[0]
+    num_fruits = fruit_x_array.shape[0]
 
+    for i in range(num_drones):
+        for j in range(num_fruits):
+            dx = x_array[i] - fruit_x_array[j]
+            dy = y_array[i] - fruit_y_array[j]
+            dz = z_array[i] - fruit_z_array[j]
+
+            dh = np.sqrt(dx ** 2 + dy ** 2)
+            if dh == 0.0:
+                continue  # avoid division by zero
+
+            elevation = np.arctan(dz / dh)
+            bearing = np.arctan2(dy, dx) + np.pi
+
+            if bearing > np.pi:
+                bearing -= 2 * np.pi
+            if bearing < -np.pi:
+                bearing += 2 * np.pi
+
+            azimuth = bearing - heading_array[i]
+            if azimuth > np.pi:
+                azimuth -= 2 * np.pi
+            if azimuth < -np.pi:
+                azimuth += 2 * np.pi
+
+            drone_side = heading_array[i] >= 0.0
+
+            if (dh <= R_DISCOVERY and
+                abs(elevation) <= CAMERA_VFOV and
+                abs(azimuth) <= CAMERA_HFOV and
+                drone_side == fruit_side_array[j]):
+                fruit_disc_array[j] = True
 
 
 @njit
@@ -191,7 +212,6 @@ def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, s
             swarm_array[i, idx + 3] = msg_array[j] * active_array[j]  # message
 
 
-
 @njit
 def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array):
 
@@ -215,7 +235,7 @@ def check_drone_collisions(x_array, y_array, z_array, active_array):
     dz = z_array[np.newaxis, :] - z_array[:, np.newaxis]
 
     distance = np.sqrt(np.pow(dx, 2) + np.pow(dy, 2) + np.pow(dz, 2))
-    collision_free = distance > 2*R_DRONE
+    collision_free = distance > 2.2*R_DRONE
  
     active_array[:] = (np.sum(collision_free, axis=1) >= (N_DRONES-1)) * active_array
 
@@ -260,7 +280,6 @@ class Simulation:
         :return: None
         """
 
-
         # Initial random placement of trees on map
         for i in range(self.n_rows):
             for j in range(int(round(N_TREES_PER_ROW * noise(NOISE), 0))):
@@ -276,7 +295,7 @@ class Simulation:
                         placing = False
 
 
-        # # Initial placement of fruit
+        # Initial placement of fruit
         f = 0;
         while f < N_FRUIT:
             for tree in self.trees:
@@ -285,14 +304,13 @@ class Simulation:
                     x = tree.x + tree.r_col * np.cos(angle)
                     y = tree.y + tree.r_col * np.sin(angle)
                     z = random.uniform(FRUIT_MIN_HEIGHT, TREE_HEIGHT)
-                    
-                    newfruit = Fruit('Fruit of ' + tree.name, x, y, z)
+                    newfruit = Fruit(f'Fruit {f}', x, y, z)
                     
                     if not any([check_collision(newfruit, othertree) for othertree in self.trees if not othertree.name == tree.name]):
                         fruit_x_array[f] = x;
                         fruit_y_array[f] = y;
                         fruit_z_array[f] = z;
-                        fruit_side_array[f] = angle >= 0;
+                        fruit_side_array[f] = (angle >= 0);
                         f += 1;
                         if f >= N_FRUIT: break
 
@@ -336,7 +354,6 @@ def run(sim):
 
 
     for i in range(MAX_TICKS):
-        
         fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
 
         # Drone simulation, TODO consider order of drones
@@ -350,7 +367,7 @@ def run(sim):
 
         advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array)
      
-        #check_drone_collisions(x_array, y_array, z_array, active_array)
+        check_drone_collisions(x_array, y_array, z_array, active_array)
         check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array)
         
         # Update screen if requested
@@ -366,3 +383,11 @@ def run(sim):
         
     score = np.sum(active_array) / N_DRONES * np.sum(fruit_disc_array) / N_FRUIT
     print(score)
+    return score
+
+
+
+
+
+
+
