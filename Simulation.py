@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
-
+import os
 
 
 class WeightedDeepSet(nn.Module):
@@ -259,7 +259,7 @@ class Simulation:
     Only the visuals instance deals with pixel dimensions.
     """
 
-    def __init__(self, seed=SEED):
+    def __init__(self, vis, seed=SEED):
         np.random.seed(seed)
         torch.manual_seed(seed)
 
@@ -269,7 +269,7 @@ class Simulation:
 
         self.n_rows = random.choice([3, 4, 5])
         
-        if VISUALISE:
+        if vis:
             self.visuals = Visuals(WIDTH, HEIGHT)
 
     def load_environment(self, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array):
@@ -316,7 +316,7 @@ class Simulation:
 
                 
         
-def run(sim):
+def run(sim, swarm_net, vis, gen):
     """
     loads environment, starts simulation loop and finally calls evaluation function.
     :return: (float) score for this particular simulation, lies in interval [0, 1].
@@ -348,7 +348,7 @@ def run(sim):
 
     fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array = sim.load_environment(fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array)
 
-    swarm_net = WeightedDeepSet();
+
 
     #fig, axes, lines = live_plot_init(N_DRONES)
 
@@ -375,7 +375,7 @@ def run(sim):
 
 
         # Update screen if requested
-        if VISUALISE:
+        if vis:
             sim.visuals.update(sim.trees, fruit_x_array, fruit_y_array, fruit_z_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, fruit_disc_array, t, i)
         
         # Add time step
@@ -388,7 +388,12 @@ def run(sim):
     score = np.sum(active_array) / N_DRONES * np.sum(fruit_disc_array) / N_FRUIT
     print(score)
 
-    #plot_message_array(msg_array)
+    if vis:
+        folder = f"gen_{gen}"
+        os.makedirs(folder, exist_ok=True)  # create folder if it doesn't exist
+        filename = os.path.join(folder, f"{score}_d_{np.sum(active_array)}_f_{np.sum(fruit_disc_array)}_{np.random.uniform(0, 1):.2f}.png")
+        plot_message_array(msg_array, filename)
+
     return score
 
 
@@ -409,7 +414,7 @@ def plot_message_array(msg_array, filename="message_array_plot.png"):
     axes[-1].set_xlabel("Timestep")
     plt.tight_layout()
     plt.savefig(filename, dpi=150)
-    plt.show()
+    #plt.show()
     plt.close()
     print(f"[✔] Saved plot to {filename}")
 
