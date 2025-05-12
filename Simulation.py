@@ -143,7 +143,7 @@ def check_collision(entity1, entity2, margin=0):
 def check_fruit_discoveries(
     x_array, y_array, z_array, heading_array,
     fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array,
-    fruit_disc_array
+    fruit_disc_array, approaching_array
 ):
     num_drones = x_array.shape[0]
     num_fruits = fruit_x_array.shape[0]
@@ -178,7 +178,9 @@ def check_fruit_discoveries(
                 abs(elevation) <= CAMERA_VFOV and
                 abs(azimuth) <= CAMERA_HFOV and
                 drone_side == fruit_side_array[j]):
+
                 fruit_disc_array[j] = True
+                approaching_array[i] = True
 
 
 @njit
@@ -270,7 +272,7 @@ class Simulation:
         self.n_rows = random.choice([3, 4, 5])
         
         if vis:
-            self.visuals = Visuals(WIDTH, HEIGHT)
+            self.visuals = Visuals(WIDTH, HEIGHT, self.n_rows)
 
     def load_environment(self, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array):
         """
@@ -338,6 +340,7 @@ def run(sim, swarm_net, vis, gen):
     vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     swarm_array = np.zeros((N_DRONES, (N_DRONES-1)*4), dtype=np.float32)
+    approaching_array = np.zeros(N_DRONES, dtype=np.bool)
 
     fruit_x_array = np.zeros(N_FRUIT, dtype=np.float32)
     fruit_y_array = np.zeros(N_FRUIT, dtype=np.float32)
@@ -368,7 +371,7 @@ def run(sim, swarm_net, vis, gen):
         advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array)
      
         check_drone_collisions(x_array, y_array, z_array, active_array)
-        check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array)
+        check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, approaching_array)
         
 
         #live_plot_update(lines, msg_array[:, :i+1])
