@@ -179,8 +179,9 @@ def check_fruit_discoveries(
                 abs(azimuth) <= CAMERA_HFOV and
                 drone_side == fruit_side_array[j]):
 
+                if fruit_disc_array[j] == False:
+                    approaching_array[i] = 5.0
                 fruit_disc_array[j] = True
-                approaching_array[i] = True
 
 
 @njit
@@ -213,12 +214,15 @@ def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, s
 
 
 @njit
-def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array):
+def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array):
+
+    approaching_array[:] = np.clip(approaching_array - DT, 0.0, 5.0)
+
 
     # First order lag
-    vx_array[:] = (1 - DT/TAU_VX) * vx_array + DT/TAU_VX * vxcmd_array;
-    vz_array[:] = (1 - DT/TAU_VZ) * vz_array + DT/TAU_VZ * vzcmd_array;
-    r_array[:] = (1 - DT/TAU_R) * r_array + DT/TAU_R * rcmd_array;
+    vx_array[:] = (1 - DT/TAU_VX) * vx_array + DT/TAU_VX * vxcmd_array * (approaching_array < 0.1); 
+    vz_array[:] = (1 - DT/TAU_VZ) * vz_array + DT/TAU_VZ * vzcmd_array * (approaching_array < 0.1);
+    r_array[:] = (1 - DT/TAU_R) * r_array + DT/TAU_R * rcmd_array * (approaching_array < 0.1);
 
     heading_array[:] += r_array * DT
     heading_array[:] = (heading_array + np.pi) % (2 * np.pi) - np.pi
@@ -340,7 +344,7 @@ def run(sim, swarm_net, vis, gen):
     vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     swarm_array = np.zeros((N_DRONES, (N_DRONES-1)*4), dtype=np.float32)
-    approaching_array = np.zeros(N_DRONES, dtype=np.bool)
+    approaching_array = np.zeros(N_DRONES, dtype=np.float32)
 
     fruit_x_array = np.zeros(N_FRUIT, dtype=np.float32)
     fruit_y_array = np.zeros(N_FRUIT, dtype=np.float32)
@@ -368,7 +372,7 @@ def run(sim, swarm_net, vis, gen):
         msg_array[:, i] = msg_array[:, i] * active_array
         mem_array[:] = mem_array * active_array
 
-        advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array)
+        advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array)
      
         check_drone_collisions(x_array, y_array, z_array, active_array)
         check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, approaching_array)
