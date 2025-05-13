@@ -132,15 +132,15 @@ if __name__ == '__main__':
     # ---- CMA-ES optimization ----
     model = WeightedDeepSet()
     x0 = flatten_params(model)
-    sigma0 = 0.5
+    sigma0 = 0.3
 
-    es = cma.CMAEvolutionStrategy(x0, sigma0, {'popsize': 50})
-    gen = 0;
+    es = cma.CMAEvolutionStrategy(x0, sigma0, {'popsize': 100})
+    gen = 1;
     vis = False
     while not es.stop():
         print(f'generation {gen}')
         
-        if gen % 40 == 0: vis = True
+        if gen % 20 == 0: vis = True
         else: vis = False
         print(f'visuals: {vis}')
 

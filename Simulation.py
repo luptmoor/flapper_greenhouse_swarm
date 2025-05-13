@@ -59,7 +59,7 @@ class WeightedDeepSet(nn.Module):
         x = min_tensor + (max_tensor - min_tensor) * x
         x = x.detach().numpy()
 
-        return x[:, 0], x[:, 1], x[:, 2], x[:, 3], x[:, 4]  # vx, vz, r, msg, mem
+        return x[:, 0], x[:, 1], x[:, 2]**3 / YAWRATE_MAX**2, x[:, 3], x[:, 4]  # vx, vz, r, msg, mem
 
 
 
@@ -214,7 +214,7 @@ def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, s
 
 
 @njit
-def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array):
+def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array, obstacle_array):
 
     approaching_array[:] = np.clip(approaching_array - DT, 0.0, 5.0)
 
@@ -227,9 +227,29 @@ def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_arra
     heading_array[:] += r_array * DT
     heading_array[:] = (heading_array + np.pi) % (2 * np.pi) - np.pi
 
-    x_array[:] = np.clip((x_array + vx_array * DT * np.cos(heading_array)) * active_array, 0.2, WIDTH)
-    y_array[:] = np.clip((y_array + vx_array * DT * np.sin(heading_array)) * active_array, 0.2, HEIGHT)
-    z_array[:] = np.clip((z_array + vz_array * DT)                         * active_array, 0.2, CEILING)
+    for i in range(x_array.shape[0]):
+        if active_array[i] == 0:
+            continue
+        
+        x_new = min(max(x_array[i] + vx_array[i] * DT * np.cos(heading_array[i]), 0.1), WIDTH)
+        y_new = min(max(y_array[i] + vx_array[i] * DT * np.sin(heading_array[i]), 0.1), HEIGHT)
+        z_new = min(max(z_array[i] + vz_array[i] * DT, 0.2), CEILING)
+
+        # Check for collision with internal obstacles
+        if not is_inside_obstacle(x_new, y_new, z_new, obstacle_array):
+            x_array[i] = x_new
+            y_array[i] = y_new
+            z_array[i] = z_new
+
+
+@njit
+def is_inside_obstacle(x, y, z, obstacles):
+    for i in range(obstacles.shape[0]):
+        if (obstacles[i, 0] <= x <= obstacles[i, 0] + obstacles[i, 3] and
+            obstacles[i, 1] <= y <= obstacles[i, 1] + obstacles[i, 4] and
+            obstacles[i, 2] <= z <= obstacles[i, 2] + obstacles[i, 5]):
+            return True
+    return False
 
 
 @njit
@@ -274,11 +294,12 @@ class Simulation:
         self.trees = []
 
         self.n_rows = random.choice([3, 4, 5])
-        
+
+
         if vis:
             self.visuals = Visuals(WIDTH, HEIGHT, self.n_rows)
 
-    def load_environment(self, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array):
+    def load_environment(self, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, obstacle_array):
         """
         loads simulated environment by placing trees, beetles and drones.
         :return: None
@@ -286,6 +307,8 @@ class Simulation:
 
         # Initial random placement of trees on map
         for i in range(self.n_rows):
+            obstacle_array[i, :] = np.array([LAUNCHPAD_FRAC*WIDTH + R_TREE_AVG, HEIGHT / (self.n_rows + 1) * (i+1) - 0.5*R_TREE_AVG, 0.0, (1-LAUNCHPAD_FRAC)*WIDTH - 2*R_TREE_AVG, R_TREE_AVG, TREE_HEIGHT])
+            
             for j in range(int(round(N_TREES_PER_ROW * noise(NOISE), 0))):
                 placing = True
                 while placing:
@@ -297,7 +320,7 @@ class Simulation:
                         self.entities.append(newtree)
                         self.trees.append(newtree)
                         placing = False
-
+        
 
         # Initial placement of fruit
         f = 0;
@@ -318,7 +341,7 @@ class Simulation:
                         f += 1;
                         if f >= N_FRUIT: break
 
-        return fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array
+        return fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, obstacle_array
 
                 
         
@@ -353,7 +376,10 @@ def run(sim, swarm_net, vis, gen):
     fruit_side_array = np.zeros(N_FRUIT, dtype=np.bool_)
     fruit_disc_array = np.zeros(N_FRUIT, dtype=np.bool_)
 
-    fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array = sim.load_environment(fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array)
+    obstacle_array = np.zeros((5, 6), dtype=np.float32)
+
+
+    fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, obstacle_array = sim.load_environment(fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, obstacle_array)
 
 
 
@@ -372,14 +398,16 @@ def run(sim, swarm_net, vis, gen):
         msg_array[:, i] = msg_array[:, i] * active_array
         mem_array[:] = mem_array * active_array
 
-        advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array)
-     
+        advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array, obstacle_array)
+
+        
+
+
         check_drone_collisions(x_array, y_array, z_array, active_array)
         check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, approaching_array)
         
 
         #live_plot_update(lines, msg_array[:, :i+1])
-
 
         # Update screen if requested
         if vis:

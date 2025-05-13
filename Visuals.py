@@ -116,7 +116,7 @@ class Visuals:
 
         for j in range(N_FRUIT):
             pygame.draw.circle(self.screen, fcolour(fruit_disc_array[j]), px(fruit_x_array[j], fruit_y_array[j]), px(R_FRUIT))
-            pygame.draw.circle(self.screen, fcolour(fruit_disc_array[j]), px(fruit_x_array[j], fruit_y_array[j]), px(R_DISCOVERY), 1)
+            #pygame.draw.circle(self.screen, fcolour(fruit_disc_array[j]), px(fruit_x_array[j], fruit_y_array[j]), px(R_DISCOVERY), 1)
             text_surface, text_rect = self.font.render((str(round(fruit_z_array[j], 1))), (0, 0, 0))
             text_rect.center = px(fruit_x_array[j], fruit_y_array[j])
             self.screen.blit(text_surface, text_rect)
