@@ -264,15 +264,10 @@ def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_arra
         if active_array[i] == 0:
             continue
         
-        x_new = min(max(x_array[i] + vx_array[i] * DT * np.cos(heading_array[i]), 0.1), WIDTH)
-        y_new = min(max(y_array[i] + vx_array[i] * DT * np.sin(heading_array[i]), 0.1), HEIGHT)
-        z_new = min(max(z_array[i] + vz_array[i] * DT, 0.2), CEILING)
+        x_array[i] = min(max(x_array[i] + vx_array[i] * DT * np.cos(heading_array[i]), 0.1), WIDTH)
+        y_array[i] = min(max(y_array[i] + vx_array[i] * DT * np.sin(heading_array[i]), 0.1), HEIGHT)
+        z_array[i] = min(max(z_array[i] + vz_array[i] * DT, 0.2), CEILING)
 
-        # Check for collision with internal obstacles
-        if not is_inside_obstacle(x_new, y_new, z_new, obstacle_array):
-            x_array[i] = x_new
-            y_array[i] = y_new
-            z_array[i] = z_new
 
 
 @njit

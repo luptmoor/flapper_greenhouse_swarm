@@ -106,13 +106,13 @@ class Visuals:
         for tree in trees:
             pygame.draw.circle(self.screen, GREEN, px(tree.x, tree.y), px(tree.r_col))
         
-        for row in range(self.n_rows):
-            pygame.draw.rect(self.screen, BLUE, pygame.Rect(
-                px(LAUNCHPAD_FRAC*WIDTH + R_TREE_AVG),
-                px(HEIGHT / (self.n_rows + 1) * (row+1) - 0.5*R_TREE_AVG),
-                px((1-LAUNCHPAD_FRAC)*WIDTH - 2*R_TREE_AVG), 
-                px(R_TREE_AVG))
-                                                            )
+        # for row in range(self.n_rows):
+        #     pygame.draw.rect(self.screen, BLUE, pygame.Rect(
+        #         px(LAUNCHPAD_FRAC*WIDTH + R_TREE_AVG),
+        #         px(HEIGHT / (self.n_rows + 1) * (row+1) - 0.5*R_TREE_AVG),
+        #         px((1-LAUNCHPAD_FRAC)*WIDTH - 2*R_TREE_AVG), 
+        #         px(R_TREE_AVG))
+        #                                                     )
 
         for j in range(N_FRUIT):
             pygame.draw.circle(self.screen, fcolour(fruit_disc_array[j]), px(fruit_x_array[j], fruit_y_array[j]), px(R_FRUIT))
