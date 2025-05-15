@@ -122,6 +122,20 @@ def load_cma_params_csv(filename="population.csv"):
     return population
 
 
+
+def save_fitnesses(fitnesses, filename="fitnesses.csv"):
+    """
+    append current fitness list to a csv file
+    """
+    with open(filename, "a", newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(fitnesses)
+    print(f"[✔] Fitnesses saved to {filename}")
+            
+
+
+
+
 if __name__ == '__main__':
 
 
@@ -134,25 +148,26 @@ if __name__ == '__main__':
     x0 = flatten_params(model)
     sigma0 = 0.3
 
-    es = cma.CMAEvolutionStrategy(x0, sigma0, {'popsize': 25})
-    #es = load_cma_state()
-    gen = 44;
+    #es = cma.CMAEvolutionStrategy(x0, sigma0, {'popsize': 25})
+    es = cma.CMAEvolutionStrategy.load("cma_state.npz")
+    gen = 1;
     vis = False
     while not es.stop():
         print(f'generation {gen}')
         
-        if gen % 44 == 0: vis = True
+        if gen % 168 == 0: vis = True
         else: vis = False
         print(f'visuals: {vis}')
 
         solutions = es.ask()
         fitnesses = [fitness_fn(s, vis, gen) for s in solutions]
+        save_fitnesses(fitnesses)
 
         es.tell(solutions, fitnesses)
         es.logger.add()
         es.disp()
 
-        save_cma_state(es)
+        es.save("cma_state.npz")
         gen += 1;
 
     # ---- Save best ----
@@ -167,7 +182,5 @@ if __name__ == '__main__':
     
     # Train attraction-repulsion swarming in obstacle-free environment to learn behaviour for exploration/exploitation tradeoff
     # Train tofnet without fruits to learn collision avoidance  OR use serban's RL solution
-
-
 
 

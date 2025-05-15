@@ -8,6 +8,8 @@ BORDERSIZE           =    10                                       # px, cm
 LAUNCHPAD_FRAC       =    0.2                                      # -, used to determine drones' launchpad size
 CEILING              =    3.0                                      # m, maximum height of drones
 SQUEEZE_RANGE      =      0.5                                      # m, distance from ground and ceiling in which vertical velocity is gradually limited
+VOXEL_SIZE           =    0.5                                      # m, size of voxel in which the drone is allowed to move
+
 
 # Trees
 N_TREES_PER_ROW      =   30                                        # -
@@ -39,7 +41,7 @@ TAU_R                =   0.1
 # Simulation parameters
 SEED                 =   44
 DT                   =    0.05                                       # s, timestep per tick
-T_MAX                =  300                                         # s, 1min, maximum simulation duration
+T_MAX                =  200                                         # s, 1min, maximum simulation duration
 MAX_TICKS            = int(T_MAX // DT)
 VISUALISE            =  True                                        # Boolean deciding if simulation shall be visualised
 REALTIME             =  False                                       # Boolean deciding if visuals shall be real-time
