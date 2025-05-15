@@ -62,7 +62,46 @@ class WeightedDeepSet(nn.Module):
         return x[:, 0], x[:, 1], x[:, 2]**3 / YAWRATE_MAX**2, x[:, 3], x[:, 4]  # vx, vz, r, msg, mem
 
 
+class SwarmAggregatorLSTM(nn.Module):
+    def __init__(self, hidden_size=12, output_size=5, head_hidden_size=16):
+        super().__init__()
+        self.hidden_size = hidden_size
 
+        # Preparation
+        self.reshape = nn.Sequential(
+            nn.Unflatten(1, (N_DRONES-1, 2))
+        )
+        
+        # LSTM takes 2D input per peer: [distance, scalar]
+        self.lstm = nn.LSTM(input_size=2, hidden_size=hidden_size, batch_first=True)
+        
+        # Head to output final 5 scalars from aggregated LSTM output
+        self.head = nn.Sequential(
+            nn.Linear(hidden_size, head_hidden_size),  # Hidden size is 16
+            nn.ReLU(),
+            nn.Linear(head_hidden_size, output_size),  # Final output size is 5
+            nn.Sigmoid()  # Apply Sigmoid to the output (range [0, 1])
+        )
+
+    def forward(self, peer_inputs):
+        """
+        peer_inputs: Tensor of shape [N_peers, 2], actual: N x 2(N-1) = N x 8
+        """
+        peer_inputs = self.reshape(peer_inputs) # N x (N-1) x 2 = N x 4 x 2
+
+        lstm_out, (h_n, c_n) = self.lstm(peer_inputs)  # lstm_out: [N, 4, H]
+        aggregated = lstm_out.mean(dim=1)  # mean over peers → [N, H]
+        
+        x = self.head(aggregated).squeeze(0)  # [N, 5]
+
+        # Map to correct ranges
+        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_DOWN_MAX, -YAWRATE_MAX, -1.0, -1.0])
+        max_tensor = torch.tensor([V_FORWARD_MAX, V_UP_MAX, YAWRATE_MAX, 1.0, 1.0])
+
+        x = min_tensor + (max_tensor - min_tensor) * x
+        x = x.detach().numpy()
+
+        return x[:, 0], x[:, 1], x[:, 2], x[:, 3], x[:, 4] # [output_size]
 
 
 
@@ -186,31 +225,25 @@ def check_fruit_discoveries(
 
 @njit
 def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array, active_array):
-    cpsi = np.cos(heading_array)
-    spsi = np.sin(heading_array)
 
     # 3 N x N arrays of distances with zero diagonal
     dx = x_array[:, None] - x_array[None, :]
     dy = y_array[:, None] - y_array[None, :]
     dz = z_array[:, None] - z_array[None, :]
 
-    # Rotate by heading
-    dx_rot = dx *  cpsi + dy * spsi
-    dy_rot = dx * -spsi + dy * cpsi
+    d = np.sqrt(np.pow(dx, 2) + np.pow(dy, 2) + np.pow(dz, 2))
 
     # Create an N x 4(N-1) matrix
     for i in range(N_DRONES):
         for j in range(N_DRONES-1):
-            idx = 4 * j  # Starting index for each drone's set of 4 columns
+            idx = 2 * j  # Starting index for each drone's set of 4 columns
 
             if j >= i: j += 1
             j = j % N_DRONES
             
             # Update swarm array with rotated distances and messages
-            swarm_array[i, idx + 0] = dx_rot[i, j] * active_array[j]  # dx
-            swarm_array[i, idx + 1] = dy_rot[i, j] * active_array[j]  # dy
-            swarm_array[i, idx + 2] = dz[i, j] * active_array[j]      # dz
-            swarm_array[i, idx + 3] = msg_array[j] * active_array[j]  # message
+            swarm_array[i, idx + 0] = d[i, j] * active_array[j]  # dx
+            swarm_array[i, idx + 1] = msg_array[j] * active_array[j]  # message
 
 
 @njit
@@ -362,11 +395,11 @@ def run(sim, swarm_net, vis, gen):
     vz_array = np.zeros(N_DRONES, dtype=np.float32)
     r_array = np.zeros(N_DRONES, dtype=np.float32)
     mem_array = np.zeros(N_DRONES, dtype=np.float32)
-    msg_array = np.random.uniform(1.0, 2.0, (N_DRONES, MAX_TICKS)).astype(np.float32)
+    msg_array = np.random.uniform(-1.0, 1.0, (N_DRONES, MAX_TICKS)).astype(np.float32)
     vxcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
-    swarm_array = np.zeros((N_DRONES, (N_DRONES-1)*4), dtype=np.float32)
+    swarm_array = np.zeros((N_DRONES, (N_DRONES-1)*2), dtype=np.float32)
     approaching_array = np.zeros(N_DRONES, dtype=np.float32)
 
     fruit_x_array = np.zeros(N_FRUIT, dtype=np.float32)
@@ -416,7 +449,7 @@ def run(sim, swarm_net, vis, gen):
         # Add time step
         t += DT
 
-        if np.sum(active_array) < 2:
+        if np.sum(active_array) < 3:
             break
 
         
@@ -444,6 +477,7 @@ def plot_message_array(msg_array, filename="message_array_plot.png"):
     for i in range(N):
         axes[i].plot(msg_array[i])
         axes[i].grid(True)
+        axes[i].set_ylim(-1.0, 1.0)
         axes[i].set_ylabel(f"Drone {i}")
 
     axes[-1].set_xlabel("Timestep")

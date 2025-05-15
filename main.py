@@ -1,5 +1,5 @@
 
-from Simulation import Simulation, run, WeightedDeepSet
+from Simulation import Simulation, run, SwarmAggregatorLSTM
 import cma
 import csv
 import numpy as np
@@ -70,7 +70,7 @@ def load_flat_params(model, flat_params):
 
 
 def fitness_fn(params, vis, gen):
-    model = WeightedDeepSet()
+    model = SwarmAggregatorLSTM()
     load_flat_params(model, params)
     model.eval()
     sim = Simulation(vis)
@@ -129,18 +129,19 @@ if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0)
 
-    # ---- CMA-ES optimization ----
-    model = WeightedDeepSet()
+
+    model = SwarmAggregatorLSTM()
     x0 = flatten_params(model)
     sigma0 = 0.3
 
-    es = cma.CMAEvolutionStrategy(x0, sigma0, {'popsize': 100})
-    gen = 1;
+    es = cma.CMAEvolutionStrategy(x0, sigma0, {'popsize': 25})
+    #es = load_cma_state()
+    gen = 44;
     vis = False
     while not es.stop():
         print(f'generation {gen}')
         
-        if gen % 20 == 0: vis = True
+        if gen % 44 == 0: vis = True
         else: vis = False
         print(f'visuals: {vis}')
 
