@@ -15,12 +15,12 @@ import os
 
 
 class WeightedDeepSet(nn.Module):
-    def __init__(self, in_dim=3, hidden_dim=16, out_dim=5):
+    def __init__(self, in_dim=2, hidden_dim=16, out_dim=5):
         super().__init__()
 
         # Preparation
         self.reshape = nn.Sequential(
-            nn.Unflatten(1, (N_DRONES-1, 4))
+            nn.Unflatten(1, (N_DRONES-1, 2))
         )
         
         # Embedding
@@ -41,12 +41,10 @@ class WeightedDeepSet(nn.Module):
         
         # in: N x 4(N-1) = N x 16
         x = self.reshape(tensor) # N x 4 x 4
-        coords  = x[:, :, :3] # N x 4 x 3
-        weights = x[:, :, -1].unsqueeze(-1) # N x 4 x 1
+        coords  = x[:, :, :1] # N x 4 x 3
 
         embedded = self.q(coords)       # N x 4 x 16
-        weighted = embedded * weights      # N x 4 x 16
-        pooled = weighted.sum(dim=1)      # N x 16
+        pooled = embedded.sum(dim=1)      # N x 16
         
         raw_output = self.rho(pooled)     # N x 5
         x = torch.sigmoid(raw_output)     # N x 5
@@ -59,7 +57,7 @@ class WeightedDeepSet(nn.Module):
         x = min_tensor + (max_tensor - min_tensor) * x
         x = x.detach().numpy()
 
-        return x[:, 0], x[:, 1], x[:, 2]**3 / YAWRATE_MAX**2, x[:, 3], x[:, 4]  # vx, vz, r, msg, mem
+        return x[:, 0], x[:, 1], x[:, 2], x[:, 3], x[:, 4]  # vx, vz, r, msg, mem
 
 
 class SwarmAggregatorLSTM(nn.Module):
