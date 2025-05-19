@@ -66,34 +66,6 @@ class WeightedDeepSet(nn.Module):
 
 
 
-
-class SwarmNet(nn.Module):
-    def __init__(self):
-        super().__init__()
-        # In N x (N*4) = N x 20
-        self.fc1 = nn.Linear((N_DRONES-1) * 4, 32)  # First hidden layer
-        # N x 16
-        self.fc2 = nn.Linear(32, 16)  # Second hidden layer
-        # N x 16
-        self.fc3 = nn.Linear(16, 5)   # Output layer
-        # N x 5
-
-    def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = torch.sigmoid(self.fc3(x))   # sigmoid to keep outputs bounded in (0, 1)
-
-        # Map to correct ranges
-        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_DOWN_MAX, -YAWRATE_MAX, -1.0, -1.0])
-        max_tensor = torch.tensor([V_FORWARD_MAX, V_UP_MAX, YAWRATE_MAX, 1.0, 1.0])
-
-        x = min_tensor + (max_tensor - min_tensor) * x
-        x = x.detach().numpy()
-
-        return x[:, 0], x[:, 1], x[:, 2], x[:, 3], x[:, 4]  # vx, vz, r, msg, mem
-
-
-
 def check_collision(entity1, entity2, margin=0):
     """
     checks if entities 1 and 2 have intersecting pixels.
