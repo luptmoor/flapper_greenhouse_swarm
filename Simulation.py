@@ -45,8 +45,8 @@ class WeightedDeepSet(nn.Module):
         weights = x[:, :, -1].unsqueeze(-1) # N x 4 x 1
 
         embedded = self.q(coords)       # N x 4 x 16
-        weighted = embedded * weights      # N x 4 x 16
-        pooled = weighted.sum(dim=1)      # N x 16
+        #weighted = embedded * weights      # N x 4 x 16
+        pooled = embedded.sum(dim=1)      # N x 16
         
         raw_output = self.rho(pooled)     # N x 5
         x = torch.sigmoid(raw_output)     # N x 5
@@ -185,8 +185,7 @@ def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, s
             swarm_array[i, idx + 3] = msg_array[j] * active_array[j]  # message
 
 
-@njit
-def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array, obstacle_array):
+def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array, obstacle_array, tick):
 
     approaching_array[:] = np.clip(approaching_array - DT, 0.0, 5.0)
 
@@ -199,19 +198,14 @@ def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_arra
     heading_array[:] += r_array * DT
     heading_array[:] = (heading_array + np.pi) % (2 * np.pi) - np.pi
 
-    for i in range(x_array.shape[0]):
+    for i in range(N_DRONES):
         if active_array[i] == 0:
             continue
         
-        x_new = min(max(x_array[i] + vx_array[i] * DT * np.cos(heading_array[i]), 0.1), WIDTH)
-        y_new = min(max(y_array[i] + vx_array[i] * DT * np.sin(heading_array[i]), 0.1), HEIGHT)
-        z_new = min(max(z_array[i] + vz_array[i] * DT, 0.2), CEILING)
-
-        # Check for collision with internal obstacles
-        if not is_inside_obstacle(x_new, y_new, z_new, obstacle_array):
-            x_array[i] = x_new
-            y_array[i] = y_new
-            z_array[i] = z_new
+        if tick < MAX_TICKS - 1:
+            x_array[i, tick+1] = min(max(x_array[i, tick] + vx_array[i] * DT * np.cos(heading_array[i]), 0.1), WIDTH)
+            y_array[i, tick+1] = min(max(y_array[i, tick] + vx_array[i] * DT * np.sin(heading_array[i]), 0.1), HEIGHT)
+            z_array[i, tick+1] = min(max(z_array[i, tick] + vz_array[i] * DT, 0.2), CEILING)
 
 
 @njit
@@ -326,9 +320,14 @@ def run(sim, swarm_net, vis, gen):
     score = 0.0;
 
     active_array = np.ones(N_DRONES, dtype=np.bool)
-    x_array = np.random.uniform(0.1, WIDTH * LAUNCHPAD_FRAC, N_DRONES).astype(np.float32)
-    y_array = np.random.uniform(0.1, HEIGHT / N_DRONES, N_DRONES).astype(np.float32) + np.arange(N_DRONES) * HEIGHT / N_DRONES
-    z_array = 0.01 * np.ones(N_DRONES, dtype=np.float32)
+
+    x_array = np.zeros((N_DRONES, MAX_TICKS), dtype=np.float32)
+    y_array = np.zeros((N_DRONES, MAX_TICKS), dtype=np.float32)
+    z_array = np.zeros((N_DRONES, MAX_TICKS), dtype=np.float32)
+    x_array[:, 0] = np.random.uniform(0.1, WIDTH * LAUNCHPAD_FRAC, N_DRONES).astype(np.float32)
+    y_array[:, 0] = np.random.uniform(0.1, HEIGHT / N_DRONES, N_DRONES).astype(np.float32) + np.arange(N_DRONES) * HEIGHT / N_DRONES
+    z_array[:, 0] = 0.01 * np.ones(N_DRONES, dtype=np.float32)
+
     heading_array = np.random.uniform(-np.pi, np.pi, N_DRONES).astype(np.float32)
     vx_array = np.zeros(N_DRONES, dtype=np.float32)
     vz_array = np.zeros(N_DRONES, dtype=np.float32)
@@ -359,47 +358,46 @@ def run(sim, swarm_net, vis, gen):
 
 
     for i in range(MAX_TICKS):
-        fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
+        #fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
 
         # Drone simulation, TODO consider order of drones
         
-        update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array[:, i], swarm_array, active_array);
+        update_swarm_matrices(x_array[:, i], y_array[:, i], z_array[:, i], heading_array, msg_array[:, i], swarm_array, active_array);
         vxcmd_array, vzcmd_array, rcmd_array, msg_array[:, i], mem_array = swarm_net.forward(torch.Tensor(swarm_array))
-        vzcmd_array = squeeze_vertical_speed(z_array, vzcmd_array)
+        vzcmd_array = squeeze_vertical_speed(z_array[:, i], vzcmd_array)
 
         msg_array[:, i] = msg_array[:, i] * active_array
         mem_array[:] = mem_array * active_array
 
-        advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array, obstacle_array)
-
+        advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array, obstacle_array, i)
         
 
 
-        check_drone_collisions(x_array, y_array, z_array, active_array)
-        check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, approaching_array)
+        check_drone_collisions(x_array[:, i], y_array[:, i], z_array[:, i], active_array)
+        #check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, approaching_array)
         
 
         #live_plot_update(lines, msg_array[:, :i+1])
 
         # Update screen if requested
         if vis:
-            sim.visuals.update(sim.trees, fruit_x_array, fruit_y_array, fruit_z_array, fruit_t_array, x_array, y_array, z_array, heading_array, active_array, fruit_disc_array, t, i)
+            sim.visuals.update(sim.trees, fruit_x_array, fruit_y_array, fruit_z_array, fruit_t_array, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, fruit_disc_array, t, i)
         
-        # Add time step
+        # Add time step[:, i]
         t += DT
 
-        if np.sum(active_array) < 2:
+        if np.sum(active_array) < 4:
             break
 
         
-    score = np.sum(active_array) / N_DRONES * np.sum(fruit_disc_array) / N_FRUIT
-    print(score)
+    score = calc_fitness(x_array, y_array, z_array)
 
     if vis:
         folder = f"gen_{gen}"
         os.makedirs(folder, exist_ok=True)  # create folder if it doesn't exist
         filename = os.path.join(folder, f"{score}_d_{np.sum(active_array)}_f_{np.sum(fruit_disc_array)}_{np.random.uniform(0, 1):.2f}.png")
         plot_message_array(msg_array, filename)
+        plot_3d_trajectory(x_array, y_array, z_array, filename=filename.replace('.png', '_3d.png'))
 
     return score
 
@@ -424,6 +422,65 @@ def plot_message_array(msg_array, filename="message_array_plot.png"):
     #plt.show()
     plt.close()
     print(f"[✔] Saved plot to {filename}")
+
+
+
+
+def plot_3d_trajectory(x_array, y_array, z_array, filename="3d_trajectory.png"):
+    """
+    Plot 3D trajectory of the drones
+    :param x_array: Array of x coordinates with shape (N_DRONES, N_TICKS)
+    :param y_array: Array of y coordinates with shape (N_DRONES, N_TICKS)
+    :param z_array: Array of z coordinates with shape (N_DRONES, N_TICKS)"""
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    for i in range(N_DRONES):
+        ax.plot(x_array[i], y_array[i], z_array[i], label=f'Drone {i}')
+
+    ax.set_xlabel('X Coordinate')
+    ax.set_ylabel('Y Coordinate')
+    ax.set_zlabel('Z Coordinate')
+    ax.set_xlim(0, WIDTH)
+    ax.set_ylim(0, HEIGHT)
+    ax.set_zlim(0, CEILING)
+    ax.legend()
+
+    # indicate the voxel size (VOXEL_SIZE) with grid lines
+    ax.set_xticks(np.arange(0, WIDTH, VOXEL_SIZE))
+    ax.set_yticks(np.arange(0, HEIGHT, VOXEL_SIZE))
+    ax.set_zticks(np.arange(0, CEILING, VOXEL_SIZE))
+  
+  
+    plt.title("3D Trajectory of Drones")
+    plt.savefig(filename, dpi=150)
+    #plt.show()
+    plt.close()
+    print(f"[✔] Saved 3D trajectory plot to {filename}")
+
+
+def calc_fitness(x_array, y_array, z_array):
+    """
+    Discretize 3D space into voxels and count number of voxels visited by drones
+    :param x_array: Array of x coordinates with shape (N_DRONES, N_TICKS)
+    :param y_array: Array of y coordinates with shape (N_DRONES, N_TICKS)
+    :param z_array: Array of z coordinates with shape (N_DRONES, N_TICKS)
+    :return: fitness score
+    """ 
+
+    visited_voxels = set()
+    for i in range(N_DRONES):
+        for j in range(MAX_TICKS):
+            voxel = (int(x_array[i, j] // VOXEL_SIZE), int(y_array[i, j] // VOXEL_SIZE), int(z_array[i, j] // VOXEL_SIZE))
+            visited_voxels.add(voxel)
+
+    fitness_score = len(visited_voxels) / (WIDTH * HEIGHT * CEILING / (VOXEL_SIZE ** 3))
+
+    print(f"Visited voxels: {len(visited_voxels)} out of {int(WIDTH * HEIGHT * CEILING / (VOXEL_SIZE ** 3))} ({len(visited_voxels) / (WIDTH * HEIGHT * CEILING / (VOXEL_SIZE ** 3)):.2%})")
+    return fitness_score
+
+
+
 
 
 

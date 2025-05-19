@@ -55,7 +55,7 @@ def save_fitnesses(gen, sigma, fitnesses, filename="fitnesses.csv"):
     with open(filename, "a", newline='') as f:
         writer = csv.writer(f)
         writer.writerow([gen, sigma, -np.mean(fitnesses), -np.min(fitnesses), *fitnesses])
-    print(f"[✔] Fitnesses saved to {filename}")
+    #print(f"[✔] Fitnesses saved to {filename}")
             
 
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     while not es.stop():
         print(f'generation {gen}')
         
-        if gen % 200 == 0: vis = True
+        if gen % 40 == 0: vis = True
         else: vis = False
         print(f'visuals: {vis}')
 
