@@ -99,6 +99,8 @@ def visualize_bt_live(bt_generator):
 
 
 def simulate_bt_steps():
+    """
+    Function to test realtime behaviour tree visualization with a random selection of BTs"""
     for i in range(100):
         bt = BehaviourTree(seed=i)
         yield bt
