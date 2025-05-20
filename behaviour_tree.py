@@ -27,6 +27,13 @@ operatordict = {
     'n.a.': '?'
 }
 
+colordict = {
+    'running': 'lightblue',
+    'success': 'green',
+    'failure': 'red',
+    'idle': 'white'
+}
+
 
 
 
@@ -110,14 +117,14 @@ class BehaviourTree:
         feedback, success = self.root.execute(blackboard=blackboard)
 
         # Swarm net overrides independent velocity control
-        if feedback['swarmnet']:
-            feedback["vx"], feedback["vz"], feedback["r"] = self.swarm_net.forward(blackboard['swarminput'])
-            print(f"Action determined by SwarmNet: {feedback['vx']}, {feedback['vz']}, {feedback['r']}")
+        # if feedback['swarmnet']:
+        #     feedback["vx"], feedback["vz"], feedback["r"] = self.swarm_net.forward(blackboard['swarminput'])
+        #     print(f"Action determined by SwarmNet: {feedback['vx']}, {feedback['vz']}, {feedback['r']}")
         
-        # Tof net overrides swarm net (collision avoidance is given a higher priority)
-        if feedback['tofnet']:
-            feedback["vx"], feedback["vz"], feedback["r"] = self.tof_net.forward(blackboard['tofinput'])
-            print(f"Action determined by ToFNet: {feedback['vx']}, {feedback['vz']}, {feedback['r']}")
+        # # Tof net overrides swarm net (collision avoidance is given a higher priority)
+        # if feedback['tofnet']:
+        #     feedback["vx"], feedback["vz"], feedback["r"] = self.tof_net.forward(blackboard['tofinput'])
+        #     print(f"Action determined by ToFNet: {feedback['vx']}, {feedback['vz']}, {feedback['r']}")
 
         return feedback["vx"], feedback["vz"], feedback["r"]
 
@@ -137,6 +144,8 @@ class BehaviourTree:
             classname = f"{node.__class__.__name__}"
             shape = shapedict[classname]
             label = labeldict[classname]
+            fillcolour = colordict[node.state]
+
             if hasattr(node, 'action'):
                 label += f"\n {node.action} = {round(getattr(node, 'value', ''), 3)}"
             if hasattr(node, 'reading'):
@@ -144,7 +153,7 @@ class BehaviourTree:
                 
 
             # Add current node.
-            dot.node(node_id, label, shape=shape)
+            dot.node(node_id, label, shape=shape, fillcolor=fillcolour, style='filled')
 
             # If there's a parent, add an edge from parent to current node.
             if parent_id is not None:
@@ -206,6 +215,7 @@ class BTNode:
     """Base class for all behavior tree nodes."""
     def __init__(self, name):
         self.name = name
+        self.state = 'idle'
 
     def to_dict(self):
         """Convert the node to a dictionary for saving."""
@@ -228,6 +238,7 @@ class ActionNode(BTNode):
         return {"type": self.__class__.__name__, "name": self.name, "action": self.action, "value": self.value}
     
     def execute(self, blackboard):
+        self.state = 'success'
         #print(f"{self.name}: Set {self.action} to {self.value}.")
         return {self.action: self.value}, True
 
@@ -254,19 +265,34 @@ class ConditionNode(BTNode):
 
         if self.reading == 'fruit_visible':
             #print(f"{self.name}: checking if {self.reading}")
-            return {}, blackboard[self.reading]
+            if blackboard[self.reading]:
+                self.state = 'success'
+                return {}, True
+            else:
+                self.state = 'failure'
+                return {}, False
+
         else:
             #print(f"{self.name}: checking if {self.reading} {self.operator} {self.value}.")
             if self.operator == 'greaterThan':
-                if blackboard[self.reading] > self.value: return {}, True
-                else: return {}, False
+                if blackboard[self.reading] > self.value: 
+                    self.state = 'success'
+                    return {}, True
+                else:
+                    self.state = 'failure'
+                    return {}, False
 
             elif self.operator == 'smallerThan':
-                if blackboard[self.reading] < self.value: return {}, True
-                else: return {}, False
+                if blackboard[self.reading] < self.value: 
+                    self.state = 'success'
+                    return {}, True
+                else:
+                    self.state = 'failure'
+                    return {}, False
 
             else:
                 print(f'[ERROR] Invalid opeerator "{self.operator}" in {self.name}!')
+                self.state = 'failure'
                 return {}, False
 
 class CompositeNode(BTNode):
@@ -369,10 +395,12 @@ class SequenceNode(CompositeNode):
             feedback, success = child.execute(blackboard)
             self.feedback.update(feedback)
             if success == False:
+                self.state = 'failure'
                 #print(f"Feedback of {self.name}: {self.feedback}")
                 return self.feedback, False
             
         #print(f"Feedback of {self.name}: {self.feedback}")
+        self.state = 'success'
         return self.feedback, True       
 
 class SelectorNode(CompositeNode):
@@ -387,9 +415,11 @@ class SelectorNode(CompositeNode):
             feedback, success = child.execute(blackboard)
             self.feedback.update(feedback)
             if success == True:
+                self.state = 'success'
                 #print(f"Feedback of {self.name}: {self.feedback}")
                 return self.feedback, True
             
         #print(f"Feedback of {self.name}: {self.feedback}")
+        self.state = 'failure'
         return self.feedback, False
 

@@ -103,9 +103,16 @@ def simulate_bt_steps():
     Function to test realtime behaviour tree visualization with a random selection of BTs"""
     for i in range(100):
         bt = BehaviourTree(seed=i)
-        yield bt
-        time.sleep(1.0)  # Simulated timestep
 
+        blackboard = {
+            'fruit_visible': np.random.randint(0, 2),
+            'elapsed_battery_time': np.random.uniform(0, 600),
+            'memory': np.random.uniform(-1, 1),
+        }
+        print(blackboard)
+        bt.feed_forward(blackboard)
+        yield bt
+        dummy = input("Press Enter to continue...")
 
 
 
