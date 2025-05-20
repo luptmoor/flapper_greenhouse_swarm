@@ -66,44 +66,10 @@ if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0)
 
+    tree = BehaviourTree()
+    tree.save_to_json('test.json')
+    tree.load_from_file('test.json')
 
-    model = WeightedDeepSet()
-    x0 = flatten_params(model)
-    sigma0 = 0.3
-
-    es = cma.CMAEvolutionStrategy(x0, sigma0, {'popsize': 25})
-
-    # OR
-    # with open("cma_state.pkl", "rb") as f:
-    #     es = pickle.load(f)
-
-    gen = 1;
-    vis = False
-    while not es.stop():
-        print(f'generation {gen}')
-        
-        if gen % 40 == 0: vis = True
-        else: vis = False
-        print(f'visuals: {vis}')
-
-        solutions = es.ask()
-        fitnesses = [fitness_fn(s, vis, gen) for s in solutions]
-        save_fitnesses(gen, es.sigma, fitnesses, "fitnesses_weighteddeepset.csv")
-
-        es.tell(solutions, fitnesses)
-        es.logger.add()
-        es.disp()
-
-        with open("cma_state_weighteddeepset.pkl", "wb") as f:
-            pickle.dump(es, f)
-
-        gen += 1;
-
-    # ---- Save best ----
-    best_params = es.result.xbest
-
-    
-    # Train attraction-repulsion swarming in obstacle-free environment to learn behaviour for exploration/exploitation tradeoff
-    # Train tofnet without fruits to learn collision avoidance  OR use serban's RL solution
-
+    tree.save_to_pdf('test_tree.pdf')
+    #tree.save()
 

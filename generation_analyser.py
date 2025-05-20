@@ -16,7 +16,7 @@ plt.plot(time, df[columns_to_plot[0]], label=custom_labels[0])
 plt.scatter(time, df[columns_to_plot[1]], label=custom_labels[1])
 plt.scatter(time, df[columns_to_plot[2]], label=custom_labels[2])
 
-plt.xlabel(df.columns[0])
+plt.xlabel('Generation')
 plt.ylabel('Value')
 plt.title('First 3 Columns Over Time')
 plt.legend()

@@ -77,42 +77,34 @@ def dict_to_bt(data):
 
 
 class BehaviourTree:
-    def __init__(self, path, random_tree=False, seed=SEED):
+    def __init__(self, seed=SEED):
         random.seed(seed)
         
-        self.path = path
-        self.tof_net = ToFNet()
-        self.swarm_net = SwarmNet()
         self.fitness = 0
         self.root = None
 
-        if random_tree:
-            # Root node
-            if random.uniform(0, 1) >= P_BT_SEQUENCE:
-                self.root = SelectorNode(name="RootSelector", depth=0)
-            else:
-                self.root = SequenceNode(name="RootSequence", depth=0)
-
-            self.root.grow()
+       
+        if random.uniform(0, 1) >= P_BT_SEQUENCE:
+            self.root = SelectorNode(name="RootSelector", depth=0)
         else:
-            self.load()
+            self.root = SequenceNode(name="RootSequence", depth=0)
+
+        self.root.grow()
+        
     
 
-    def load(self):
+    def load_from_file(self, path):
         """Load a behavior tree from a JSON file."""
-        with open(self.path, "r") as file:
+        with open(path, "r") as file:
             tree_dict = json.load(file)
         self.root = dict_to_bt(tree_dict)
 
 
-    def save(self):
+    def save_to_json(self, path):
         """Save the behavior tree to a JSON file."""
-        with open(self.path, "w") as file:
+        with open(path, "w") as file:
             json.dump(self.root.to_dict(), file, indent=4)
     
-    def set_path(self, path):
-        self.path = path
-
 
     def feed_forward(self, blackboard):
         feedback, success = self.root.execute(blackboard=blackboard)
@@ -131,7 +123,7 @@ class BehaviourTree:
 
 
 
-    def show(self):
+    def save_to_pdf(self, path):
         """
         Visualize the behavior tree using Graphviz.
         """
@@ -166,7 +158,7 @@ class BehaviourTree:
         add_nodes_edges(self.root)
 
         # Render and view the graph; file formats can be 'pdf', 'png', etc.
-        dot.render(self.path, view=True, format='pdf')
+        dot.render(path, view=True, format='pdf')
 
     
 

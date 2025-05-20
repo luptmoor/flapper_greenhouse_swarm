@@ -15,7 +15,7 @@ import os
 
 
 class WeightedDeepSet(nn.Module):
-    def __init__(self, in_dim=3, hidden_dim=16, out_dim=5):
+    def __init__(self, in_dim=4, hidden_dim=16, out_dim=4):
         super().__init__()
 
         # Preparation
@@ -41,10 +41,10 @@ class WeightedDeepSet(nn.Module):
         
         # in: N x 4(N-1) = N x 16
         x = self.reshape(tensor) # N x 4 x 4
-        coords  = x[:, :, :3] # N x 4 x 3
-        weights = x[:, :, -1].unsqueeze(-1) # N x 4 x 1
+        # coords  = x[:, :, :3] # N x 4 x 3
+        # weights = x[:, :, -1].unsqueeze(-1) # N x 4 x 1
 
-        embedded = self.q(coords)       # N x 4 x 16
+        embedded = self.q(x)       # N x 4 x 16
         #weighted = embedded * weights      # N x 4 x 16
         pooled = embedded.sum(dim=1)      # N x 16
         
@@ -53,13 +53,13 @@ class WeightedDeepSet(nn.Module):
         
 
         # Map to correct ranges
-        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_DOWN_MAX, -YAWRATE_MAX, 1.0, -1.0])
-        max_tensor = torch.tensor([V_FORWARD_MAX, V_UP_MAX, YAWRATE_MAX, 2.0, 1.0])
+        min_tensor = torch.tensor([-V_BACKWARD_MAX, -V_DOWN_MAX, -YAWRATE_MAX, 1.0])
+        max_tensor = torch.tensor([V_FORWARD_MAX, V_UP_MAX, YAWRATE_MAX, 2.0])
 
         x = min_tensor + (max_tensor - min_tensor) * x
         x = x.detach().numpy()
 
-        return x[:, 0], x[:, 1], x[:, 2]**3 / YAWRATE_MAX**2, x[:, 3], x[:, 4]  # vx, vz, r, msg, mem
+        return x[:, 0], x[:, 1], x[:, 2]**3 / YAWRATE_MAX**2, x[:, 3]  # vx, vz, r, msg
 
 
 
@@ -363,7 +363,7 @@ def run(sim, swarm_net, vis, gen):
         # Drone simulation, TODO consider order of drones
         
         update_swarm_matrices(x_array[:, i], y_array[:, i], z_array[:, i], heading_array, msg_array[:, i], swarm_array, active_array);
-        vxcmd_array, vzcmd_array, rcmd_array, msg_array[:, i], mem_array = swarm_net.forward(torch.Tensor(swarm_array))
+        vxcmd_array, vzcmd_array, rcmd_array, msg_array[:, i] = swarm_net.forward(torch.Tensor(swarm_array))
         vzcmd_array = squeeze_vertical_speed(z_array[:, i], vzcmd_array)
 
         msg_array[:, i] = msg_array[:, i] * active_array
