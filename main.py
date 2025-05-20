@@ -14,7 +14,9 @@ import time
 import torch
 import pickle
 
-
+import matplotlib.image as mpimg
+from graphviz import Digraph
+import tempfile
 
     
     # centroid of fruit visited in polar body coords
@@ -61,15 +63,62 @@ def save_fitnesses(gen, sigma, fitnesses, filename="fitnesses.csv"):
 
 
 
+
+
+
+
+
+
+
+
+def visualize_bt_live(bt_generator):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    plt.ion()
+    img_obj = None
+
+    for bt in bt_generator:
+        # Create and render Graphviz image
+        dot = bt.plot()
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmpfile:
+            dot.render(tmpfile.name, format='png', cleanup=True)
+            img_path = tmpfile.name + '.png'
+            img = mpimg.imread(img_path)
+
+        # Update Matplotlib window
+        ax.clear()
+        ax.imshow(img)
+        ax.axis('off')
+        fig.canvas.draw()
+        plt.pause(0.1)
+
+        os.remove(img_path)  # Clean up image
+
+    plt.ioff()
+    plt.show()
+
+
+
+def simulate_bt_steps():
+    for i in range(100):
+        bt = BehaviourTree(seed=i)
+        yield bt
+        time.sleep(1.0)  # Simulated timestep
+
+
+
+
+
+
 if __name__ == '__main__':
 
     np.random.seed(0)
     torch.manual_seed(0)
 
-    tree = BehaviourTree()
-    tree.save_to_json('test.json')
-    tree.load_from_file('test.json')
+    # tree = BehaviourTree()
+    # tree.save_to_json('test.json')
+    # tree.load_from_file('test.json')
 
-    tree.save_to_pdf('test_tree.pdf')
-    #tree.save()
+    # tree.save_to_pdf('test_tree')
+    # #tree.save()
 
+    visualize_bt_live(simulate_bt_steps())

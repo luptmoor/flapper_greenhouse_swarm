@@ -123,6 +123,45 @@ class BehaviourTree:
 
 
 
+    def plot(self):
+        """
+        Visualize the behavior tree using Graphviz.
+        """
+        dot = Digraph(comment='Behavior Tree')
+        dot.attr(nodesep='0.3', ranksep='1.5')
+
+        def add_nodes_edges(node, parent_id=None):
+            # Create a unique id for each node (using the id() built-in is one option)
+            node_id = str(id(node))
+            # Display node type and name (additional details can be added if desired)
+            classname = f"{node.__class__.__name__}"
+            shape = shapedict[classname]
+            label = labeldict[classname]
+            if hasattr(node, 'action'):
+                label += f"\n {node.action} = {round(getattr(node, 'value', ''), 3)}"
+            if hasattr(node, 'reading'):
+                label += f"\n{node.reading} {operatordict[node.operator]} {round(getattr(node, 'value', ''), 3)} ?"
+                
+
+            # Add current node.
+            dot.node(node_id, label, shape=shape)
+
+            # If there's a parent, add an edge from parent to current node.
+            if parent_id is not None:
+                dot.edge(parent_id, node_id)
+
+            # If node is a composite node, traverse its children.
+            if hasattr(node, 'children'):
+                for child in node.children:
+                    add_nodes_edges(child, node_id)
+
+        add_nodes_edges(self.root)
+
+        # Render and view the graph; file formats can be 'pdf', 'png', etc.
+        #dot.render(path, view=True, format='pdf')
+        return dot
+    
+
     def save_to_pdf(self, path):
         """
         Visualize the behavior tree using Graphviz.
@@ -159,9 +198,6 @@ class BehaviourTree:
 
         # Render and view the graph; file formats can be 'pdf', 'png', etc.
         dot.render(path, view=True, format='pdf')
-
-    
-
 
 
 ### Node classes
@@ -243,10 +279,6 @@ class CompositeNode(BTNode):
             "vx": 0.0,
             "vz": 0.0,
             "r": 0.0,
-            "message": 0.0,
-            "memory": 0.0,
-            "tofnet": False,
-            "swarmnet": False
         }
 
     def add_child(self, child):
