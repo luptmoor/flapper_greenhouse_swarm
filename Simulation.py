@@ -12,6 +12,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
+import matplotlib.image as mpimg
+import tempfile
+
 import os
 
 
@@ -354,6 +357,7 @@ def run(sim, bt, vis=True, gen=1):
     fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, obstacle_array = sim.load_environment(fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, obstacle_array)
 
     bt_list = [copy.deepcopy(bt) for _ in range(N_DRONES)]
+    bt_screen = init_bt_visualizer()
 
 
     #fig, axes, lines = live_plot_init(N_DRONES)
@@ -382,7 +386,7 @@ def run(sim, bt, vis=True, gen=1):
         # Update screen if requested
         if vis:
             sim.visuals.update(sim.trees, fruit_x_array, fruit_y_array, fruit_z_array, fruit_t_array, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, fruit_disc_array, t, i)
-        
+            if t % 1 == 0: update_bt_visualizer(bt_screen, bt_list[0])
         # Add time step[:, i]
         t += DT
 
@@ -508,3 +512,40 @@ def live_plot_update(lines, data_array):
         line.axes.autoscale_view()
 
     plt.pause(0.01)  # allow GUI event loop to run
+
+
+
+
+def init_bt_visualizer():
+    """
+    Initializes a live BT visualization window.
+    Returns the figure and axis handles for future updates.
+    """
+    plt.ion()
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.axis('off')
+    return (fig, ax)
+
+
+def update_bt_visualizer(window, bt):
+    """
+    Updates the BT visualization with the given BT on the provided Matplotlib axes.
+    This function should be called at every timestep.
+    """
+
+    fig, ax = window
+    # Create and render Graphviz image
+    dot = bt.plot()
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmpfile:
+        dot.render(tmpfile.name, format='png', cleanup=True)
+        img_path = tmpfile.name + '.png'
+        img = mpimg.imread(img_path)
+
+    # Update plot
+    ax.clear()
+    ax.imshow(img)
+    ax.axis('off')
+    fig.canvas.draw()
+    plt.pause(0.05)
+
+    os.remove(img_path)
