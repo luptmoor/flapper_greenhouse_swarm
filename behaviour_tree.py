@@ -22,11 +22,6 @@ labeldict = {
     'SequenceNode': '-->'
 }
 
-operatordict = {
-    'greaterThan': '>',
-    'smallerThan': '<',
-    'n.a.': '?'
-}
 
 colordict = {
     'running': 'lightblue',
@@ -35,39 +30,6 @@ colordict = {
     'idle': 'white'
 }
 
-action_strings = [
-    'Approach',
-    'Avoid other drones',
-    'Turn left',
-    'Follow wall',
-    'Random Walk',
-    'Disperse',
-]
-
-actions = [
-    approach,
-    apf_avoidance,
-    clear_path,
-    follow_wall,
-    random_walk,
-    disperse
-]
-
-condition_strings = [
-    'Fruit visible?',
-    '# discovered fruit > X ?',
-    '# new fruit last 30s < X ?',
-    'Path clear?',
-    'Minimum peer distance < X ?'
-]
-
-conditions = [
-    fruit_visible,
-    fruit_counter,
-    discovery_rate,
-    path_clear,
-    min_distance
-]
 
 
 
@@ -147,19 +109,10 @@ class BehaviourTree:
             json.dump(self.root.to_dict(), file, indent=4)
     
 
-    def feed_forward(self, blackboard):
-        feedback, success = self.root.execute(blackboard=blackboard)
+    def feed_forward(self, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array):
+        feedback, success = self.root.execute(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array)
 
-        # Swarm net overrides independent velocity control
-        # if feedback['swarmnet']:
-        #     feedback["vx"], feedback["vz"], feedback["r"] = self.swarm_net.forward(blackboard['swarminput'])
-        #     print(f"Action determined by SwarmNet: {feedback['vx']}, {feedback['vz']}, {feedback['r']}")
-        
-        # # Tof net overrides swarm net (collision avoidance is given a higher priority)
-        # if feedback['tofnet']:
-        #     feedback["vx"], feedback["vz"], feedback["r"] = self.tof_net.forward(blackboard['tofinput'])
-        #     print(f"Action determined by ToFNet: {feedback['vx']}, {feedback['vz']}, {feedback['r']}")
-
+    
         return feedback["vx"], feedback["vz"], feedback["r"]
 
 
@@ -244,7 +197,11 @@ class BehaviourTree:
         dot.render(path, view=True, format='pdf')
 
 
-### Node classes ############################
+
+
+
+
+#################### Node classes ############################
 
 class BTNode:
     """Base class for all behavior tree nodes."""
@@ -272,8 +229,8 @@ class ActionNode(BTNode):
         return {"type": self.__class__.__name__, "name": self.name, "action": self.action, "value": self.value}
     
 
-    def execute(self, blackboard):
-        vx, vz, r, self.state = self.action(blackboard)
+    def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array):
+        vx, vz, r, self.state = self.action( x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array)
         feedback = {
             "vx": vx,
             "vz": vz,
@@ -297,8 +254,8 @@ class ConditionNode(BTNode):
     def to_dict(self):
         return {"type": self.__class__.__name__, "name": self.name, "reading": self.reading, "operator": self.operator,  "value": self.value}
 
-    def execute(self, blackboard):
-        self.state = self.condition(blackboard)
+    def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array):
+        self.state = self.condition( x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array)
         return {}, self.state
 
 
@@ -397,10 +354,10 @@ class SequenceNode(CompositeNode):
         super().__init__(name, depth)
         self.type = 'sequence'
     
-    def execute(self, blackboard):
+    def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array):
         #print(f'Executing {self.name}.')
         for child in self.children:
-            feedback, success = child.execute(blackboard)
+            feedback, success = child.execute( x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array)
             self.feedback.update(feedback)
             if success == 'failure':
                 self.state = 'failure'
@@ -423,10 +380,10 @@ class SelectorNode(CompositeNode):
         super().__init__(name, depth)
         self.type = 'selector'
 
-    def execute(self, blackboard):
+    def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array):
         #print(f"Executing {self.name}.")
         for child in self.children:
-            feedback, success = child.execute(blackboard)
+            feedback, success = child.execute( x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array)
             self.feedback.update(feedback)
             if success == 'success':
                 self.state = 'success'

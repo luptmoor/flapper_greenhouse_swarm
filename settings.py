@@ -83,23 +83,6 @@ V_DOWN_MAX          =         0.5           # m/s
 MIN_BAT_THRESHOLD   =        10             # s
 MAX_BAT_THRESHOLD   =       600             # s
 
-    
-# Actions
-ACTION_VARS = ['r', 'vx', 'vz', 'message', 'memory', 'tofnet', 'swarmnet']
-ACTION_LIMITS = {
-    'r': (-YAWRATE_MAX, YAWRATE_MAX),    
-    'vx':  (-V_BACKWARD_MAX, V_FORWARD_MAX),
-    'vz':  (-V_DOWN_MAX,     V_LEFT_MAX),
-    'message':  (-1.0, 1.0),
-    'memory':   (-1.0, 1.0)
-}
-
-# Conditions
-READING_VARS = ['fruit_visible', 'elapsed_battery_time', 'memory']
-READING_LIMITS = {
-    'elapsed_battery_time': (MIN_BAT_THRESHOLD, MAX_BAT_THRESHOLD),
-    'memory':   (-1.0, 1.0),
-}
 
 
 
@@ -117,92 +100,9 @@ BLUE                 = (50, 50, 180)
 WHITE                = (255, 255, 255)
 BLACK                = (0, 0, 0)
 
-BEETLE_COLOURS = {'idle': RED, 'land': ORANGE, 'tree': YELLOW, 'escape': PINK}
-TYPE_COLOURS = {'drone': GREY, 'tree': BROWN}
 
 
-# CMA-ES settings
-RUNS_PER_SOLUTION     =    3                                        # -, for how many conditions each solution is tested
-N_GENERATIONS         =   90                                        # -, number of generations in CMA-ES
-N_POP                 =   20                                        # -, number of genotypes per generation
 
-# Parameter 0
-MIN_R_VIS_TREE        =   10
-MAX_R_VIS_TREE        =  150
-MU_R_VIS_TREE         = (MAX_R_VIS_TREE + MIN_R_VIS_TREE) / 2
-RANGE_R_VIS_TREE      = MAX_R_VIS_TREE - MIN_R_VIS_TREE
-
-# Parameter 1
-MIN_K_TREE            =    0
-MAX_K_TREE            =  150
-MU_K_TREE             = (MAX_K_TREE + MIN_K_TREE) / 2
-RANGE_K_TREE          = MAX_K_TREE - MIN_K_TREE
-
-# Parameter 2
-MIN_R_VIS_BEETLE         =   10
-MAX_R_VIS_BEETLE         =  200
-MU_R_VIS_BEETLE          = (MAX_R_VIS_BEETLE + MIN_R_VIS_BEETLE) / 2
-RANGE_R_VIS_BEETLE       = MAX_R_VIS_BEETLE - MIN_R_VIS_BEETLE
-
-# Parameter 3
-MIN_K_BEETLE             =   -150
-MAX_K_BEETLE             =    0
-MU_K_BEETLE              = (MAX_K_BEETLE + MIN_K_BEETLE) / 2
-RANGE_K_BEETLE           = MAX_K_BEETLE - MIN_K_BEETLE
-
-# Parameter 4
-MIN_R_VIS_NEARDRONE   =   10
-MAX_R_VIS_NEARDRONE   =  150
-MU_R_VIS_NEARDRONE    = (MAX_R_VIS_NEARDRONE + MIN_R_VIS_NEARDRONE) / 2
-RANGE_R_VIS_NEARDRONE = MAX_R_VIS_NEARDRONE - MIN_R_VIS_NEARDRONE
-
-# Parameter 5
-MIN_K_NEARDRONE       =    0
-MAX_K_NEARDRONE       =  150
-MU_K_NEARDRONE        = (MAX_K_NEARDRONE + MIN_K_NEARDRONE) / 2
-RANGE_K_NEARDRONE     = MAX_K_NEARDRONE - MIN_K_NEARDRONE
-
-# Parameter 6
-MIN_R_VIS_FARDRONE    =  MAX_K_NEARDRONE
-MAX_R_VIS_FARDRONE    =  500
-MU_R_VIS_FARDRONE     = (MAX_R_VIS_FARDRONE + MIN_R_VIS_FARDRONE) / 2
-RANGE_R_VIS_FARDRONE  = MAX_R_VIS_FARDRONE - MIN_R_VIS_FARDRONE
-
-# Parameter 7
-MIN_K_FARDRONE        =   -0.5
-MAX_K_FARDRONE        =    0.5
-MU_K_FARDRONE         = (MAX_K_FARDRONE + MIN_K_FARDRONE) / 2
-RANGE_K_FARDRONE      = MAX_K_FARDRONE - MIN_K_FARDRONE
-
-# Parameter 8
-MIN_R_ACTIVITY        =  MIN_R_VIS_FARDRONE
-MAX_R_ACTIVITY        =  MAX_R_VIS_FARDRONE
-MU_R_ACTIVITY         = (MAX_R_ACTIVITY + MIN_R_ACTIVITY) / 2
-RANGE_R_ACTIVITY      = MAX_R_ACTIVITY - MIN_R_ACTIVITY
-
-# Parameter 9
-MIN_K_ACTIVITY        =   -0.5
-MAX_K_ACTIVITY        =    0.5
-MU_K_ACTIVITY         = (MAX_K_ACTIVITY + MIN_K_ACTIVITY) / 2
-RANGE_K_ACTIVITY      = MAX_K_ACTIVITY - MIN_K_ACTIVITY
-
-# Parameter 10
-MIN_V_MIN             =    0
-MAX_V_MIN             =   20
-MU_V_MIN              = (MAX_V_MIN + MIN_V_MIN) / 2
-RANGE_V_MIN           = MAX_V_MIN - MIN_V_MIN
-
-# Parameter 11
-MIN_V_MAX             =   MAX_V_MIN
-MAX_V_MAX             =  V_DRONE_MAX
-MU_V_MAX              = (MAX_V_MAX + MIN_V_MAX) / 2
-RANGE_V_MAX           = MAX_V_MAX - MIN_V_MAX
-
-# Parameter 12
-MIN_C                 =   0
-MAX_C                 =   1
-MU_C                  = (MAX_C + MIN_C) / 2
-RANGE_C               = MAX_C - MIN_C
 
 
 def noise(k):

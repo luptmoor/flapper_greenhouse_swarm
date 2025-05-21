@@ -123,11 +123,9 @@ if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0)
 
-    # tree = BehaviourTree()
-    # tree.save_to_json('test.json')
-    # tree.load_from_file('test.json')
+    sim = Simulation(vis=True)
+    bt = BehaviourTree(seed=0)
 
-    # tree.save_to_pdf('test_tree')
-    # #tree.save()
+    run(sim, bt)
 
-    visualize_bt_live(simulate_bt_steps())
+    #visualize_bt_live(simulate_bt_steps())

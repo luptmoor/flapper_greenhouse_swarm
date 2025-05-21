@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 from Entity import Entity
 from Fruit import Fruit
@@ -311,7 +312,7 @@ class Simulation:
 
                 
         
-def run(sim, swarm_net, vis, gen):
+def run(sim, bt, vis=True, gen=1):
     """
     loads environment, starts simulation loop and finally calls evaluation function.
     :return: (float) score for this particular simulation, lies in interval [0, 1].
@@ -352,6 +353,7 @@ def run(sim, swarm_net, vis, gen):
 
     fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, obstacle_array = sim.load_environment(fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, obstacle_array)
 
+    bt_list = [copy.deepcopy(bt) for _ in range(N_DRONES)]
 
 
     #fig, axes, lines = live_plot_init(N_DRONES)
@@ -360,18 +362,16 @@ def run(sim, swarm_net, vis, gen):
     for i in range(MAX_TICKS):
         #fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
 
-        # Drone simulation, TODO consider order of drones
         
-        update_swarm_matrices(x_array[:, i], y_array[:, i], z_array[:, i], heading_array, msg_array[:, i], swarm_array, active_array);
-        vxcmd_array, vzcmd_array, rcmd_array, msg_array[:, i] = swarm_net.forward(torch.Tensor(swarm_array))
+
+        for j in range(N_DRONES):
+            vxcmd_array[j], vzcmd_array[j], rcmd_array[j] = bt_list[j].feed_forward(x_array[:, i], y_array[:, i], z_array[:, i], heading_array, vx_array, vz_array, r_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array)   
+
+
+
         vzcmd_array = squeeze_vertical_speed(z_array[:, i], vzcmd_array)
-
-        msg_array[:, i] = msg_array[:, i] * active_array
-        mem_array[:] = mem_array * active_array
-
         advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array, obstacle_array, i)
         
-
 
         check_drone_collisions(x_array[:, i], y_array[:, i], z_array[:, i], active_array)
         #check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, approaching_array)
@@ -396,7 +396,6 @@ def run(sim, swarm_net, vis, gen):
         folder = f"gen_{gen}"
         os.makedirs(folder, exist_ok=True)  # create folder if it doesn't exist
         filename = os.path.join(folder, f"{score}_d_{np.sum(active_array)}_f_{np.sum(fruit_disc_array)}_{np.random.uniform(0, 1):.2f}.png")
-        plot_message_array(msg_array, filename)
         plot_3d_trajectory(x_array, y_array, z_array, filename=filename.replace('.png', '_3d.png'))
 
     return score
