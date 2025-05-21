@@ -53,6 +53,21 @@ actions = [
     disperse
 ]
 
+condition_strings = [
+    'Fruit visible?',
+    '# discovered fruit > X ?',
+    '# new fruit last 30s < X ?',
+    'Path clear?',
+    'Minimum peer distance < X ?'
+]
+
+conditions = [
+    fruit_visible,
+    fruit_counter,
+    discovery_rate,
+    path_clear,
+    min_distance
+]
 
 
 
@@ -167,8 +182,8 @@ class BehaviourTree:
 
             if hasattr(node, 'action_string'):
                 label += f"\n {node.action_string}"
-            if hasattr(node, 'reading'):
-                label += f"\n{node.reading} {operatordict[node.operator]} {round(getattr(node, 'value', ''), 3)} ?"
+            if hasattr(node, 'condition_string'):
+                label += f"\n{node.condition_string}"
                 
 
             # Add current node.
@@ -204,10 +219,11 @@ class BehaviourTree:
             classname = f"{node.__class__.__name__}"
             shape = shapedict[classname]
             label = labeldict[classname]
-            if hasattr(node, 'action'):
-                label += f"\n {node.action} = {round(getattr(node, 'value', ''), 3)}"
-            if hasattr(node, 'reading'):
-                label += f"\n{node.reading} {operatordict[node.operator]} {round(getattr(node, 'value', ''), 3)} ?"
+
+            if hasattr(node, 'action_string'):
+                label += f"\n {node.action_string}"
+            if hasattr(node, 'condition_string'):
+                label += f"\n{node.condition_string}"
                 
 
             # Add current node.
@@ -240,6 +256,8 @@ class BTNode:
         """Convert the node to a dictionary for saving."""
         return {"type": self.__class__.__name__, "name": self.name}
 
+
+
 class ActionNode(BTNode):
     """Represents an action in the behavior tree."""
     def __init__(self, name):
@@ -255,7 +273,6 @@ class ActionNode(BTNode):
     
 
     def execute(self, blackboard):
-
         vx, vz, r, self.state = self.action(blackboard)
         feedback = {
             "vx": vx,
@@ -272,53 +289,17 @@ class ConditionNode(BTNode):
     def __init__(self, name):
         super().__init__(name)
 
-        self.reading = random.choice(READING_VARS)
-
-        if self.reading != 'fruit_visible':
-            if random.randint(0, 1) == 1: self.operator = 'greaterThan'
-            else: self.operator = 'smallerThan'
-            self.value = random.uniform(0, 1) * (READING_LIMITS[self.reading][1] - READING_LIMITS[self.reading][0]) + READING_LIMITS[self.reading][0]
-        else:
-            self.operator = 'n.a.'
-            self.value = 0
+        condition_id = random.choice(range(len(conditions)))
+        self.condition_string = condition_strings[condition_id]
+        self.condition = conditions[condition_id]
 
 
     def to_dict(self):
         return {"type": self.__class__.__name__, "name": self.name, "reading": self.reading, "operator": self.operator,  "value": self.value}
 
     def execute(self, blackboard):
-
-        if self.reading == 'fruit_visible':
-            #print(f"{self.name}: checking if {self.reading}")
-            if blackboard[self.reading]:
-                self.state = 'success'
-                return {}, True
-            else:
-                self.state = 'failure'
-                return {}, False
-
-        else:
-            #print(f"{self.name}: checking if {self.reading} {self.operator} {self.value}.")
-            if self.operator == 'greaterThan':
-                if blackboard[self.reading] > self.value: 
-                    self.state = 'success'
-                    return {}, 'success'
-                else:
-                    self.state = 'failure'
-                    return {}, 'failure'
-
-            elif self.operator == 'smallerThan':
-                if blackboard[self.reading] < self.value: 
-                    self.state = 'success'
-                    return {}, 'success'
-                else:
-                    self.state = 'failure'
-                    return {}, 'failure'
-
-            else:
-                print(f'[ERROR] Invalid opeerator "{self.operator}" in {self.name}!')
-                self.state = 'failure'
-                return {}, 'failure'
+        self.state = self.condition(blackboard)
+        return {}, self.state
 
 
 

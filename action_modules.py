@@ -51,3 +51,47 @@ def clear_path(bb):
     """
 
     return  0, 0, 0, 'running'
+
+
+
+
+################### CONDITION FUNCTIONS #######################
+
+def fruit_counter(bb):
+    """
+    check if the fruit counter is greater than 0
+    """
+
+    return 'failure'
+
+
+def discovery_rate(bb):
+    """
+    check if the discovery rate is greater than 0
+    """
+
+    return 'failure'
+
+
+def fruit_visible(bb):
+    """
+    check if the fruit is visible
+    """
+
+    return 'failure'
+
+
+def path_clear(bb):
+    """
+    check if the path is clear
+    """
+
+    return 'failure'
+
+
+def min_distance(bb):
+    """
+    check if the minimum distance to other drones is greater than 0
+    """
+
+    return 'failure'
