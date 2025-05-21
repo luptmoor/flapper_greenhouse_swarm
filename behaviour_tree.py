@@ -6,6 +6,7 @@ from settings import *
 import random
 import json
 from graphviz import Digraph
+from action_modules import *
 
 shapedict = {
     'ActionNode': 'box',
@@ -16,7 +17,7 @@ shapedict = {
 
 labeldict = {
     'ActionNode': 'Action',
-    'ConditionNode': 'Condtion',
+    'ConditionNode': 'Condition',
     'SelectorNode': '?',
     'SequenceNode': '-->'
 }
@@ -33,6 +34,24 @@ colordict = {
     'failure': 'red',
     'idle': 'white'
 }
+
+action_strings = [
+    'Approach',
+    'Avoid other drones',
+    'Turn left',
+    'Follow wall',
+    'Random Walk',
+    'Disperse',
+]
+
+actions = [
+    approach,
+    apf_avoidance,
+    clear_path,
+    follow_wall,
+    random_walk,
+    disperse
+]
 
 
 
@@ -146,8 +165,8 @@ class BehaviourTree:
             label = labeldict[classname]
             fillcolour = colordict[node.state]
 
-            if hasattr(node, 'action'):
-                label += f"\n {node.action} = {round(getattr(node, 'value', ''), 3)}"
+            if hasattr(node, 'action_string'):
+                label += f"\n {node.action_string}"
             if hasattr(node, 'reading'):
                 label += f"\n{node.reading} {operatordict[node.operator]} {round(getattr(node, 'value', ''), 3)} ?"
                 
@@ -209,7 +228,7 @@ class BehaviourTree:
         dot.render(path, view=True, format='pdf')
 
 
-### Node classes
+### Node classes ############################
 
 class BTNode:
     """Base class for all behavior tree nodes."""
@@ -226,21 +245,27 @@ class ActionNode(BTNode):
     def __init__(self, name):
         super().__init__(name)
         
-        self.action = random.choice(ACTION_VARS)
-
-        if self.action in ['tofnet', 'swarmnet']:
-            self.value = True
-        else:
-            self.value = random.uniform(0, 1) * (ACTION_LIMITS[self.action][1] - ACTION_LIMITS[self.action][0]) + ACTION_LIMITS[self.action][0]
+        action_id = random.choice(range(len(actions)))
+        self.action_string = action_strings[action_id]
+        self.action = actions[action_id]
 
 
     def to_dict(self):
         return {"type": self.__class__.__name__, "name": self.name, "action": self.action, "value": self.value}
     
+
     def execute(self, blackboard):
-        self.state = 'success'
-        #print(f"{self.name}: Set {self.action} to {self.value}.")
-        return {self.action: self.value}, True
+
+        vx, vz, r, self.state = self.action(blackboard)
+        feedback = {
+            "vx": vx,
+            "vz": vz,
+            "r": r,
+        }   
+
+        return feedback, self.state
+
+
 
 class ConditionNode(BTNode):
     """Represents a condition check in the behavior tree."""
@@ -277,23 +302,25 @@ class ConditionNode(BTNode):
             if self.operator == 'greaterThan':
                 if blackboard[self.reading] > self.value: 
                     self.state = 'success'
-                    return {}, True
+                    return {}, 'success'
                 else:
                     self.state = 'failure'
-                    return {}, False
+                    return {}, 'failure'
 
             elif self.operator == 'smallerThan':
                 if blackboard[self.reading] < self.value: 
                     self.state = 'success'
-                    return {}, True
+                    return {}, 'success'
                 else:
                     self.state = 'failure'
-                    return {}, False
+                    return {}, 'failure'
 
             else:
                 print(f'[ERROR] Invalid opeerator "{self.operator}" in {self.name}!')
                 self.state = 'failure'
-                return {}, False
+                return {}, 'failure'
+
+
 
 class CompositeNode(BTNode):
     """Base class for sequence and selector nodes."""
@@ -372,8 +399,6 @@ class CompositeNode(BTNode):
 
         #self.n_children = sum([child.n_children for child in self.children if isinstance(child, CompositeNode)])
         
-
-
     def to_dict(self):
         """Convert the composite node to a dictionary for saving."""
         return {
@@ -382,6 +407,8 @@ class CompositeNode(BTNode):
             "depth": self.depth,
             "children": [child.to_dict() for child in self.children],
         }
+
+
 
 class SequenceNode(CompositeNode):
     """Sequence node executes children in order until one fails."""
@@ -394,14 +421,20 @@ class SequenceNode(CompositeNode):
         for child in self.children:
             feedback, success = child.execute(blackboard)
             self.feedback.update(feedback)
-            if success == False:
+            if success == 'failure':
                 self.state = 'failure'
                 #print(f"Feedback of {self.name}: {self.feedback}")
-                return self.feedback, False
+                return self.feedback, 'failure'
+            if success == 'running':
+                self.state = 'running'
+                #print(f"Feedback of {self.name}: {self.feedback}")
+                return self.feedback, 'running'
             
         #print(f"Feedback of {self.name}: {self.feedback}")
         self.state = 'success'
-        return self.feedback, True       
+        return self.feedback, 'success'       
+
+
 
 class SelectorNode(CompositeNode):
     """Selector node executes children in order until one succeeds."""
@@ -414,12 +447,16 @@ class SelectorNode(CompositeNode):
         for child in self.children:
             feedback, success = child.execute(blackboard)
             self.feedback.update(feedback)
-            if success == True:
+            if success == 'success':
                 self.state = 'success'
                 #print(f"Feedback of {self.name}: {self.feedback}")
-                return self.feedback, True
+                return self.feedback, 'success'
+            if success == 'running':
+                self.state = 'running'
+                #print(f"Feedback of {self.name}: {self.feedback}")
+                return self.feedback, 'running'
             
         #print(f"Feedback of {self.name}: {self.feedback}")
         self.state = 'failure'
-        return self.feedback, False
+        return self.feedback, 'failure'
 
