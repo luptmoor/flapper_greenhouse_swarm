@@ -158,21 +158,21 @@ def check_fruit_discoveries(
                 fruit_disc_array[j] = True
 
 
-@njit
-def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array, active_array):
-    # 3 N x N arrays of distances with zero diagonal
-    dx = x_array[:, None] - x_array[None, :]
-    dy = y_array[:, None] - y_array[None, :]
-    dz = z_array[:, None] - z_array[None, :]
 
-    # Create an N x 4(N-1) matrix
+def update_swarm_matrices(x_array, y_array, z_array, swarm_array, active_array):
+    # 3 N x N arrays of distances with zero diagonal
+    dx = x_array[:, np.newaxis] - x_array[np.newaxis, :]
+    dy = y_array[:, np.newaxis] - y_array[np.newaxis, :]
+    dz = z_array[:, np.newaxis] - z_array[np.newaxis, :]
+
+    # Create an N x 3(N-1) matrix
     for i in range(N_DRONES):
         for j in range(N_DRONES-1):
-            idx = 4 * j  # Starting index for each drone's set of 4 columns
+            idx = 3 * j  # Starting index for each drone's set of 4 columns
 
             if j >= i: j += 1
             j = j % N_DRONES
-            
+           
             # Update swarm array with rotated distances and messages
             swarm_array[i, idx + 0] = dx[i, j] * active_array[j]  # dx
             swarm_array[i, idx + 1] = dy[i, j] * active_array[j]  # dy
@@ -180,7 +180,6 @@ def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, s
 
 
 def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array, obstacle_array, tick):
-
     approaching_array[:] = np.clip(approaching_array - DT, 0.0, 5.0)
 
 
@@ -326,7 +325,6 @@ def run(sim, bt, vis=True, gen=1):
     vx_array = np.zeros(N_DRONES, dtype=np.float32)
     vz_array = np.zeros(N_DRONES, dtype=np.float32)
     r_array = np.zeros(N_DRONES, dtype=np.float32)
-    mem_array = np.zeros(N_DRONES, dtype=np.float32)
     msg_array = np.random.uniform(1.0, 2.0, (N_DRONES, MAX_TICKS)).astype(np.float32)
     vxcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
@@ -353,7 +351,7 @@ def run(sim, bt, vis=True, gen=1):
     for i in range(MAX_TICKS):
         fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
 
-        
+        update_swarm_matrices(x_array[:, i], y_array[:, i], z_array[:, i], swarm_array, active_array)
 
         for j in range(N_DRONES):
             vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j] = bt_list[j].feed_forward(x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
@@ -380,8 +378,8 @@ def run(sim, bt, vis=True, gen=1):
         # Add time step[:, i]
         t += DT
 
-        if np.sum(active_array) < 4:
-            break
+        # if np.sum(active_array) < 4:
+        #     break
 
         
     score = calc_fitness(x_array, y_array, z_array)
@@ -390,7 +388,7 @@ def run(sim, bt, vis=True, gen=1):
         folder = f"gen_{gen}"
         os.makedirs(folder, exist_ok=True)  # create folder if it doesn't exist
         filename = os.path.join(folder, f"{score}_d_{np.sum(active_array)}_f_{np.sum(fruit_disc_array)}_{np.random.uniform(0, 1):.2f}.png")
-        plot_3d_trajectory(x_array, y_array, z_array, filename=filename.replace('.png', '_3d.png'))
+        #plot_3d_trajectory(x_array, y_array, z_array, filename=filename.replace('.png', '_3d.png'))
 
         plt.ioff()
         plt.close(bt_screen[0])

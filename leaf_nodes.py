@@ -35,7 +35,6 @@ def random_walk(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, frui
     """
     random turn and climb commands with constant forward speed
     """
-
     return  0.3, np.random.uniform(-0.3, 0.3), np.random.uniform(-10/57.3, 10/57.3), 0, 'running'
 
 

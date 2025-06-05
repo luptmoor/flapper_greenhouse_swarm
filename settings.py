@@ -39,10 +39,10 @@ TAU_R                =   0.1
 # Simulation parameters
 SEED                 =   44
 DT                   =    0.05                                       # s, timestep per tick
-T_MAX                =  30                                         # s, 1min, maximum simulation duration
+T_MAX                =  180                                         # s, 1min, maximum simulation duration
 MAX_TICKS            = int(T_MAX // DT)
 VISUALISE            =  True                                        # Boolean deciding if simulation shall be visualised
-REALTIME             =  False                                       # Boolean deciding if visuals shall be real-time
+REALTIME             =  True                                     # Boolean deciding if visuals shall be real-time
 VIEW                 =    0                                         # Variable for different views in visualisation
 SENSITIVITY_ANALYSIS =  False                                        # Boolean deciding if noise should be added to certain parameters
 NOISE                =    0.0                                     # -, Noise amplitude if in sensitivity analysis
