@@ -121,11 +121,9 @@ def check_fruit_discoveries(
     fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array,
     fruit_disc_array, approaching_array
 ):
-    num_drones = x_array.shape[0]
-    num_fruits = fruit_x_array.shape[0]
 
-    for i in range(num_drones):
-        for j in range(num_fruits):
+    for i in range(N_DRONES):
+        for j in range(N_FRUIT):
             dx = x_array[i] - fruit_x_array[j]
             dy = y_array[i] - fruit_y_array[j]
             dz = z_array[i] - fruit_z_array[j]
@@ -162,17 +160,10 @@ def check_fruit_discoveries(
 
 @njit
 def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, swarm_array, active_array):
-    cpsi = np.cos(heading_array)
-    spsi = np.sin(heading_array)
-
     # 3 N x N arrays of distances with zero diagonal
     dx = x_array[:, None] - x_array[None, :]
     dy = y_array[:, None] - y_array[None, :]
     dz = z_array[:, None] - z_array[None, :]
-
-    # Rotate by heading
-    dx_rot = dx *  cpsi + dy * spsi
-    dy_rot = dx * -spsi + dy * cpsi
 
     # Create an N x 4(N-1) matrix
     for i in range(N_DRONES):
@@ -183,10 +174,9 @@ def update_swarm_matrices(x_array, y_array, z_array, heading_array, msg_array, s
             j = j % N_DRONES
             
             # Update swarm array with rotated distances and messages
-            swarm_array[i, idx + 0] = dx_rot[i, j] * active_array[j]  # dx
-            swarm_array[i, idx + 1] = dy_rot[i, j] * active_array[j]  # dy
-            swarm_array[i, idx + 2] = dz[i, j] * active_array[j]      # dz
-            swarm_array[i, idx + 3] = msg_array[j] * active_array[j]  # message
+            swarm_array[i, idx + 0] = dx[i, j] * active_array[j]  # dx
+            swarm_array[i, idx + 1] = dy[i, j] * active_array[j]  # dy
+            swarm_array[i, idx + 2] = dz[i, j] * active_array[j]  # dz
 
 
 def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array, obstacle_array, tick):
@@ -341,7 +331,7 @@ def run(sim, bt, vis=True, gen=1):
     vxcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
-    swarm_array = np.zeros((N_DRONES, (N_DRONES-1)*4), dtype=np.float32)
+    swarm_array = np.zeros((N_DRONES, (N_DRONES-1)*3), dtype=np.float32)
     approaching_array = np.zeros(N_DRONES, dtype=np.float32)
 
     fruit_x_array = np.zeros(N_FRUIT, dtype=np.float32)
@@ -360,16 +350,18 @@ def run(sim, bt, vis=True, gen=1):
     bt_screen = init_bt_visualizer()
 
 
-    #fig, axes, lines = live_plot_init(N_DRONES)
-
-
     for i in range(MAX_TICKS):
-        #fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
+        fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
 
         
 
         for j in range(N_DRONES):
-            vxcmd_array[j], vzcmd_array[j], rcmd_array[j] = bt_list[j].feed_forward(x_array[:, i], y_array[:, i], z_array[:, i], heading_array, vx_array, vz_array, r_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array)   
+            vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j] = bt_list[j].feed_forward(x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
+                                                                                     vx_array[j], vz_array[j], r_array[j],
+                                                                                     swarm_array[j], 
+                                                                                     fruit_x_array, fruit_y_array, fruit_z_array, 
+                                                                                     fruit_side_array, fruit_disc_array,
+                                                                                     obstacle_array, active_array, msg_array)   
 
 
 
@@ -378,10 +370,8 @@ def run(sim, bt, vis=True, gen=1):
         
 
         check_drone_collisions(x_array[:, i], y_array[:, i], z_array[:, i], active_array)
-        #check_fruit_discoveries(x_array, y_array, z_array, heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, approaching_array)
+        check_fruit_discoveries(x_array[:, i], y_array[:, i], z_array[:, i], heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, approaching_array)
         
-
-        #live_plot_update(lines, msg_array[:, :i+1])
 
         # Update screen if requested
         if vis:
