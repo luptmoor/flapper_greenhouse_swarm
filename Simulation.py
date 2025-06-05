@@ -392,6 +392,8 @@ def run(sim, bt, vis=True, gen=1):
         filename = os.path.join(folder, f"{score}_d_{np.sum(active_array)}_f_{np.sum(fruit_disc_array)}_{np.random.uniform(0, 1):.2f}.png")
         plot_3d_trajectory(x_array, y_array, z_array, filename=filename.replace('.png', '_3d.png'))
 
+        plt.ioff()
+        plt.close(bt_screen[0])
     return score
 
 
