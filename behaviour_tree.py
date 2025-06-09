@@ -111,7 +111,7 @@ class BehaviourTree:
 
     def feed_forward(self, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
         feedback, success = self.root.execute(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
-
+        #self.root.reset()  # Reset the state of the tree after execution
 
         return feedback["vx"], feedback["vz"], feedback["r"], feedback["msg"]
 
@@ -240,6 +240,10 @@ class ActionNode(BTNode):
         
 
         return feedback, self.state
+    
+
+    def reset(self):
+        self.state = 'idle'
 
 
 
@@ -259,6 +263,9 @@ class ConditionNode(BTNode):
     def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
         self.state = self.condition(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
         return {}, self.state
+    
+    def reset(self):
+        self.state = 'idle'
 
 
 
@@ -285,6 +292,18 @@ class CompositeNode(BTNode):
 
     def clear(self):
         self.children = []
+    
+    def reset(self):
+        """Reset the state of the composite node."""
+        self.state = 'idle'
+        self.feedback = {
+            "vx": 0.0,
+            "vz": 0.0,
+            "r": 0.0,
+            "msg": 0.0
+        }
+        for child in self.children:
+            child.reset()    
 
 
     def macromutate(self):
@@ -373,7 +392,8 @@ class SequenceNode(CompositeNode):
             
         #print(f"Feedback of {self.name}: {self.feedback}")
         self.state = 'success'
-        return self.feedback, 'success'       
+        return self.feedback, 'success'   
+
 
 
 

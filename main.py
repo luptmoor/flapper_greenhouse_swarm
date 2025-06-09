@@ -121,7 +121,7 @@ def simulate_bt_steps():
 if __name__ == '__main__':
 
     np.random.seed(0)
-    torch.manual_seed(0)
+    torch.manual_seed(0) 
     
     for s in range(8, 100):
         sim = Simulation(vis=True)

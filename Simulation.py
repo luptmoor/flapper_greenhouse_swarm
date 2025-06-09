@@ -12,8 +12,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
-import matplotlib.image as mpimg
-import tempfile
+from io import BytesIO
+from PIL import Image
 
 import os
 
@@ -337,12 +337,12 @@ def run(sim, bt, vis=True, gen=1):
     # fruit_disc_array = np.zeros(N_FRUIT, dtype=np.bool_)
 
     obstacle_array = np.zeros((5, 6), dtype=np.float32)
-
-
     obstacle_array = sim.load_environment(obstacle_array)
 
     bt_list = [copy.deepcopy(bt) for _ in range(N_DRONES)]
-    bt_screen = init_bt_visualizer()
+
+    if SHOW_BT:
+        bt_screen = init_bt_visualizer()
 
 
     for i in range(MAX_TICKS):
@@ -355,6 +355,14 @@ def run(sim, bt, vis=True, gen=1):
                                                                                      vx_array[j], vz_array[j], r_array[j],
                                                                                      swarm_array[j], 
                                                                                      obstacle_array, active_array, msg_array)   
+            
+        if i % 50 == 0:
+            if SHOW_BT: 
+                print('update Btvis')
+                update_bt_visualizer(bt_screen, bt_list[0])
+
+        for j in range(N_DRONES):
+            bt_list[j].root.reset()
 
 
 
@@ -365,15 +373,14 @@ def run(sim, bt, vis=True, gen=1):
         check_drone_collisions(x_array[:, i], y_array[:, i], z_array[:, i], active_array)
         #check_fruit_discoveries(x_array[:, i], y_array[:, i], z_array[:, i], heading_array)
         
+        t += DT
+
 
         # Update screen if requested
         if vis:
             skip = sim.visuals.update(sim.trees, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, t, i)
-            if i % 500 == 0: 
-                print('update Btvis')
-                update_bt_visualizer(bt_screen, bt_list[0])
-        # Add time step[:, i]
-        t += DT
+            
+        
 
         if np.sum(active_array) < 4:
             break
@@ -390,6 +397,8 @@ def run(sim, bt, vis=True, gen=1):
         filename = os.path.join(folder, f"{score}_d_{np.sum(active_array)}_{np.random.uniform(0, 1):.2f}.png")
         #plot_3d_trajectory(x_array, y_array, z_array, filename=filename.replace('.png', '_3d.png'))
 
+
+    if SHOW_BT:
         plt.ioff()
         plt.close(bt_screen[0])
     return score
@@ -494,6 +503,7 @@ def live_plot_init(N):
     plt.tight_layout()
     return fig, axes, lines
 
+
 def live_plot_update(lines, data_array):
     for i, line in enumerate(lines):
         line.set_xdata(np.arange(data_array.shape[1]))
@@ -518,24 +528,16 @@ def init_bt_visualizer():
 
 
 def update_bt_visualizer(window, bt):
-    """
-    Updates the BT visualization with the given BT on the provided Matplotlib axes.
-    This function should be called at every timestep.
-    """
-
     fig, ax = window
-    # Create and render Graphviz image
-    dot = bt.plot()
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmpfile:
-        dot.render(tmpfile.name, format='png', cleanup=True)
-        img_path = tmpfile.name + '.png'
-        img = mpimg.imread(img_path)
 
-    # Update plot
+    # Render Graphviz image to in-memory buffer
+    dot = bt.plot()
+    png_data = dot.pipe(format='png')
+    img = Image.open(BytesIO(png_data))
+
+    # Display with Matplotlib
     ax.clear()
     ax.imshow(img)
     ax.axis('off')
     fig.canvas.draw()
     plt.pause(0.01)
-
-    os.remove(img_path)
