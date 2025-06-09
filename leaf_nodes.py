@@ -143,8 +143,9 @@ def random_condition(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, a
     """
     check if a random number is greater than 0.5
     """
-
-    if np.random.uniform(0, 1) > 0.5: return 'success'
+    randnr = np.random.uniform(0, 1)
+    #print(f"Random condition: {randnr}")
+    if randnr > 0.5: return 'success'
     else: return 'failure'
 
 

@@ -73,6 +73,9 @@ class Visuals:
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
 
+                if event.key == pygame.K_RETURN:
+                    return True
+
                 # Pause simulation
                 elif event.key == pygame.K_SPACE:
                     pause = True
@@ -155,5 +158,7 @@ class Visuals:
         # Wait until frame time is up to create real-time impression
         if REALTIME:
             self.clock.tick(self.FPS)
+        
+        return False
 
 

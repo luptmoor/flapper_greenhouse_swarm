@@ -368,13 +368,18 @@ def run(sim, bt, vis=True, gen=1):
 
         # Update screen if requested
         if vis:
-            sim.visuals.update(sim.trees, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, t, i)
-            if t % 1 == 0: update_bt_visualizer(bt_screen, bt_list[0])
+            skip = sim.visuals.update(sim.trees, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, t, i)
+            if i % 500 == 0: 
+                print('update Btvis')
+                update_bt_visualizer(bt_screen, bt_list[0])
         # Add time step[:, i]
         t += DT
 
-        # if np.sum(active_array) < 4:
-        #     break
+        if np.sum(active_array) < 4:
+            break
+
+        if skip:
+            break
 
         
     score = calc_fitness(x_array, y_array, z_array)
@@ -531,6 +536,6 @@ def update_bt_visualizer(window, bt):
     ax.imshow(img)
     ax.axis('off')
     fig.canvas.draw()
-    plt.pause(0.05)
+    plt.pause(0.01)
 
     os.remove(img_path)
