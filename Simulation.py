@@ -190,8 +190,16 @@ def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_arra
     heading_array[:] = (heading_array + np.pi) % (2 * np.pi) - np.pi
 
     for i in range(N_DRONES):
+       
+        if is_inside_obstacle(x_array[i, tick], y_array[i, tick], z_array[i, tick], obstacle_array):
+            active_array[i] = 0
+        
+        if (not 0.1 < x_array[i, tick] < WIDTH) or (not 0.1 < y_array[i, tick] < HEIGHT) or (not 0.2 < z_array[i, tick] < CEILING):
+            active_array[i] = 0
+
         if active_array[i] == 0:
             continue
+
         
         if tick < MAX_TICKS - 1:
             x_array[i, tick+1] = min(max(x_array[i, tick] + vx_array[i] * DT * np.cos(heading_array[i]), 0.1), WIDTH)
@@ -317,7 +325,7 @@ def run(sim, bt, vis=True, gen=1):
     z_array = np.zeros((N_DRONES, MAX_TICKS), dtype=np.float32)
     x_array[:, 0] = np.random.uniform(0.1, WIDTH * LAUNCHPAD_FRAC, N_DRONES).astype(np.float32)
     y_array[:, 0] = np.random.uniform(0.1, HEIGHT / N_DRONES, N_DRONES).astype(np.float32) + np.arange(N_DRONES) * HEIGHT / N_DRONES
-    z_array[:, 0] = 0.01 * np.ones(N_DRONES, dtype=np.float32)
+    z_array[:, 0] = 0.21 * np.ones(N_DRONES, dtype=np.float32)
 
     heading_array = np.random.uniform(-np.pi, np.pi, N_DRONES).astype(np.float32)
     vx_array = np.zeros(N_DRONES, dtype=np.float32)

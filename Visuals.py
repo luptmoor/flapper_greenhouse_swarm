@@ -126,8 +126,10 @@ class Visuals:
 
 
         for i in range(N_DRONES):
+            if i == 0: colour = GREEN
+            else: colour = BLUE
             if active_array[i]:
-                pygame.draw.circle(self.screen, BLUE, px(x_array[i], y_array[i]), px(R_DRONE))
+                pygame.draw.circle(self.screen, colour, px(x_array[i], y_array[i]), px(R_DRONE))
                 pygame.draw.line(self.screen, RED, px(x_array[i], y_array[i]), (float(px(x_array[i]) + np.cos(heading_array[i]) * px(R_DRONE)), float(px(y_array[i]) + np.sin(heading_array[i]) * px(R_DRONE))), 2)
                 #self.draw_fov_triangle(px(x_array[i], y_array[i]), CAMERA_HFOV, px(R_DISCOVERY), heading_array[i])
 
