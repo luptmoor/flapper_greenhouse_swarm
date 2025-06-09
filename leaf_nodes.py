@@ -5,7 +5,7 @@ import numpy as np
 ###################### ACTION FUNCTIONS ########################
 
 
-def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     Function to calculate the avoidance vector for an array of N drones using artificial potential fields.
     Assume that minimum avoidance distance is not met when this fn is called
@@ -23,7 +23,7 @@ def approach(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z
     return  0, 0, 0, 0, 'running'
 
 
-def follow_wall(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def follow_wall(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     stay to the wall and move up and down along it
     """
@@ -31,14 +31,14 @@ def follow_wall(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, frui
     return  0, 0, 0, 0, 'running'
 
 
-def random_walk(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def random_walk(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     random turn and climb commands with constant forward speed
     """
     return  0.3, np.random.uniform(-0.3, 0.3), np.random.uniform(-10/57.3, 10/57.3), 0, 'running'
 
 
-def disperse(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     
     """
     move away from the other drones
@@ -67,7 +67,7 @@ def disperse(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z
     return  vx_cmd, 0, r_cmd, 0, 'running'
 
 
-def clear_path(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def clear_path(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     brake and rotate left until the path is clear
     """
@@ -75,7 +75,7 @@ def clear_path(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit
     return  0, 0, 10/57.3, 0, 'running'
 
 
-def send_message(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def send_message(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     send a message to the other drones
     """
@@ -110,7 +110,7 @@ def fruit_visible(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fr
     return 'failure'
 
 
-def path_clear(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def path_clear(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     check if the path is clear
     """
@@ -118,7 +118,7 @@ def path_clear(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit
     return 'failure'
 
 
-def min_distance(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def min_distance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     check if the minimum distance to other drones is smaller than 0.5m
     """
@@ -130,7 +130,7 @@ def min_distance(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fru
     else: return 'failure'
     
 
-def message_received(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def message_received(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     check if a message was received
     """
@@ -139,7 +139,7 @@ def message_received(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y,
     else: return 'failure'
 
 
-def random_condition(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def random_condition(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     check if a random number is greater than 0.5
     """
@@ -153,7 +153,7 @@ def random_condition(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y,
 
 
 action_strings = [
-    'Approach',
+    #'Approach',
     'Avoid other drones',
     'Turn right',
     'Follow wall',
@@ -163,7 +163,7 @@ action_strings = [
 ]
 
 actions = [
-    approach,
+   # approach,
     apf_avoidance,
     clear_path,
     follow_wall,
@@ -173,9 +173,9 @@ actions = [
 ]
 
 condition_strings = [
-    'Fruit visible?',
-    '# discovered fruit > X ?',
-    '# new fruit last 30s < X ?',
+    #'Fruit visible?',
+    #'# discovered fruit > X ?',
+    #'# new fruit last 30s < X ?',
     'Path clear?',
     'Minimum peer distance < X ?',
     'Message received?',
@@ -183,9 +183,9 @@ condition_strings = [
 ]
 
 conditions = [
-    fruit_visible,
-    fruit_counter,
-    discovery_rate,
+    #fruit_visible,
+    #fruit_counter,
+    #discovery_rate,
     path_clear,
     min_distance,
     message_received,

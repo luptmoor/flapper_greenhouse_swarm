@@ -42,7 +42,7 @@ DT                   =    0.05                                       # s, timest
 T_MAX                =  180                                         # s, 1min, maximum simulation duration
 MAX_TICKS            = int(T_MAX // DT)
 VISUALISE            =  True                                        # Boolean deciding if simulation shall be visualised
-REALTIME             =  True                                     # Boolean deciding if visuals shall be real-time
+REALTIME             =  False                                     # Boolean deciding if visuals shall be real-time
 VIEW                 =    0                                         # Variable for different views in visualisation
 SENSITIVITY_ANALYSIS =  False                                        # Boolean deciding if noise should be added to certain parameters
 NOISE                =    0.0                                     # -, Noise amplitude if in sensitivity analysis
@@ -64,8 +64,8 @@ N_TOURNAMENTS       =        10
 
 ## Behaviour Trees
 BT_SEED             =        49
-BT_MAX_CHILDREN     =         6
-BT_MAX_DEPTH        =         6
+BT_MAX_CHILDREN     =         4
+BT_MAX_DEPTH        =         4
 P_BT_COMPOSITE      =         0.25
 P_BT_CONDITION      =         0.25
 P_BT_ACTION         =         0.25

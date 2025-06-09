@@ -109,8 +109,8 @@ class BehaviourTree:
             json.dump(self.root.to_dict(), file, indent=4)
     
 
-    def feed_forward(self, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
-        feedback, success = self.root.execute(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array)
+    def feed_forward(self, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
+        feedback, success = self.root.execute(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
 
 
         return feedback["vx"], feedback["vz"], feedback["r"], feedback["msg"]
@@ -229,8 +229,8 @@ class ActionNode(BTNode):
         return {"type": self.__class__.__name__, "name": self.name, "action": self.action, "value": self.value}
     
 
-    def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
-        vx, vz, r, msg_array, self.state = self.action(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array)
+    def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
+        vx, vz, r, msg_array, self.state = self.action(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
         feedback = {
             "vx": vx,
             "vz": vz,
@@ -255,8 +255,8 @@ class ConditionNode(BTNode):
     def to_dict(self):
         return {"type": self.__class__.__name__, "name": self.name, "reading": self.reading, "operator": self.operator,  "value": self.value}
 
-    def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
-        self.state = self.condition(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array)
+    def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
+        self.state = self.condition(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
         return {}, self.state
 
 
@@ -356,10 +356,10 @@ class SequenceNode(CompositeNode):
         super().__init__(name, depth)
         self.type = 'sequence'
     
-    def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+    def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
         #print(f'Executing {self.name}.')
         for child in self.children:
-            feedback, success = child.execute(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array)
+            feedback, success = child.execute(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
             self.feedback.update(feedback)
             if success == 'failure':
                 self.state = 'failure'
@@ -382,10 +382,10 @@ class SelectorNode(CompositeNode):
         super().__init__(name, depth)
         self.type = 'selector'
 
-    def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+    def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
         #print(f"Executing {self.name}.")
         for child in self.children:
-            feedback, success = child.execute( x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array)
+            feedback, success = child.execute( x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
             self.feedback.update(feedback)
             if success == 'success':
                 self.state = 'success'

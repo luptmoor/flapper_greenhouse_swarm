@@ -115,47 +115,47 @@ def check_collision(entity1, entity2, margin=0):
 
 #     fruit_disc_array[:] = (np.sum(discovery_array, axis=0) >= 1) | fruit_disc_array
 
-@njit
-def check_fruit_discoveries(
-    x_array, y_array, z_array, heading_array,
-    fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array,
-    fruit_disc_array, approaching_array
-):
+# @njit
+# def check_fruit_discoveries(
+#     x_array, y_array, z_array, heading_array,
+#     fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array,
+#     fruit_disc_array, approaching_array
+# ):
 
-    for i in range(N_DRONES):
-        for j in range(N_FRUIT):
-            dx = x_array[i] - fruit_x_array[j]
-            dy = y_array[i] - fruit_y_array[j]
-            dz = z_array[i] - fruit_z_array[j]
+#     for i in range(N_DRONES):
+#         for j in range(N_FRUIT):
+#             dx = x_array[i] - fruit_x_array[j]
+#             dy = y_array[i] - fruit_y_array[j]
+#             dz = z_array[i] - fruit_z_array[j]
 
-            dh = np.sqrt(dx ** 2 + dy ** 2)
-            if dh == 0.0:
-                continue  # avoid division by zero
+#             dh = np.sqrt(dx ** 2 + dy ** 2)
+#             if dh == 0.0:
+#                 continue  # avoid division by zero
 
-            elevation = np.arctan(dz / dh)
-            bearing = np.arctan2(dy, dx) + np.pi
+#             elevation = np.arctan(dz / dh)
+#             bearing = np.arctan2(dy, dx) + np.pi
 
-            if bearing > np.pi:
-                bearing -= 2 * np.pi
-            if bearing < -np.pi:
-                bearing += 2 * np.pi
+#             if bearing > np.pi:
+#                 bearing -= 2 * np.pi
+#             if bearing < -np.pi:
+#                 bearing += 2 * np.pi
 
-            azimuth = bearing - heading_array[i]
-            if azimuth > np.pi:
-                azimuth -= 2 * np.pi
-            if azimuth < -np.pi:
-                azimuth += 2 * np.pi
+#             azimuth = bearing - heading_array[i]
+#             if azimuth > np.pi:
+#                 azimuth -= 2 * np.pi
+#             if azimuth < -np.pi:
+#                 azimuth += 2 * np.pi
 
-            drone_side = heading_array[i] >= 0.0
+#             drone_side = heading_array[i] >= 0.0
 
-            if (dh <= R_DISCOVERY and
-                abs(elevation) <= CAMERA_VFOV and
-                abs(azimuth) <= CAMERA_HFOV and
-                drone_side == fruit_side_array[j]):
+#             if (dh <= R_DISCOVERY and
+#                 abs(elevation) <= CAMERA_VFOV and
+#                 abs(azimuth) <= CAMERA_HFOV and
+#                 drone_side == fruit_side_array[j]):
 
-                if fruit_disc_array[j] == False:
-                    approaching_array[i] = 5.0
-                fruit_disc_array[j] = True
+#                 if fruit_disc_array[j] == False:
+#                     approaching_array[i] = 5.0
+#                 fruit_disc_array[j] = True
 
 
 
@@ -179,14 +179,12 @@ def update_swarm_matrices(x_array, y_array, z_array, swarm_array, active_array):
             swarm_array[i, idx + 2] = dz[i, j] * active_array[j]  # dz
 
 
-def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array, obstacle_array, tick):
-    approaching_array[:] = np.clip(approaching_array - DT, 0.0, 5.0)
-
+def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, obstacle_array, tick):
 
     # First order lag
-    vx_array[:] = (1 - DT/TAU_VX) * vx_array + DT/TAU_VX * vxcmd_array * (approaching_array < 0.1); 
-    vz_array[:] = (1 - DT/TAU_VZ) * vz_array + DT/TAU_VZ * vzcmd_array * (approaching_array < 0.1);
-    r_array[:] = (1 - DT/TAU_R) * r_array + DT/TAU_R * rcmd_array * (approaching_array < 0.1);
+    vx_array[:] = (1 - DT/TAU_VX) * vx_array + DT/TAU_VX * vxcmd_array
+    vz_array[:] = (1 - DT/TAU_VZ) * vz_array + DT/TAU_VZ * vzcmd_array
+    r_array[:] = (1 - DT/TAU_R) * r_array + DT/TAU_R * rcmd_array
 
     heading_array[:] += r_array * DT
     heading_array[:] = (heading_array + np.pi) % (2 * np.pi) - np.pi
@@ -258,7 +256,7 @@ class Simulation:
         if vis:
             self.visuals = Visuals(WIDTH, HEIGHT, self.n_rows)
 
-    def load_environment(self, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, obstacle_array):
+    def load_environment(self, obstacle_array):
         """
         loads simulated environment by placing trees, beetles and drones.
         :return: None
@@ -268,39 +266,39 @@ class Simulation:
         for i in range(self.n_rows):
             obstacle_array[i, :] = np.array([LAUNCHPAD_FRAC*WIDTH + R_TREE_AVG, HEIGHT / (self.n_rows + 1) * (i+1) - 0.5*R_TREE_AVG, 0.0, (1-LAUNCHPAD_FRAC)*WIDTH - 2*R_TREE_AVG, R_TREE_AVG, TREE_HEIGHT])
             
-            for j in range(int(round(N_TREES_PER_ROW * noise(NOISE), 0))):
-                placing = True
-                while placing:
-                    y = HEIGHT / (self.n_rows + 1) * (i+1)
-                    x = random.uniform(LAUNCHPAD_FRAC*WIDTH + R_TREE_MAX, WIDTH - R_TREE_MAX)
+        #     for j in range(int(round(N_TREES_PER_ROW * noise(NOISE), 0))):
+        #         placing = True
+        #         while placing:
+        #             y = HEIGHT / (self.n_rows + 1) * (i+1)
+        #             x = random.uniform(LAUNCHPAD_FRAC*WIDTH + R_TREE_MAX, WIDTH - R_TREE_MAX)
 
-                    newtree = Entity('Tree ' + str(j + i * N_TREES_PER_ROW), 'tree', x, y, np.random.normal(R_TREE_AVG, R_TREE_STD))
-                    if not any([check_collision(newtree, entity, -0.3) for entity in self.entities]):
-                        self.entities.append(newtree)
-                        self.trees.append(newtree)
-                        placing = False
+        #             newtree = Entity('Tree ' + str(j + i * N_TREES_PER_ROW), 'tree', x, y, np.random.normal(R_TREE_AVG, R_TREE_STD))
+        #             if not any([check_collision(newtree, entity, -0.3) for entity in self.entities]):
+        #                 self.entities.append(newtree)
+        #                 self.trees.append(newtree)
+        #                 placing = False
         
 
-        # Initial placement of fruit
-        f = 0;
-        while f < N_FRUIT:
-            for tree in self.trees:
-                if random.uniform(0, 1) < FRUIT_PROB:
-                    angle = random.uniform(-np.pi, np.pi)
-                    x = tree.x + tree.r_col * np.cos(angle)
-                    y = tree.y + tree.r_col * np.sin(angle)
-                    z = random.uniform(FRUIT_MIN_HEIGHT, TREE_HEIGHT)
-                    newfruit = Fruit(f'Fruit {f}', x, y, z)
+        # # Initial placement of fruit
+        # f = 0;
+        # while f < N_FRUIT:
+        #     for tree in self.trees:
+        #         if random.uniform(0, 1) < FRUIT_PROB:
+        #             angle = random.uniform(-np.pi, np.pi)
+        #             x = tree.x + tree.r_col * np.cos(angle)
+        #             y = tree.y + tree.r_col * np.sin(angle)
+        #             z = random.uniform(FRUIT_MIN_HEIGHT, TREE_HEIGHT)
+        #             newfruit = Fruit(f'Fruit {f}', x, y, z)
                     
-                    if not any([check_collision(newfruit, othertree) for othertree in self.trees if not othertree.name == tree.name]):
-                        fruit_x_array[f] = x;
-                        fruit_y_array[f] = y;
-                        fruit_z_array[f] = z;
-                        fruit_side_array[f] = (angle >= 0);
-                        f += 1;
-                        if f >= N_FRUIT: break
+        #             if not any([check_collision(newfruit, othertree) for othertree in self.trees if not othertree.name == tree.name]):
+        #                 fruit_x_array[f] = x;
+        #                 fruit_y_array[f] = y;
+        #                 fruit_z_array[f] = z;
+        #                 fruit_side_array[f] = (angle >= 0);
+        #                 f += 1;
+        #                 if f >= N_FRUIT: break
 
-        return fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, obstacle_array
+        return obstacle_array
 
                 
         
@@ -330,26 +328,25 @@ def run(sim, bt, vis=True, gen=1):
     vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     swarm_array = np.zeros((N_DRONES, (N_DRONES-1)*3), dtype=np.float32)
-    approaching_array = np.zeros(N_DRONES, dtype=np.float32)
 
-    fruit_x_array = np.zeros(N_FRUIT, dtype=np.float32)
-    fruit_y_array = np.zeros(N_FRUIT, dtype=np.float32)
-    fruit_z_array = np.zeros(N_FRUIT, dtype=np.float32)
-    fruit_t_array = np.zeros((N_FRUIT, MAX_TICKS+1), dtype=np.float32)
-    fruit_side_array = np.zeros(N_FRUIT, dtype=np.bool_)
-    fruit_disc_array = np.zeros(N_FRUIT, dtype=np.bool_)
+    # fruit_x_array = np.zeros(N_FRUIT, dtype=np.float32)
+    # fruit_y_array = np.zeros(N_FRUIT, dtype=np.float32)
+    # fruit_z_array = np.zeros(N_FRUIT, dtype=np.float32)
+    # fruit_t_array = np.zeros((N_FRUIT, MAX_TICKS+1), dtype=np.float32)
+    # fruit_side_array = np.zeros(N_FRUIT, dtype=np.bool_)
+    # fruit_disc_array = np.zeros(N_FRUIT, dtype=np.bool_)
 
     obstacle_array = np.zeros((5, 6), dtype=np.float32)
 
 
-    fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, obstacle_array = sim.load_environment(fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, obstacle_array)
+    obstacle_array = sim.load_environment(obstacle_array)
 
     bt_list = [copy.deepcopy(bt) for _ in range(N_DRONES)]
     bt_screen = init_bt_visualizer()
 
 
     for i in range(MAX_TICKS):
-        fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
+        #fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
 
         update_swarm_matrices(x_array[:, i], y_array[:, i], z_array[:, i], swarm_array, active_array)
 
@@ -357,23 +354,21 @@ def run(sim, bt, vis=True, gen=1):
             vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j] = bt_list[j].feed_forward(x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
                                                                                      vx_array[j], vz_array[j], r_array[j],
                                                                                      swarm_array[j], 
-                                                                                     fruit_x_array, fruit_y_array, fruit_z_array, 
-                                                                                     fruit_side_array, fruit_disc_array,
                                                                                      obstacle_array, active_array, msg_array)   
 
 
 
         vzcmd_array = squeeze_vertical_speed(z_array[:, i], vzcmd_array)
-        advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, approaching_array, obstacle_array, i)
+        advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, obstacle_array, i)
         
 
         check_drone_collisions(x_array[:, i], y_array[:, i], z_array[:, i], active_array)
-        check_fruit_discoveries(x_array[:, i], y_array[:, i], z_array[:, i], heading_array, fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array, fruit_disc_array, approaching_array)
+        #check_fruit_discoveries(x_array[:, i], y_array[:, i], z_array[:, i], heading_array)
         
 
         # Update screen if requested
         if vis:
-            sim.visuals.update(sim.trees, fruit_x_array, fruit_y_array, fruit_z_array, fruit_t_array, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, fruit_disc_array, t, i)
+            sim.visuals.update(sim.trees, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, t, i)
             if t % 1 == 0: update_bt_visualizer(bt_screen, bt_list[0])
         # Add time step[:, i]
         t += DT
@@ -387,7 +382,7 @@ def run(sim, bt, vis=True, gen=1):
     if vis:
         folder = f"gen_{gen}"
         os.makedirs(folder, exist_ok=True)  # create folder if it doesn't exist
-        filename = os.path.join(folder, f"{score}_d_{np.sum(active_array)}_f_{np.sum(fruit_disc_array)}_{np.random.uniform(0, 1):.2f}.png")
+        filename = os.path.join(folder, f"{score}_d_{np.sum(active_array)}_{np.random.uniform(0, 1):.2f}.png")
         #plot_3d_trajectory(x_array, y_array, z_array, filename=filename.replace('.png', '_3d.png'))
 
         plt.ioff()
