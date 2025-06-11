@@ -46,21 +46,19 @@ class Visuals:
         pygame.display.flip()
 
 
-    def draw_fov_triangle(self, tip, heading, color=(0, 255, 255)):
+    def draw_fov_triangle(self, tip, fov, height, theta, color=(0, 255, 255)):
+
         # Compute base half-width from FOV and height
-        c = np.cos(heading)
-        s = np.sin(heading)
-        R = np.array([[c, -s, 0],
-                      [s,  c, 0],
-                      [0,  0, 1]])
-        t = np.array([tip[0], tip[1], 0])
 
-        # Transform pyramid vertices to world frame
-        apex_w = R @ _apex + t
-        base1_w = R @ _base1 + t
-        base2_w = R @ _base2 + t
 
-        points = [_px(*apex_w[:2]), _px(*base1_w[:2]), _px(*base2_w[:2])]
+        height = height / np.cos(fov)            
+        rx = int(tip[0] + height * np.cos(theta + fov/2))
+        ry = int(tip[1] + height * np.sin(theta + fov/2))
+
+        lx = int(tip[0] + height * np.cos(theta - fov/2))
+        ly = int(tip[1] + height * np.sin(theta - fov/2))
+
+        points = [tip, (rx, ry), (lx, ly)]
 
         pygame.draw.polygon(self.screen, color, points)
 
@@ -144,7 +142,7 @@ class Visuals:
             if active_array[i]:
                 pygame.draw.circle(self.screen, colour, _px(x_array[i], y_array[i]), _px(R_DRONE))
                 pygame.draw.line(self.screen, RED, _px(x_array[i], y_array[i]), (float(_px(x_array[i]) + np.cos(heading_array[i]) * _px(R_DRONE)), float(_px(y_array[i]) + np.sin(heading_array[i]) * _px(R_DRONE))), 2)
-                self.draw_fov_triangle((x_array[i], y_array[i]), heading_array[i])
+                self.draw_fov_triangle(_px(x_array[i], y_array[i]), TOF_HFOV, _px(R_TOF), heading_array[i])
 
                 # Height indication
                 text_surface, text_rect = self.font.render(str(round(z_array[i], 2)), (255, 255, 255))

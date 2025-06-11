@@ -126,7 +126,7 @@ if __name__ == '__main__':
     for s in range(8, 100):
         sim = Simulation(vis=True)
         bt = BehaviourTree()
-        bt.load_from_file('BT_8.json')
+        bt.load_from_file('manual_v1.json')
         #bt.save_to_json(f'BT_{s}.json')
 
         run(sim, bt)

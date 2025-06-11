@@ -1,0 +1,48 @@
+{
+    "type": "SequenceNode",
+    "name": "RootSequence",
+    "depth": 0,
+    "children": [
+        {
+            "type": "SelectorNode",
+            "name": "RootSequence_selector0",
+            "depth": 1,
+            "children": [
+                
+                    {
+                        "type": "ConditionNode",
+                        "name": "RootSequence_selector0_condition0",
+                        "condition_string": "Path clear?"
+                    },
+                    {
+                        "type": "ActionNode",
+                        "name": "RootSequence_selector0_action0",
+                        "action_string": "Turn right"
+                     }
+                    ]
+        },
+        {
+            "type": "SelectorNode",
+            "name": "RootSequence_selector1",
+            "depth": 1,
+            "children": [
+                
+                    {
+                        "type": "ConditionNode",
+                        "name": "RootSequence_selector1_condition0",
+                        "condition_string": "Minimum peer distance > X ?"
+                    },
+                    {
+                        "type": "ActionNode",
+                        "name": "RootSequence_selector1_action0",
+                        "action_string": "Avoid other drones"
+                     }
+                    ]
+        },
+        {
+            "type": "ActionNode",
+            "name": "RootSequence_action1",
+            "action_string": "Random Walk"
+        }
+    ]
+}

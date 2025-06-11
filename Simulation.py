@@ -179,6 +179,7 @@ def update_swarm_matrices(x_array, y_array, z_array, swarm_array, active_array):
             swarm_array[i, idx + 2] = dz[i, j] * active_array[j]  # dz
 
 
+@njit
 def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, obstacle_array, tick):
 
     # First order lag
@@ -195,7 +196,7 @@ def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_arra
             active_array[i] = 0
             #print(f'collision with obstacle for drone {i}')
         
-        if (not 0.1 < x_array[i, tick] < WIDTH) or (not 0.1 < y_array[i, tick] < HEIGHT) or (not 0.1 < z_array[i, tick] < CEILING):
+        if (not 0.1 < x_array[i, tick] < WIDTH) or (not 0.1 < y_array[i, tick] < HEIGHT) or (not 0.0 < z_array[i, tick] < CEILING):
             active_array[i] = 0
             #print(f'out of bounds for drone {i}')
 
@@ -241,9 +242,8 @@ def squeeze_vertical_speed(z_array, vzcmd_array):
         if z_array[i] + SQUEEZE_RANGE >= CEILING:
             vzcmd_array[i] = min(vzcmd_array[i], _envelope_ellipse(CEILING - z_array[i]))
 
-        elif z_array[i] <= SQUEEZE_RANGE + 0.2:
-            vzcmd_array[i] = max(vzcmd_array[i], -_envelope_ellipse(z_array[i] - 0.2))
-    
+        elif z_array[i] <= SQUEEZE_RANGE + 0.3:
+            vzcmd_array[i] = max(vzcmd_array[i], -_envelope_ellipse(z_array[i] - 0.3))
     return vzcmd_array
 
 
@@ -358,7 +358,7 @@ def run(sim, bt, vis=True, gen=1):
         bt_screen = init_bt_visualizer()
 
 
-    for i in range(MAX_TICKS):
+    for i in range(MAX_TICKS-1):
         #fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
 
         update_swarm_matrices(x_array[:, i], y_array[:, i], z_array[:, i], swarm_array, active_array)
@@ -480,7 +480,9 @@ def calc_fitness(x_array, y_array, z_array):
     :param z_array: Array of z coordinates with shape (N_DRONES, N_TICKS)
     :return: fitness score
     """ 
-
+    print(f'x: {np.min(x_array)} - {np.max(x_array)}')
+    print(f'y: {np.min(y_array)} - {np.max(y_array)}')
+    print(f'z: {np.min(z_array)} - {np.max(z_array)}')
     visited_voxels = set()
     for i in range(N_DRONES):
         for j in range(MAX_TICKS):

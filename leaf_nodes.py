@@ -85,7 +85,7 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
         # Repulsive force (inverse distance)
         fx = -K_REP * dx / (dist ** 2)
         fy = -K_REP * dy / (dist ** 2)
-        fz = -K_REP * dz / (dist ** 2)
+        fz = K_REP * dz / (dist ** 2)
         # Calculate target heading for the repulsive force
         force_mag = np.sqrt(fx**2 + fy**2)
         target_heading = np.arctan2(fy, fx)
@@ -165,12 +165,20 @@ def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_ar
     return  vx_cmd, 0, r_cmd, 0, 'running'
 
 
-def clear_path(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def turn_right(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     brake and rotate right until the path is clear
     """
 
     return  0, 0, 10/57.3, 0, 'running'
+
+
+def turn_left(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+    """
+    brake and rotate left until the path is clear
+    """
+
+    return  0, 0, -10/57.3, 0, 'running'
 
 
 def send_message(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
@@ -261,12 +269,12 @@ def path_clear(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_
 
 def min_distance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
-    check if the minimum distance to other drones is smaller than 0.5m
+    check if the minimum distance to other drones is greater than 1.0m
     """
 
     d = [np.sqrt(swarm_array[i]**2 + swarm_array[i+1]**2 + swarm_array[i+2]**2) for i in range(N_DRONES-1)]
 
-    if min(d) < 0.5:
+    if min(d) > 1.0:
         return 'success'
     else: return 'failure'
     
@@ -298,6 +306,7 @@ action_strings = [
     #'Approach',
     'Avoid other drones',
     'Turn right',
+    'Turn left',
     #'Follow wall',
     'Random Walk',
     'Disperse',
@@ -307,7 +316,8 @@ action_strings = [
 actions = {
 #   "Approach":  approach,
     "Avoid other drones":  apf_avoidance,
-    "Turn right":  clear_path,
+    "Turn right":  turn_right,
+    "Turn left":  turn_left,
 #   "Follow wall":  follow_wall,
     "Random Walk":  random_walk,
     "Disperse":  disperse,
@@ -319,7 +329,7 @@ condition_strings = [
     #'# discovered fruit > X ?',
     #'# new fruit last 30s < X ?',
     'Path clear?',
-    'Minimum peer distance < X ?',
+    'Minimum peer distance > X ?',
     'Message received?',
     'Random > 0.5 ?',
 ]
@@ -330,7 +340,7 @@ conditions = {
 #   "# new fruit last 30s < X ?: discovery_rate,
     "Path clear?": path_clear,
 
-    "Minimum peer distance < X ?": min_distance,
+    "Minimum peer distance > X ?": min_distance,
     "Message received?": message_received,
     "Random > 0.5 ?": random_condition
 }
