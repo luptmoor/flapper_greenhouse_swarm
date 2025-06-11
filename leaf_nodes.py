@@ -96,6 +96,8 @@ def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_ar
     move away from the other drones
     """
 
+    if np.sum(active_array) < 2: return 0, 0, 0, 0, 'success'
+
     x_avg = np.sum([swarm_array[3*i] + x for i in range(N_DRONES - 1) if np.abs(swarm_array[3*i] + x) > 0.01]) / np.sum(active_array)
     y_avg = np.sum([swarm_array[3*i+1] + y for i in range(N_DRONES - 1) if np.abs(swarm_array[3*i+1] + y) > 0.01]) / np.sum(active_array)
 
