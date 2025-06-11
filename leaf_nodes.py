@@ -61,9 +61,53 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
     """
     Function to calculate the avoidance vector for an array of N drones using artificial potential fields.
     Assume that minimum avoidance distance is not met when this fn is called
-    return: vx_cmd, vz_cmd, r_cmd
+    return: vx_cmd, vz_cmd, r_cmd, msg, status
     """
-    return  0, 0, 0, 0, 'running'
+
+    if np.sum(active_array) < 2: return 0, 0, 0, 0, 'success'
+
+    # Parameters for APF
+    K_REP = 1.0  # Repulsive gain
+
+    vx_cmd = 0.0
+    vz_cmd = 0.0
+    r_cmd = 0.0
+
+    # Calculate repulsive force from other drones
+    for i in range(N_DRONES - 1):
+        if not active_array[i]:
+            continue
+        dx = swarm_array[3 * i]
+        dy = swarm_array[3 * i + 1]
+        dz = swarm_array[3 * i + 2]
+        dist = np.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+        
+        # Repulsive force (inverse distance)
+        fx = -K_REP * dx / (dist ** 2)
+        fy = -K_REP * dy / (dist ** 2)
+        fz = -K_REP * dz / (dist ** 2)
+        # Calculate target heading for the repulsive force
+        force_mag = np.sqrt(fx**2 + fy**2)
+        target_heading = np.arctan2(fy, fx)
+
+        heading_error = target_heading - heading + np.pi
+
+        heading_error = (heading_error + np.pi) % (2 * np.pi) - np.pi
+        # Forward command is along the force direction
+        vx_cmd += force_mag * np.cos(heading_error)
+        vz_cmd += fz
+
+    # Limit commands
+    vx_cmd = np.clip(vx_cmd, -V_FORWARD_MAX, V_FORWARD_MAX)
+    vz_cmd = np.clip(vz_cmd, -V_UP_MAX, V_UP_MAX)
+
+    # Calculate yaw rate command based on heading 
+    r_cmd = np.clip(heading_error * 0.5, -YAWRATE_MAX, YAWRATE_MAX)  # Proportional control for yaw rate
+    
+    if np.abs(heading_error) > 10/57.3:
+        vx_cmd = 0.0
+
+    return vx_cmd, vz_cmd, r_cmd, 0, 'running'
 
 
      
@@ -123,7 +167,7 @@ def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_ar
 
 def clear_path(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
-    brake and rotate left until the path is clear
+    brake and rotate right until the path is clear
     """
 
     return  0, 0, 10/57.3, 0, 'running'

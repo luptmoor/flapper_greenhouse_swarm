@@ -393,8 +393,8 @@ def run(sim, bt, vis=True, gen=1):
             
         
 
-        # if np.sum(active_array) < 4:
-        #     break
+        if np.sum(active_array) < 1:
+            break
 
         if skip:
             break
