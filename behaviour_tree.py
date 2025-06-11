@@ -37,24 +37,20 @@ def dict_to_bt(data):
     """Recursively reconstruct a behavior tree from a dictionary."""
     node_type = data["type"]
     
-    # Reconstruct an ActionNode: restore name, action and value.
+    # Reconstruct an ActionNode: restore name and action_id.
     if node_type == "ActionNode":
         node = ActionNode(data["name"])
-        if "action" in data:
-            node.action = data["action"]
-        if "value" in data:
-            node.value = data["value"]
+        if "action_string" in data:
+            node.action_string = data["action_string"]
+            node.action = actions[data["action_string"]]
         return node
-    
-    # Reconstruct a ConditionNode: restore name, reading, operator and value.
+
+    # Reconstruct a ConditionNode: restore name and condition_id.
     elif node_type == "ConditionNode":
         node = ConditionNode(data["name"])
-        if "reading" in data:
-            node.reading = data["reading"]
-        if "operator" in data:
-            node.operator = data["operator"]
-        if "value" in data:
-            node.value = data["value"]
+        if "condition_string" in data:
+            node.condition_string = data["condition_string"]
+            node.condition = conditions[data["condition_string"]]
         return node
     
     # Reconstruct composite nodes (SequenceNode or SelectorNode)
@@ -220,13 +216,12 @@ class ActionNode(BTNode):
     def __init__(self, name):
         super().__init__(name)
         
-        action_id = random.choice(range(len(actions)))
-        self.action_string = action_strings[action_id]
-        self.action = actions[action_id]
+        self.action_string = random.choice(action_strings)
+        self.action = actions[self.action_string]
 
 
     def to_dict(self):
-        return {"type": self.__class__.__name__, "name": self.name, "action": self.action, "value": self.value}
+        return {"type": self.__class__.__name__, "name": self.name, "action_string": self.action_string}
     
 
     def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
@@ -252,13 +247,12 @@ class ConditionNode(BTNode):
     def __init__(self, name):
         super().__init__(name)
 
-        condition_id = random.choice(range(len(conditions)))
-        self.condition_string = condition_strings[condition_id]
-        self.condition = conditions[condition_id]
+        self.condition_string = random.choice(condition_strings)
+        self.condition = conditions[self.condition_string]
 
 
     def to_dict(self):
-        return {"type": self.__class__.__name__, "name": self.name, "reading": self.reading, "operator": self.operator,  "value": self.value}
+        return {"type": self.__class__.__name__, "name": self.name, "condition_string": self.condition_string}
 
     def execute(self,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
         self.state = self.condition(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)

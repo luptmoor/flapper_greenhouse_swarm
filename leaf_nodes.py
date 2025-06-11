@@ -298,21 +298,21 @@ action_strings = [
     #'Approach',
     'Avoid other drones',
     'Turn right',
-    'Follow wall',
+    #'Follow wall',
     'Random Walk',
     'Disperse',
     'Send message',
 ]
 
-actions = [
-   # approach,
-    apf_avoidance,
-    clear_path,
-    follow_wall,
-    random_walk,
-    disperse,
-    send_message
-]
+actions = {
+#   "Approach":  approach,
+    "Avoid other drones":  apf_avoidance,
+    "Turn right":  clear_path,
+#   "Follow wall":  follow_wall,
+    "Random Walk":  random_walk,
+    "Disperse":  disperse,
+    "Send message":  send_message
+}
 
 condition_strings = [
     #'Fruit visible?',
@@ -324,12 +324,13 @@ condition_strings = [
     'Random > 0.5 ?',
 ]
 
-conditions = [
-    #fruit_visible,
-    #fruit_counter,
-    #discovery_rate,
-    path_clear,
-    min_distance,
-    message_received,
-    random_condition
-]
+conditions = {
+#   "Fruit visible?": fruit_visible,
+#   "# discovered fruit > X ?": fruit_counter,
+#   "# new fruit last 30s < X ?: discovery_rate,
+    "Path clear?": path_clear,
+
+    "Minimum peer distance < X ?": min_distance,
+    "Message received?": message_received,
+    "Random > 0.5 ?": random_condition
+}
