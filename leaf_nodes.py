@@ -83,14 +83,14 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
         dist = np.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
         
         # Repulsive force (inverse distance)
-        fx = -K_REP * dx / (dist ** 2)
-        fy = -K_REP * dy / (dist ** 2)
+        fx = K_REP * dx / (dist ** 2)
+        fy = K_REP * dy / (dist ** 2)
         fz = K_REP * dz / (dist ** 2)
         # Calculate target heading for the repulsive force
         force_mag = np.sqrt(fx**2 + fy**2)
         target_heading = np.arctan2(fy, fx)
 
-        heading_error = target_heading - heading + np.pi
+        heading_error = target_heading - heading
 
         heading_error = (heading_error + np.pi) % (2 * np.pi) - np.pi
         # Forward command is along the force direction
@@ -98,7 +98,7 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
         vz_cmd += fz
 
     # Limit commands
-    vx_cmd = np.clip(vx_cmd, -V_FORWARD_MAX, V_FORWARD_MAX)
+    vx_cmd = np.clip(vx_cmd, 0.0, V_FORWARD_MAX)
     vz_cmd = np.clip(vz_cmd, -V_UP_MAX, V_UP_MAX)
 
     # Calculate yaw rate command based on heading 
@@ -131,7 +131,7 @@ def random_walk(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active
     """
     random turn and climb commands with constant forward speed
     """
-    return  0.3, np.random.uniform(-0.3, 0.3), np.random.uniform(-10/57.3, 10/57.3), 0, 'running'
+    return  0.3, np.random.uniform(-0.3, 0.3), np.random.uniform(-15/57.3, 15/57.3), 0, 'running'
 
 
 def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):

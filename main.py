@@ -124,13 +124,13 @@ if __name__ == '__main__':
     torch.manual_seed(0) 
     
     for s in range(8, 100):
-        sim = Simulation(vis=True)
+        sim = Simulation(vis=True, seed=s)
         bt = BehaviourTree()
         bt.load_from_file('manual_v1.json')
         #bt.save_to_json(f'BT_{s}.json')
 
         run(sim, bt)
 
-        # 
+        
 
     #visualize_bt_live(simulate_bt_steps())
