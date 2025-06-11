@@ -115,48 +115,6 @@ def check_collision(entity1, entity2, margin=0):
 
 #     fruit_disc_array[:] = (np.sum(discovery_array, axis=0) >= 1) | fruit_disc_array
 
-@njit
-def check_fruit_discoveries(
-    x_array, y_array, z_array, heading_array,
-    fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array,
-    fruit_disc_array, approaching_array
-):
-
-    for i in range(N_DRONES):
-        for j in range(N_FRUIT):
-            dx = x_array[i] - fruit_x_array[j]
-            dy = y_array[i] - fruit_y_array[j]
-            dz = z_array[i] - fruit_z_array[j]
-
-            dh = np.sqrt(dx ** 2 + dy ** 2)
-            if dh == 0.0:
-                continue  # avoid division by zero
-
-            elevation = np.arctan(dz / dh)
-            bearing = np.arctan2(dy, dx) + np.pi
-
-            if bearing > np.pi:
-                bearing -= 2 * np.pi
-            if bearing < -np.pi:
-                bearing += 2 * np.pi
-
-            azimuth = bearing - heading_array[i]
-            if azimuth > np.pi:
-                azimuth -= 2 * np.pi
-            if azimuth < -np.pi:
-                azimuth += 2 * np.pi
-
-            drone_side = heading_array[i] >= 0.0
-
-            if (dh <= R_TOF and
-                abs(elevation) <= TOF_VFOV and
-                abs(azimuth) <= TOF_HFOV and
-                drone_side == fruit_side_array[j]):
-
-                if fruit_disc_array[j] == False:
-                    approaching_array[i] = 5.0
-                fruit_disc_array[j] = True
-
 
 
 def update_swarm_matrices(x_array, y_array, z_array, swarm_array, active_array):
@@ -196,7 +154,7 @@ def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_arra
             active_array[i] = 0
             #print(f'collision with obstacle for drone {i}')
         
-        if (not 0.1 < x_array[i, tick] < WIDTH) or (not 0.1 < y_array[i, tick] < HEIGHT) or (not 0.0 < z_array[i, tick] < CEILING):
+        if (not 0.1 < x_array[i, tick] < WIDTH) or (not 0.1 < y_array[i, tick] < HEIGHT):
             active_array[i] = 0
             #print(f'out of bounds for drone {i}')
 
@@ -358,12 +316,11 @@ def run(sim, bt, vis=True, gen=1):
         bt_screen = init_bt_visualizer()
 
 
-    for i in range(MAX_TICKS-1):
-        #fruit_t_array[:, i+1] = fruit_t_array[:, i] + DT
+    for i in range(MAX_TICKS):
 
         update_swarm_matrices(x_array[:, i], y_array[:, i], z_array[:, i], swarm_array, active_array)
 
-        if i % 10 == 0:
+        if i % 15 == 0:
             for j in range(N_DRONES):
                 vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j] = bt_list[j].feed_forward(x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
                                                                                         vx_array[j], vz_array[j], r_array[j],
@@ -480,9 +437,7 @@ def calc_fitness(x_array, y_array, z_array):
     :param z_array: Array of z coordinates with shape (N_DRONES, N_TICKS)
     :return: fitness score
     """ 
-    print(f'x: {np.min(x_array)} - {np.max(x_array)}')
-    print(f'y: {np.min(y_array)} - {np.max(y_array)}')
-    print(f'z: {np.min(z_array)} - {np.max(z_array)}')
+
     visited_voxels = set()
     for i in range(N_DRONES):
         for j in range(MAX_TICKS):

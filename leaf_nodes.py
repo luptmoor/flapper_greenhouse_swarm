@@ -81,6 +81,8 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
         dy = swarm_array[3 * i + 1]
         dz = swarm_array[3 * i + 2]
         dist = np.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+
+        dist = max(dist, 0.001)  # Avoid division by zero
         
         # Repulsive force (inverse distance)
         fx = K_REP * dx / (dist ** 2)
@@ -271,10 +273,15 @@ def min_distance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, activ
     """
     check if the minimum distance to other drones is greater than 1.0m
     """
+    d_list = [10000]
+    for i in range(N_DRONES - 1):
+        if swarm_array[3*i] < 0.001 and swarm_array[3*i+1] < 0.001 and swarm_array[3*i+2] < 0.001:
+            continue
 
-    d = [np.sqrt(swarm_array[i]**2 + swarm_array[i+1]**2 + swarm_array[i+2]**2) for i in range(N_DRONES-1)]
+        d = np.sqrt(swarm_array[3*i]**2 + swarm_array[3*i+1]**2 + swarm_array[3*i+2]**2) 
+        d_list.append(d)
 
-    if min(d) > 1.0:
+    if min(d_list) > 1.0:
         return 'success'
     else: return 'failure'
     

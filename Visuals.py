@@ -48,10 +48,7 @@ class Visuals:
 
     def draw_fov_triangle(self, tip, fov, height, theta, color=(0, 255, 255)):
 
-        # Compute base half-width from FOV and height
-
-
-        height = height / np.cos(fov)            
+        height = height / np.cos(fov) 
         rx = int(tip[0] + height * np.cos(theta + fov/2))
         ry = int(tip[1] + height * np.sin(theta + fov/2))
 
