@@ -1,7 +1,7 @@
 from numba import njit
 from settings import *
 import numpy as np
-from geometry_fns import pyramid_cuboid_intersect, plot_poly, cuboid_points_from_params
+from geometry_fns import pyramid_intersects_cuboid, plot_poly, cuboid_points_from_params, pyramid_intersects_bounds
 import matplotlib.pyplot as plt
 # import trimesh
 # from trimesh.transformations import translation_matrix, rotation_matrix
@@ -189,7 +189,7 @@ def path_clear(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_
     for i in range(obstacle_array.shape[0]):
         #cuboid_points = cuboid_points_from_params(obstacle_array[i])
         
-        if pyramid_cuboid_intersect(fov_pyramid, obstacle_array[i]):
+        if pyramid_intersects_cuboid(fov_pyramid, obstacle_array[i]) or pyramid_intersects_bounds(fov_pyramid):
             # print(f"Obstacle {i} intersects with FOV pyramid")
             # print(f'cuboid points: {cuboid_points}')
             # # Plot

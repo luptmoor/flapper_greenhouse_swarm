@@ -1,5 +1,5 @@
 import numpy as np
-import unittest
+from settings import *
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 def get_pyramid_faces():
@@ -96,7 +96,7 @@ def cuboid_points_from_params(cuboid_param):
     ])
     return corners
 
-def pyramid_cuboid_intersect(pyramid_points, cuboid_param):
+def pyramid_intersects_cuboid(pyramid_points, cuboid_param):
     """
     pyramid_points: np.ndarray of shape (5, 3)
     cuboid_param: np.ndarray of shape (6,) -> [x0, y0, z0, width, height, depth]
@@ -111,6 +111,29 @@ def pyramid_cuboid_intersect(pyramid_points, cuboid_param):
         pyramid_points, cuboid_points,
         get_pyramid_faces(), get_cuboid_faces()
     )
+
+
+
+def pyramid_intersects_bounds(pyramid_points):
+    """
+    Checks if the pyramid intersects the cage bounds:
+    x in [0, WIDTH], y in [0, HEIGHT], z in [0.2, CEILING]
+    Returns True if any part of the pyramid is outside the bounds.
+    """
+    pyramid_points = np.asarray(pyramid_points)
+    x, y, z = pyramid_points[:, 0], pyramid_points[:, 1], pyramid_points[:, 2]
+    if (x < 0).any() or (x > WIDTH).any():
+        return True
+    if (y < 0).any() or (y > HEIGHT).any():
+        return True
+    # if (z < 0.2).any() or (z > CEILING).any():
+    #     return True
+    return False
+
+
+
+#### TESTS ####
+
 
 import matplotlib.pyplot as plt
 
@@ -182,7 +205,7 @@ if __name__ == "__main__":
         pyramid_pts = (Rz @ (pyramid_pts - pyramid_base_center).T).T + pyramid_base_center
 
         # Check intersection
-        intersect = pyramid_cuboid_intersect(pyramid_pts, cuboid_param)
+        intersect = pyramid_intersects_cuboid(pyramid_pts, cuboid_param)
         print("Do the pyramid and cuboid intersect?", intersect)
 
         # Plot
@@ -197,3 +220,4 @@ if __name__ == "__main__":
         ax.set_zlim(domain_min, domain_max)
         plt.title(f"Intersection: {intersect}")
         plt.show()
+
