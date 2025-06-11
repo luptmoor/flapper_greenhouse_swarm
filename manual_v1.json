@@ -40,9 +40,27 @@
                     ]
         },
         {
+            "type": "SelectorNode",
+            "name": "RootSequence_selector2",
+            "depth": 1,
+            "children": [
+                
+                    {
+                        "type": "ConditionNode",
+                        "name": "RootSequence_selector2_condition0",
+                        "condition_string": "Message received?"
+                    },
+                    {
+                        "type": "ActionNode",
+                        "name": "RootSequence_selector2_action0",
+                        "action_string": "Random Walk"
+                     }
+                    ]
+        },
+        {
             "type": "ActionNode",
             "name": "RootSequence_action1",
-            "action_string": "Random Walk"
+            "action_string": "Disperse"
         }
     ]
 }
