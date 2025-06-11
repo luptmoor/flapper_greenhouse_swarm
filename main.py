@@ -123,10 +123,12 @@ if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0) 
     
-    for s in range(8, 100):
+    for s in range(11, 100):
         sim = Simulation(vis=True)
         bt = BehaviourTree(seed=s)
 
         run(sim, bt)
+
+        # 
 
     #visualize_bt_live(simulate_bt_steps())

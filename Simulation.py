@@ -115,47 +115,47 @@ def check_collision(entity1, entity2, margin=0):
 
 #     fruit_disc_array[:] = (np.sum(discovery_array, axis=0) >= 1) | fruit_disc_array
 
-# @njit
-# def check_fruit_discoveries(
-#     x_array, y_array, z_array, heading_array,
-#     fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array,
-#     fruit_disc_array, approaching_array
-# ):
+@njit
+def check_fruit_discoveries(
+    x_array, y_array, z_array, heading_array,
+    fruit_x_array, fruit_y_array, fruit_z_array, fruit_side_array,
+    fruit_disc_array, approaching_array
+):
 
-#     for i in range(N_DRONES):
-#         for j in range(N_FRUIT):
-#             dx = x_array[i] - fruit_x_array[j]
-#             dy = y_array[i] - fruit_y_array[j]
-#             dz = z_array[i] - fruit_z_array[j]
+    for i in range(N_DRONES):
+        for j in range(N_FRUIT):
+            dx = x_array[i] - fruit_x_array[j]
+            dy = y_array[i] - fruit_y_array[j]
+            dz = z_array[i] - fruit_z_array[j]
 
-#             dh = np.sqrt(dx ** 2 + dy ** 2)
-#             if dh == 0.0:
-#                 continue  # avoid division by zero
+            dh = np.sqrt(dx ** 2 + dy ** 2)
+            if dh == 0.0:
+                continue  # avoid division by zero
 
-#             elevation = np.arctan(dz / dh)
-#             bearing = np.arctan2(dy, dx) + np.pi
+            elevation = np.arctan(dz / dh)
+            bearing = np.arctan2(dy, dx) + np.pi
 
-#             if bearing > np.pi:
-#                 bearing -= 2 * np.pi
-#             if bearing < -np.pi:
-#                 bearing += 2 * np.pi
+            if bearing > np.pi:
+                bearing -= 2 * np.pi
+            if bearing < -np.pi:
+                bearing += 2 * np.pi
 
-#             azimuth = bearing - heading_array[i]
-#             if azimuth > np.pi:
-#                 azimuth -= 2 * np.pi
-#             if azimuth < -np.pi:
-#                 azimuth += 2 * np.pi
+            azimuth = bearing - heading_array[i]
+            if azimuth > np.pi:
+                azimuth -= 2 * np.pi
+            if azimuth < -np.pi:
+                azimuth += 2 * np.pi
 
-#             drone_side = heading_array[i] >= 0.0
+            drone_side = heading_array[i] >= 0.0
 
-#             if (dh <= R_DISCOVERY and
-#                 abs(elevation) <= CAMERA_VFOV and
-#                 abs(azimuth) <= CAMERA_HFOV and
-#                 drone_side == fruit_side_array[j]):
+            if (dh <= R_TOF and
+                abs(elevation) <= TOF_VFOV and
+                abs(azimuth) <= TOF_HFOV and
+                drone_side == fruit_side_array[j]):
 
-#                 if fruit_disc_array[j] == False:
-#                     approaching_array[i] = 5.0
-#                 fruit_disc_array[j] = True
+                if fruit_disc_array[j] == False:
+                    approaching_array[i] = 5.0
+                fruit_disc_array[j] = True
 
 
 
@@ -193,9 +193,11 @@ def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_arra
        
         if is_inside_obstacle(x_array[i, tick], y_array[i, tick], z_array[i, tick], obstacle_array):
             active_array[i] = 0
+            #print(f'collision with obstacle for drone {i}')
         
-        if (not 0.1 < x_array[i, tick] < WIDTH) or (not 0.1 < y_array[i, tick] < HEIGHT) or (not 0.2 < z_array[i, tick] < CEILING):
+        if (not 0.1 < x_array[i, tick] < WIDTH) or (not 0.1 < y_array[i, tick] < HEIGHT) or (not 0.1 < z_array[i, tick] < CEILING):
             active_array[i] = 0
+            #print(f'out of bounds for drone {i}')
 
         if active_array[i] == 0:
             continue
@@ -204,7 +206,7 @@ def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_arra
         if tick < MAX_TICKS - 1:
             x_array[i, tick+1] = min(max(x_array[i, tick] + vx_array[i] * DT * np.cos(heading_array[i]), 0.1), WIDTH)
             y_array[i, tick+1] = min(max(y_array[i, tick] + vx_array[i] * DT * np.sin(heading_array[i]), 0.1), HEIGHT)
-            z_array[i, tick+1] = min(max(z_array[i, tick] + vz_array[i] * DT, 0.2), CEILING)
+            z_array[i, tick+1] = min(max(z_array[i, tick] + vz_array[i] * DT, 0.1), CEILING)
 
 
 @njit
@@ -228,18 +230,19 @@ def check_drone_collisions(x_array, y_array, z_array, active_array):
  
     active_array[:] = (np.sum(collision_free, axis=1) >= (N_DRONES-1)) * active_array
 
+
 @njit
-def envelope_ellipse(z):
+def _envelope_ellipse(z):
     return V_UP_MAX / SQUEEZE_RANGE * np.sqrt(SQUEEZE_RANGE**2 - (z - SQUEEZE_RANGE)**2)
 
 @njit
 def squeeze_vertical_speed(z_array, vzcmd_array):
     for i in range(N_DRONES):
         if z_array[i] + SQUEEZE_RANGE >= CEILING:
-            vzcmd_array[i] = min(vzcmd_array[i], envelope_ellipse(CEILING - z_array[i]))
+            vzcmd_array[i] = min(vzcmd_array[i], _envelope_ellipse(CEILING - z_array[i]))
 
         elif z_array[i] <= SQUEEZE_RANGE + 0.2:
-            vzcmd_array[i] = max(vzcmd_array[i], -envelope_ellipse(z_array[i] - 0.2))
+            vzcmd_array[i] = max(vzcmd_array[i], -_envelope_ellipse(z_array[i] - 0.2))
     
     return vzcmd_array
 
@@ -264,6 +267,7 @@ class Simulation:
         if vis:
             self.visuals = Visuals(WIDTH, HEIGHT, self.n_rows)
 
+
     def load_environment(self, obstacle_array):
         """
         loads simulated environment by placing trees, beetles and drones.
@@ -272,6 +276,7 @@ class Simulation:
 
         # Initial random placement of trees on map
         for i in range(self.n_rows):
+            # xA, yA, zA, width, height, depth
             obstacle_array[i, :] = np.array([LAUNCHPAD_FRAC*WIDTH + R_TREE_AVG, HEIGHT / (self.n_rows + 1) * (i+1) - 0.5*R_TREE_AVG, 0.0, (1-LAUNCHPAD_FRAC)*WIDTH - 2*R_TREE_AVG, R_TREE_AVG, TREE_HEIGHT])
             
         #     for j in range(int(round(N_TREES_PER_ROW * noise(NOISE), 0))):
@@ -358,19 +363,17 @@ def run(sim, bt, vis=True, gen=1):
 
         update_swarm_matrices(x_array[:, i], y_array[:, i], z_array[:, i], swarm_array, active_array)
 
-        for j in range(N_DRONES):
-            vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j] = bt_list[j].feed_forward(x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
-                                                                                     vx_array[j], vz_array[j], r_array[j],
-                                                                                     swarm_array[j], 
-                                                                                     obstacle_array, active_array, msg_array)   
-            
-        if i % 50 == 0:
+        if i % 10 == 0:
+            for j in range(N_DRONES):
+                vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j] = bt_list[j].feed_forward(x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
+                                                                                        vx_array[j], vz_array[j], r_array[j],
+                                                                                        swarm_array[j], 
+                                                                                        obstacle_array, active_array, msg_array)   
             if SHOW_BT: 
-                print('update Btvis')
                 update_bt_visualizer(bt_screen, bt_list[0])
 
-        for j in range(N_DRONES):
-            bt_list[j].root.reset()
+            for j in range(N_DRONES):
+                bt_list[j].root.reset()
 
 
 
@@ -390,8 +393,8 @@ def run(sim, bt, vis=True, gen=1):
             
         
 
-        if np.sum(active_array) < 4:
-            break
+        # if np.sum(active_array) < 4:
+        #     break
 
         if skip:
             break

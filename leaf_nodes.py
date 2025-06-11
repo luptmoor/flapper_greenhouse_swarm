@@ -1,6 +1,58 @@
 from numba import njit
 from settings import *
 import numpy as np
+from geometry_fns import pyramid_cuboid_intersect, plot_poly, cuboid_points_from_params
+import matplotlib.pyplot as plt
+# import trimesh
+# from trimesh.transformations import translation_matrix, rotation_matrix
+
+
+# _half_extent = R_TOF * np.tan(TOF_HFOV / 2)
+
+# # Apex at origin
+# _apex = np.array([0, 0, 0])
+
+# # Square base lies at distance R_TOF along +X
+# _base1 = np.array([R_TOF, -_half_extent, -_half_extent])
+# _base2 = np.array([R_TOF,  _half_extent, -_half_extent])
+# _base3 = np.array([R_TOF, -_half_extent,  _half_extent])
+# _base4 = np.array([R_TOF,  _half_extent,  _half_extent])
+
+
+# # Combine vertices
+# _vertices = np.array([
+#     _base1,
+#     _base2,
+#     _base3,
+#     _base4,
+#     _apex
+#    # np.array([0, 0, 0])  # Center of the base for side triangles
+# ])
+
+# # Faces: base (2 triangles) + 4 side triangles
+# _faces = [
+#     [0, 1, 3],  # base triangle 1
+#     [0, 3, 2],  # base triangle 2
+#     [4, 0, 1],  # side 1
+#     [4, 1, 3],  # side 2
+#     [4, 3, 2],  # side 3
+#     [4, 2, 0],  # side 4
+# ]
+
+# _FOV_pyramid = trimesh.Trimesh(vertices=_vertices, faces=_faces, process=False)
+# _FOV_pyramid.fix_normals()  # Ensure normals are correct
+
+
+
+_half_extent = R_TOF * np.tan(TOF_HFOV / 2)
+_apex = np.array([0.0, 0.0, 0.0])
+_base1 = np.array([R_TOF, -_half_extent, -_half_extent])
+_base2 = np.array([R_TOF,  _half_extent, -_half_extent])
+_base3 = np.array([R_TOF, -_half_extent,  _half_extent])
+_base4 = np.array([R_TOF,  _half_extent,  _half_extent])
+
+
+
 
 ###################### ACTION FUNCTIONS ########################
 
@@ -110,12 +162,55 @@ def fruit_visible(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fr
     return 'failure'
 
 
+
 def path_clear(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
-    check if the path is clear
+    njit-compatible: check if any cuboid corner is inside the FOV pyramid
     """
 
-    return 'failure'
+    # Rotation matrix for heading (around Z)
+    c = np.cos(heading)
+    s = np.sin(heading)
+    R = np.array([[c, -s, 0],
+                  [s,  c, 0],
+                  [0,  0, 1]])
+    t = np.array([x, y, z])
+
+    # Transform pyramid vertices to world frame
+    apex_w = R @ _apex + t
+    base1_w = R @ _base1 + t
+    base2_w = R @ _base2 + t
+    base3_w = R @ _base3 + t
+    base4_w = R @ _base4 + t
+
+    fov_pyramid = np.array([apex_w, base1_w, base2_w, base3_w, base4_w])
+    for i in range(obstacle_array.shape[0]):
+        #cuboid_points = cuboid_points_from_params(obstacle_array[i])
+        
+        if pyramid_cuboid_intersect(fov_pyramid, obstacle_array[i]):
+            # print(f"Obstacle {i} intersects with FOV pyramid")
+            # print(f'cuboid points: {cuboid_points}')
+            # # Plot
+            # fig = plt.figure()
+            # ax = fig.add_subplot(111, projection='3d')
+            # plot_poly(ax, cuboid_points, color='blue', alpha=0.4)
+            # plot_poly(ax, fov_pyramid, color='green', alpha=0.6)
+            # ax.scatter(*cuboid_points.T, color='blue')
+            # ax.scatter(*fov_pyramid.T, color='green')
+            # ax.set_xlim(0, WIDTH)
+            # ax.set_ylim(0, HEIGHT)
+            # ax.set_zlim(0, CEILING)
+            # # axis labels
+            # ax.set_xlabel('X (m)')
+            # ax.set_ylabel('Y (m)')
+            # ax.set_zlabel('Z (m)')
+            # plt.show()
+            # dummy = input("Press Enter to continue...")
+
+            return 'failure'
+        
+    #print("Path is clear")
+    return 'success'
 
 
 def min_distance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):

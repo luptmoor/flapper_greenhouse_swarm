@@ -20,16 +20,17 @@ FRUIT_PROB           =    0.5
 FRUIT_MIN_HEIGHT     =    0.2                                      # m
 R_FRUIT              =    0.05                                     # m
 N_FRUIT              =   30
-R_DISCOVERY          =    1.5
 
 
 # Static Drone Parameters
-N_DRONES             =    5                                        # -, number of drones
+N_DRONES             =    2                                        # -, number of drones
 R_DRONE              =    0.14                                        # cm drone radius
 V_DRONE_MAX          =  500                                        # px / s,  5 m / s
 A_DRONE_MAX          =  330                                        # px / s^2, 3.3 m / s^2
-CAMERA_VFOV          =  40 / 57.3                                   # rad
-CAMERA_HFOV          =  40 / 57.3                                   # rad
+TOF_VFOV             =  23 / 57.3                                   # rad
+TOF_HFOV             =  23 / 57.3                                   # rad
+R_TOF                =   1.3
+
 
 # First order lag drone model
 TAU_VX               =   0.3
@@ -42,7 +43,7 @@ DT                   =    0.05                                       # s, timest
 T_MAX                =  180                                         # s, 1min, maximum simulation duration
 MAX_TICKS            = int(T_MAX // DT)
 VISUALISE            =  True                                       # Boolean deciding if simulation shall be visualised
-SHOW_BT              =  False                                       # Boolean deciding if behaviour trees shall be visualised        
+SHOW_BT              =  True                                       # Boolean deciding if behaviour trees shall be visualised        
 REALTIME             =  False                                     # Boolean deciding if visuals shall be real-time
 VIEW                 =    0                                         # Variable for different views in visualisation
 SENSITIVITY_ANALYSIS =  False                                        # Boolean deciding if noise should be added to certain parameters
