@@ -60,7 +60,7 @@ class Visuals:
         pygame.draw.polygon(self.screen, color, points)
 
 
-    def update(self, trees,  x_array, y_array, z_array, heading_array, active_array, t, tick):
+    def update(self, trees,  x_array, y_array, z_array, heading_array, active_array, string_array, t, tick):
         # Make sure visualisation is ended when window is closed
         global VIEW
 
@@ -144,6 +144,11 @@ class Visuals:
                 # Height indication
                 text_surface, text_rect = self.font.render(str(round(z_array[i], 2)), (255, 255, 255))
                 text_rect.center = _px(x_array[i], y_array[i])
+                self.screen.blit(text_surface, text_rect)
+
+                # state indication
+                text_surface, text_rect = self.font.render(string_array[i], (0, 0, 0))
+                text_rect.center = _px(x_array[i]+0.25, y_array[i])
                 self.screen.blit(text_surface, text_rect)
                 
             # if VIEW == 1:  # Drone vision and influenced entitites

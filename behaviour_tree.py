@@ -107,10 +107,10 @@ class BehaviourTree:
     
 
     def feed_forward(self, tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
-        feedback, success = self.root.execute(tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
+        feedback, success, string = self.root.execute(tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
         #self.root.reset()  # Reset the state of the tree after execution
 
-        return feedback["vx"], feedback["vz"], feedback["r"], feedback["msg"]
+        return feedback["vx"], feedback["vz"], feedback["r"], feedback["msg"], string
 
 
 
@@ -226,7 +226,7 @@ class ActionNode(BTNode):
     
 
     def execute(self, tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
-        vx, vz, r, msg_array, self.state = self.action(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
+        vx, vz, r, msg_array, self.state, string = self.action(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
         feedback = {
             "vx": vx,
             "vz": vz,
@@ -235,7 +235,7 @@ class ActionNode(BTNode):
         }   
         
 
-        return feedback, self.state
+        return feedback, self.state, string
     
 
     def reset(self):
@@ -253,8 +253,6 @@ class ConditionNode(BTNode):
         self.frequency = frequencies[self.condition_string]
         self.memorised_state = 'idle'
 
-        print(f'Condition {self.condition_string} with frequency {self.frequency} created.')
-
 
     def to_dict(self):
         return {"type": self.__class__.__name__, "name": self.name, "condition_string": self.condition_string}
@@ -266,7 +264,7 @@ class ConditionNode(BTNode):
             self.memorised_state = self.state
         else:
             self.state = self.memorised_state
-        return {}, self.state
+        return {}, self.state, 'cond'
     
 
     def reset(self):
@@ -384,20 +382,20 @@ class SequenceNode(CompositeNode):
     def execute(self, tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
         #print(f'Executing {self.name}.')
         for child in self.children:
-            feedback, success = child.execute(tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
+            feedback, success, string = child.execute(tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
             self.feedback.update(feedback)
             if success == 'failure':
                 self.state = 'failure'
                 #print(f"Feedback of {self.name}: {self.feedback}")
-                return self.feedback, 'failure'
+                return self.feedback, 'failure', string
             if success == 'running':
                 self.state = 'running'
                 #print(f"Feedback of {self.name}: {self.feedback}")
-                return self.feedback, 'running'
+                return self.feedback, 'running', string
             
         #print(f"Feedback of {self.name}: {self.feedback}")
         self.state = 'success'
-        return self.feedback, 'success'   
+        return self.feedback, 'success', string
 
 
 
@@ -411,16 +409,16 @@ class SelectorNode(CompositeNode):
     def execute(self, tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
         #print(f"Executing {self.name}.")
         for child in self.children:
-            feedback, success = child.execute(tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
+            feedback, success, string = child.execute(tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
             self.feedback.update(feedback)
             if success == 'success':
                 self.state = 'success'
                 #print(f"Feedback of {self.name}: {self.feedback}")
-                return self.feedback, 'success'
+                return self.feedback, 'success', string
             if success == 'running':
                 self.state = 'running'
                 #print(f"Feedback of {self.name}: {self.feedback}")
-                return self.feedback, 'running'
+                return self.feedback, 'running', string
             
         #print(f"Feedback of {self.name}: {self.feedback}")
         self.state = 'failure'

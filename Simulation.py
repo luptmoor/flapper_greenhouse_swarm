@@ -299,6 +299,7 @@ def run(sim, bt, vis=True, gen=1):
     vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     swarm_array = np.zeros((N_DRONES, (N_DRONES-1)*3), dtype=np.float32)
+    string_array = np.zeros(N_DRONES, dtype=np.object_)
 
     # fruit_x_array = np.zeros(N_FRUIT, dtype=np.float32)
     # fruit_y_array = np.zeros(N_FRUIT, dtype=np.float32)
@@ -322,7 +323,7 @@ def run(sim, bt, vis=True, gen=1):
 
         if i % 10 == 0:
             for j in range(N_DRONES):
-                vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j] = bt_list[j].feed_forward(i, x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
+                vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j], string_array[j] = bt_list[j].feed_forward(i, x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
                                                                                         vx_array[j], vz_array[j], r_array[j],
                                                                                         swarm_array[j], 
                                                                                         obstacle_array, active_array, msg_array)   
@@ -346,7 +347,7 @@ def run(sim, bt, vis=True, gen=1):
 
         # Update screen if requested
         if vis:
-            skip = sim.visuals.update(sim.trees, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, t, i)
+            skip = sim.visuals.update(sim.trees, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, string_array, t, i)
             
         
 

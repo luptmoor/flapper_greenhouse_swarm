@@ -64,7 +64,7 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
     return: vx_cmd, vz_cmd, r_cmd, msg, status
     """
 
-    if np.sum(active_array) < 2: return 0, 0, 0, 0, 'success'
+    if np.sum(active_array) < 2: return 0, 0, 0, 0, 'success', 'avd'
 
     # Parameters for APF
     K_REP = 1.0  # Repulsive gain
@@ -109,7 +109,7 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
     if np.abs(heading_error) > 10/57.3:
         vx_cmd = 0.0
 
-    return vx_cmd, vz_cmd, r_cmd, 0, 'running'
+    return vx_cmd, vz_cmd, r_cmd, 0, 'running', 'avd'
 
 
      
@@ -133,7 +133,7 @@ def random_walk(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active
     """
     random turn and climb commands with constant forward speed
     """
-    return  0.3, np.random.uniform(-0.3, 0.3), np.random.uniform(-15/57.3, 15/57.3), 0, 'running'
+    return  0.3, np.random.uniform(-0.3, 0.3), np.random.uniform(-15/57.3, 15/57.3), 0, 'running', 'exp'
 
 
 def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
@@ -142,7 +142,9 @@ def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_ar
     move away from the other drones
     """
 
-    if np.sum(active_array) < 2: return 0, 0, 0, 0, 'success'
+    print("Dispersing from other drones...")
+
+    if np.sum(active_array) < 2: return 0, 0, 0, 0, 'success', 'disp'
 
     x_avg = np.sum([swarm_array[3*i] + x for i in range(N_DRONES - 1) if np.abs(swarm_array[3*i] + x) > 0.01]) / np.sum(active_array)
     y_avg = np.sum([swarm_array[3*i+1] + y for i in range(N_DRONES - 1) if np.abs(swarm_array[3*i+1] + y) > 0.01]) / np.sum(active_array)
@@ -164,7 +166,7 @@ def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_ar
 
     r_cmd = heading_error * 0.5
 
-    return  vx_cmd, 0, r_cmd, 0, 'running'
+    return  vx_cmd, 0, r_cmd, 0, 'running', 'disp'
 
 
 def turn_right(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
@@ -172,7 +174,7 @@ def turn_right(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_
     brake and rotate right until the path is clear
     """
 
-    return  0, 0, 10/57.3, 0, 'running'
+    return  0, 0, YAWRATE_MAX, 0, 'running', 'rght'
 
 
 def turn_left(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
@@ -180,7 +182,7 @@ def turn_left(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_a
     brake and rotate left until the path is clear
     """
 
-    return  0, 0, -10/57.3, 0, 'running'
+    return  0, 0, -YAWRATE_MAX, 0, 'running', 'left'
 
 
 def send_message(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
@@ -188,7 +190,7 @@ def send_message(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, activ
     send a message to the other drones
     """
 
-    return  0, 0, 0, 1, 'success'
+    return  0, 0, 0, 1, 'success', 'msg'
 
 
 
