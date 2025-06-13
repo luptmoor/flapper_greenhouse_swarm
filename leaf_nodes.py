@@ -151,7 +151,7 @@ def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_ar
     move away from the other drones
     """
 
-
+    print('disperse')
     if np.sum(active_array) < 2: return {}, 'success', 'disp'
 
     x_avg = np.sum([swarm_array[3*i] + x for i in range(N_DRONES - 1) if np.abs(swarm_array[3*i] + x) > 0.01]) / np.sum(active_array)
@@ -231,6 +231,27 @@ def fruit_visible(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fr
     return 'failure'
 
 
+def swarm_spread(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+
+    if np.sum(active_array) < 2: return 'success'
+
+    d_list = [1000]
+    for i in range(N_DRONES - 1):
+        if abs(swarm_array[3*i]) < 0.001 and abs(swarm_array[3*i+1]) < 0.001 and abs(swarm_array[3*i+2]) < 0.001:
+            continue
+
+        d = np.sqrt(swarm_array[3*i]**2 + swarm_array[3*i+1]**2 + swarm_array[3*i+2]**2) 
+        d_list.append(d)
+    
+    d_list.sort()
+    index = min(max(np.sum(active_array) // 3, 0), len(d_list) - 1)
+
+    if d_list[index] < 2.0:
+        return 'failure'
+    else:
+        return 'success'
+
+
 
 def path_clear(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
@@ -288,7 +309,7 @@ def min_distance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, activ
     """
     d_list = [10000]
     for i in range(N_DRONES - 1):
-        if swarm_array[3*i] < 0.001 and swarm_array[3*i+1] < 0.001 and swarm_array[3*i+2] < 0.001:
+        if abs(swarm_array[3*i] < 0.001) and abs(swarm_array[3*i+1]) < 0.001 and abs(swarm_array[3*i+2]) < 0.001:
             continue
 
         d = np.sqrt(swarm_array[3*i]**2 + swarm_array[3*i+1]**2 + swarm_array[3*i+2]**2) 
@@ -361,12 +382,14 @@ conditions = {
 
     "Minimum peer distance > X ?": min_distance,
     "Message received?": message_received,
-    "Random > 0.5 ?": random_condition
+    "Random > 0.5 ?": random_condition,
+    "Swarm spread out?": swarm_spread
 }
 
 frequencies = {
     "Path clear?": 10,
     "Minimum peer distance > X ?": 10,
     "Message received?": 20,
-    "Random > 0.5 ?": 100
+    "Random > 0.5 ?": 100,
+    "Swarm spread out?": 10
 }

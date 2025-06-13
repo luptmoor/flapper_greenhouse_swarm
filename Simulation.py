@@ -349,7 +349,6 @@ def run(sim, bt, vis=True, gen=1):
         if vis:
             skip = sim.visuals.update(sim.trees, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, string_array, t, i)
             
-        
 
         if np.sum(active_array) < 1:
             break
@@ -364,7 +363,7 @@ def run(sim, bt, vis=True, gen=1):
         folder = f"gen_{gen}"
         os.makedirs(folder, exist_ok=True)  # create folder if it doesn't exist
         filename = os.path.join(folder, f"{score}_d_{np.sum(active_array)}_{np.random.uniform(0, 1):.2f}.png")
-        #plot_3d_trajectory(x_array, y_array, z_array, filename=filename.replace('.png', '_3d.png'))
+        plot_3d_trajectory(x_array, y_array, z_array, filename=filename.replace('.png', '_3d.png'))
 
 
     if SHOW_BT:
@@ -390,7 +389,7 @@ def plot_message_array(msg_array, filename="message_array_plot.png"):
     axes[-1].set_xlabel("Timestep")
     plt.tight_layout()
     plt.savefig(filename, dpi=150)
-    #plt.show()
+    plt.show()
     plt.close()
     print(f"[✔] Saved plot to {filename}")
 
@@ -425,7 +424,8 @@ def plot_3d_trajectory(x_array, y_array, z_array, filename="3d_trajectory.png"):
   
     plt.title("3D Trajectory of Drones")
     plt.savefig(filename, dpi=150)
-    #plt.show()
+    plt.show()
+
     plt.close()
     print(f"[✔] Saved 3D trajectory plot to {filename}")
 
