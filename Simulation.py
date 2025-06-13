@@ -320,9 +320,9 @@ def run(sim, bt, vis=True, gen=1):
 
         update_swarm_matrices(x_array[:, i], y_array[:, i], z_array[:, i], swarm_array, active_array)
 
-        if i % 15 == 0:
+        if i % 10 == 0:
             for j in range(N_DRONES):
-                vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j] = bt_list[j].feed_forward(x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
+                vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j] = bt_list[j].feed_forward(i, x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
                                                                                         vx_array[j], vz_array[j], r_array[j],
                                                                                         swarm_array[j], 
                                                                                         obstacle_array, active_array, msg_array)   

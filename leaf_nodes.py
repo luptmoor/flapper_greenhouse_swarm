@@ -351,3 +351,10 @@ conditions = {
     "Message received?": message_received,
     "Random > 0.5 ?": random_condition
 }
+
+frequencies = {
+    "Path clear?": 10,
+    "Minimum peer distance > X ?": 10,
+    "Message received?": 20,
+    "Random > 0.5 ?": 100
+}

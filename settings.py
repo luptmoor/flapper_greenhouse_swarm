@@ -23,7 +23,7 @@ N_FRUIT              =   30
 
 
 # Static Drone Parameters
-N_DRONES             =    5                                        # -, number of drones
+N_DRONES             =    2                                        # -, number of drones
 R_DRONE              =    0.14                                        # cm drone radius
 TOF_VFOV             =  23 / 57.3                                   # rad
 TOF_HFOV             =  23 / 57.3                                   # rad
