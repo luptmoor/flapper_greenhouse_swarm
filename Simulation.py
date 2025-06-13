@@ -294,7 +294,7 @@ def run(sim, bt, vis=True, gen=1):
     vx_array = np.zeros(N_DRONES, dtype=np.float32)
     vz_array = np.zeros(N_DRONES, dtype=np.float32)
     r_array = np.zeros(N_DRONES, dtype=np.float32)
-    msg_array = np.random.uniform(1.0, 2.0, (N_DRONES, MAX_TICKS)).astype(np.float32)
+    msg_array = np.zeros(N_DRONES, dtype=np.int8)
     vxcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     vzcmd_array = np.zeros(N_DRONES, dtype=np.float32)
     rcmd_array = np.zeros(N_DRONES, dtype=np.float32)
@@ -326,10 +326,10 @@ def run(sim, bt, vis=True, gen=1):
                 vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j], string_array[j] = bt_list[j].feed_forward(i, x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
                                                                                         vx_array[j], vz_array[j], r_array[j],
                                                                                         swarm_array[j], 
-                                                                                        obstacle_array, active_array, msg_array)   
+                                                                                        obstacle_array, active_array, msg_array) 
             if SHOW_BT: 
                 update_bt_visualizer(bt_screen, bt_list[0])
-
+                
             for j in range(N_DRONES):
                 bt_list[j].root.reset()
 

@@ -108,7 +108,6 @@ class BehaviourTree:
 
     def feed_forward(self, tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
         feedback, success, string = self.root.execute(tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
-        #self.root.reset()  # Reset the state of the tree after execution
 
         return feedback["vx"], feedback["vz"], feedback["r"], feedback["msg"], string
 
@@ -219,6 +218,12 @@ class ActionNode(BTNode):
         
         self.action_string = random.choice(action_strings)
         self.action = actions[self.action_string]
+        self.feedback = {
+            # "vx": 0.0,
+            # "vz": 0.0,
+            # "r": 0.0,
+            # "msg": 0
+        }
 
 
     def to_dict(self):
@@ -226,16 +231,10 @@ class ActionNode(BTNode):
     
 
     def execute(self, tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
-        vx, vz, r, msg_array, self.state, string = self.action(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
-        feedback = {
-            "vx": vx,
-            "vz": vz,
-            "r": r,
-            "msg": msg_array
-        }   
-        
+        action_feedback, self.state, string = self.action(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
+        self.feedback.update(action_feedback)
 
-        return feedback, self.state, string
+        return self.feedback, self.state, string
     
 
     def reset(self):
@@ -282,7 +281,7 @@ class CompositeNode(BTNode):
             "vx": 0.0,
             "vz": 0.0,
             "r": 0.0,
-            "msg": 0.0
+            "msg": 0
         }
 
     def add_child(self, child):
@@ -299,12 +298,11 @@ class CompositeNode(BTNode):
     def reset(self):
         """Reset the state of the composite node."""
         self.state = 'idle'
-        self.feedback = {
+        self.feedback.update({
             "vx": 0.0,
             "vz": 0.0,
             "r": 0.0,
-            "msg": 0.0
-        }
+        })
         for child in self.children:
             child.reset()    
 

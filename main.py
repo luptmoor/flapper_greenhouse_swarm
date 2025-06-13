@@ -123,7 +123,7 @@ if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0) 
     
-    for s in range(8, 100):
+    for s in range(2, 100):
         sim = Simulation(vis=True, seed=s)
         bt = BehaviourTree()
         bt.load_from_file('manual_v3.json')
@@ -131,6 +131,8 @@ if __name__ == '__main__':
         #bt.save_to_json(f'BT_{s}.json')
 
         run(sim, bt)
+        print()
+        print()
 
         
 
