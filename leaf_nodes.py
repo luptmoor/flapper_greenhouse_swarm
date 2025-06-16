@@ -3,45 +3,6 @@ from settings import *
 import numpy as np
 from geometry_fns import pyramid_intersects_cuboid, plot_poly, cuboid_points_from_params, pyramid_intersects_bounds
 import matplotlib.pyplot as plt
-# import trimesh
-# from trimesh.transformations import translation_matrix, rotation_matrix
-
-
-# _half_extent = R_TOF * np.tan(TOF_HFOV / 2)
-
-# # Apex at origin
-# _apex = np.array([0, 0, 0])
-
-# # Square base lies at distance R_TOF along +X
-# _base1 = np.array([R_TOF, -_half_extent, -_half_extent])
-# _base2 = np.array([R_TOF,  _half_extent, -_half_extent])
-# _base3 = np.array([R_TOF, -_half_extent,  _half_extent])
-# _base4 = np.array([R_TOF,  _half_extent,  _half_extent])
-
-
-# # Combine vertices
-# _vertices = np.array([
-#     _base1,
-#     _base2,
-#     _base3,
-#     _base4,
-#     _apex
-#    # np.array([0, 0, 0])  # Center of the base for side triangles
-# ])
-
-# # Faces: base (2 triangles) + 4 side triangles
-# _faces = [
-#     [0, 1, 3],  # base triangle 1
-#     [0, 3, 2],  # base triangle 2
-#     [4, 0, 1],  # side 1
-#     [4, 1, 3],  # side 2
-#     [4, 3, 2],  # side 3
-#     [4, 2, 0],  # side 4
-# ]
-
-# _FOV_pyramid = trimesh.Trimesh(vertices=_vertices, faces=_faces, process=False)
-# _FOV_pyramid.fix_normals()  # Ensure normals are correct
-
 
 
 _half_extent = R_TOF * np.tan(TOF_HFOV / 2)
@@ -61,6 +22,9 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
     """
     Function to calculate the avoidance vector for an array of N drones using artificial potential fields.
     Assume that minimum avoidance distance is not met when this fn is called
+    PARAMETERS:
+     - K_REP: Repulsive gain
+     - R_REP: Repulsive distance threshold
     return: vx_cmd, vz_cmd, r_cmd, msg, status
     """
 
@@ -68,6 +32,7 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
 
     # Parameters for APF
     K_REP = 1.0  # Repulsive gain
+    R_REP = 1.0  # Repulsive distance threshold
 
     vx_cmd = 0.0
     vy_cmd = 0.0
@@ -83,7 +48,7 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
         dz = swarm_array[3 * i + 2]
         dist = np.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
 
-        if dist > 1.0:
+        if dist > R_REP:
             continue
 
         dist = max(dist, 0.001)  # Avoid division by zero
@@ -142,7 +107,11 @@ def random_walk(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active
     random turn and climb commands with constant forward speed
     """
 
-    return {"vx": 0.3, "vz": np.random.uniform(-0.3, 0.3), "r": np.random.uniform(-15/57.3, 15/57.3)}, 'running', 'exp'
+    V_X = 0.3
+    V_Z_SPREAD = 0.3
+    R_SPREAD = 15 / 57.3  # 15 degrees in radians
+
+    return {"vx": V_X, "vz": np.random.uniform(-V_Z_SPREAD, V_Z_SPREAD), "r": np.random.uniform(-R_SPREAD, R_SPREAD)}, 'running', 'exp'
 
 
 def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
@@ -151,7 +120,10 @@ def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_ar
     move away from the other drones
     """
 
-    print('disperse')
+    K_HEADING = 0.5  # Gain for heading control
+    V_X = 0.3  # Forward speed
+    HEADING_PRECISION = 10 / 57.3  # 10 degrees in radians
+
     if np.sum(active_array) < 2: return {}, 'success', 'disp'
 
     x_avg = np.sum([swarm_array[3*i] + x for i in range(N_DRONES - 1) if np.abs(swarm_array[3*i] + x) > 0.01]) / np.sum(active_array)
@@ -169,12 +141,12 @@ def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_ar
 
     heading_error = target_heading - heading
 
-    if heading_error < 10/57.3: vx_cmd = 0.3
+    if np.abs(heading_error) < HEADING_PRECISION: vx_cmd = V_X
     else: vx_cmd = 0
 
-    r_cmd = heading_error * 0.5
+    r_cmd = heading_error * K_HEADING
 
-    return {"vx": vx_cmd, "vz": 0.0, "r": r_cmd}, 'running', 'disp'
+    return {"vx": vx_cmd, "r": r_cmd}, 'running', 'disp'
     
 
 
@@ -183,7 +155,9 @@ def turn_right(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_
     brake and rotate right until the path is clear
     """
 
-    return {"vx": 0.0, "vz": 0.0, "r": YAWRATE_MAX}, 'running', 'right'
+    TURN_RATE = 15 / 57.3  # 15 degrees in radians
+
+    return {"vx": 0.0, "vz": 0.0, "r": TURN_RATE}, 'running', 'right'
 
 
 
@@ -191,17 +165,20 @@ def turn_left(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_a
     """
     brake and rotate left until the path is clear
     """
+    TURN_RATE = 15 / 57.3  # 15 degrees in radians
 
-    return {"vx": 0.0, "vz": 0.0, "r": -YAWRATE_MAX}, 'running', 'left'
+
+    return {"vx": 0.0, "vz": 0.0, "r": -TURN_RATE}, 'running', 'left'
 
 
 def ascend(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     ascend until the ceiling is reached
     """
+    ASCEND_RATE = 0.3 # m/s
 
     if z < CEILING - 0.1:
-        return {"vx": 0.0, "vz": V_UP_MAX, "r": 0.0}, 'running', 'ascend'
+        return {"vx": 0.0, "vz": ASCEND_RATE, "r": 0.0}, 'running', 'ascend'
     else:
         return {}, 'success', 'asc'
     
@@ -211,8 +188,10 @@ def descend(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_arr
     descend until the ground is reached
     """
 
+    DESCEND_RATE = 0.3  # m/s
+
     if z > 0.1:
-        return {"vx": 0.0, "vz": -V_UP_MAX, "r": 0.0}, 'running', 'descend'
+        return {"vx": 0.0, "vz": -DESCEND_RATE, "r": 0.0}, 'running', 'descend'
     else:
         return {}, 'success', 'desc'
     
@@ -222,10 +201,10 @@ def brake(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array
     brake until the speed is 0
     """
 
-    if np.sqrt(vx**2 + vz**2) > 0.1:
-        return {"vx": -vx * 0.5, "vz": -vz * 0.5, "r": 0.0}, 'running', 'brake'
+    if np.sqrt(vx**2 + vz**2) > 0.05:
+        return {"vx": 0.0, "vz": 0.0, "r": 0.0}, 'running', 'brake'
     else:
-        return {}, 'success', 'brake'
+        return {"vx": 0.0, "vz": 0.0, "r": 0.0}, 'success', 'brake'
 
 
 
@@ -265,6 +244,11 @@ def fruit_visible(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fr
 
 
 def swarm_spread(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+    """
+    check if the swarm is spread out
+    """
+
+    DISTANCE_THRESHOLD = 2.0  # meters
 
     if np.sum(active_array) < 2: return 'success'
 
@@ -279,7 +263,7 @@ def swarm_spread(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, activ
     d_list.sort()
     index = min(max(np.sum(active_array) // 3, 0), len(d_list) - 1)
 
-    if d_list[index] < 2.0:
+    if d_list[index] < DISTANCE_THRESHOLD:
         return 'failure'
     else:
         return 'success'
@@ -340,6 +324,10 @@ def min_distance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, activ
     """
     check if the minimum distance to other drones is greater than 1.0m
     """
+
+    DISTANCE_THRESHOLD = 1.0  # meters
+
+
     d_list = [10000]
     for i in range(N_DRONES - 1):
         if abs(swarm_array[3*i] < 0.001) and abs(swarm_array[3*i+1]) < 0.001 and abs(swarm_array[3*i+2]) < 0.001:
@@ -348,7 +336,7 @@ def min_distance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, activ
         d = np.sqrt(swarm_array[3*i]**2 + swarm_array[3*i+1]**2 + swarm_array[3*i+2]**2) 
         d_list.append(d)
 
-    if min(d_list) > 1.0:
+    if min(d_list) > DISTANCE_THRESHOLD:
         return 'success'
     else: return 'failure'
     
@@ -365,9 +353,12 @@ def random_condition(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, a
     """
     check if a random number is greater than 0.5
     """
+
+    THRESHOLD = 0.5  # threshold for random condition
+
     randnr = np.random.uniform(0, 1)
     #print(f"Random condition: {randnr}")
-    if randnr > 0.5: return 'success'
+    if randnr > THRESHOLD: return 'success'
     else: return 'failure'
 
 
@@ -427,4 +418,40 @@ frequencies = {
     "Message received?": 20,
     "Random > 0.5 ?": 100,
     "Swarm spread out?": 10
+}
+
+
+param_dicts = {
+    "Avoid other drones": {"AVD_K_REP": 1.0, "AVD_R_REP": 1.0},
+    "Turn right": {"RGHT_TURN_RATE": 15 / 57.3},  # 15 degrees in radians
+    "Turn left": {"LEFT_TURN_RATE": 15 / 57.3},  # 15 degrees in radians
+    "Random Walk": {"EXP_VX": 0.3, "EXP_VZ_SPREAD": 0.3, "EXP_R_SPREAD": 15 / 57.3},
+    "Disperse": {"DISP_K_HEADING": 0.5, "DISP_VX": 0.3, "DISP_HEADING_PRECISION": 10 / 57.3},
+    "Send message": {},
+    "Ascend": {"ASC_VZ": 0.3},
+    "Descend": {"DESC_VZ": 0.3},
+    "Brake": {},
+    "Path clear?": {},
+    "Minimum peer distance > X ?": {"MINP_DISTANCE": 1.0},
+    "Message received?": {},
+    "Random > 0.5 ?": {"RND_THRESHOLD": 0.5},
+    "Swarm spread out?": {"SPRD_THRESHOLD": 2.0}
+}
+
+param_ranges = {
+    "AVD_K_REP": (0.0, 10.0),
+    "AVD_R_REP": (0.0, 10.0),
+    "RGHT_TURN_RATE": (0.0, 30.0 / 57.3),  # 30 degrees in radians
+    "LEFT_TURN_RATE": (0.0, 30.0 / 57.3),  # 30 degrees in radians
+    "EXP_VX": (0.0, 1.0),
+    "EXP_VZ_SPREAD": (0.0, 1.0),
+    "EXP_R_SPREAD": (0.0, 30.0 / 57.3),  # 30 degrees in radians
+    "DISP_K_HEADING": (0.0, 10.0),
+    "DISP_VX": (0.0, 1.0),
+    "DISP_HEADING_PRECISION": (0.0, 30.0 / 57.3),  # 30 degrees in radians
+    "ASC_VZ": (0.0, 1.0),
+    "DESC_VZ": (0.0, 1.0),
+    "MINP_DISTANCE": (0.0, 10.0),
+    "RND_THRESHOLD": (0.0, 1.0),
+    "SPRD_THRESHOLD": (0.0, 10.0)
 }

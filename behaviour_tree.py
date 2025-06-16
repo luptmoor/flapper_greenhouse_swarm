@@ -131,9 +131,15 @@ class BehaviourTree:
 
             if hasattr(node, 'action_string'):
                 label += f"\n {node.action_string}"
+                for key, value in node.params.items():
+                    label += f"\n{key}: {value:.2f}"
+
             if hasattr(node, 'condition_string'):
                 label += f"\n{node.condition_string}"
-                
+                for key, value in node.params.items():
+                    label += f"\n{key}: {value:.2f}"
+
+           
 
             # Add current node.
             dot.node(node_id, label, shape=shape, fillcolor=fillcolour, style='filled')
@@ -168,11 +174,17 @@ class BehaviourTree:
             classname = f"{node.__class__.__name__}"
             shape = shapedict[classname]
             label = labeldict[classname]
+            
 
             if hasattr(node, 'action_string'):
                 label += f"\n {node.action_string}"
+                for key, value in node.params.items():
+                    label += f"\n{key}: {value:.2f}"
+
             if hasattr(node, 'condition_string'):
                 label += f"\n{node.condition_string}"
+                for key, value in node.params.items():
+                    label += f"\n{key}: {value:.2f}"
                 
 
             # Add current node.
@@ -218,12 +230,11 @@ class ActionNode(BTNode):
         
         self.action_string = random.choice(action_strings)
         self.action = actions[self.action_string]
-        self.feedback = {
-            # "vx": 0.0,
-            # "vz": 0.0,
-            # "r": 0.0,
-            # "msg": 0
-        }
+        self.feedback = {}
+
+        self.params = param_dicts[self.action_string]
+        for key, value in self.params.items():
+            self.params[key] = np.random.uniform(*param_ranges[key])
 
 
     def to_dict(self):
@@ -251,6 +262,10 @@ class ConditionNode(BTNode):
         self.condition = conditions[self.condition_string]
         self.frequency = frequencies[self.condition_string]
         self.memorised_state = 'idle'
+
+        self.params = param_dicts[self.condition_string]
+        for key, value in self.params.items():
+            self.params[key] = np.random.uniform(*param_ranges[key])
 
 
     def to_dict(self):

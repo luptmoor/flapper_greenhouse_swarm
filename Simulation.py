@@ -290,7 +290,7 @@ def run(sim, bt, vis=True, gen=1):
     y_array[:, 0] = np.random.uniform(0.1, HEIGHT / N_DRONES, N_DRONES).astype(np.float32) + np.arange(N_DRONES) * HEIGHT / N_DRONES
     z_array[:, 0] = 0.21 * np.ones(N_DRONES, dtype=np.float32)
 
-    heading_array = np.random.uniform(-1.0, 1.0, N_DRONES).astype(np.float32)
+    heading_array = np.random.uniform(-0.5, 0.5, N_DRONES).astype(np.float32)
     vx_array = np.zeros(N_DRONES, dtype=np.float32)
     vz_array = np.zeros(N_DRONES, dtype=np.float32)
     r_array = np.zeros(N_DRONES, dtype=np.float32)

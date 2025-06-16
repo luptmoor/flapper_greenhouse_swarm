@@ -5,7 +5,7 @@ SCALE                =    100                                      # px / m
 WIDTH                =     15                                       # m
 HEIGHT               =     8                                       # m
 BORDERSIZE           =    10                                       # px, cm
-LAUNCHPAD_FRAC       =    0.2                                      # -, used to determine drones' launchpad size
+LAUNCHPAD_FRAC       =    0.1                                      # -, used to determine drones' launchpad size
 CEILING              =    3.0                                      # m, maximum height of drones
 SQUEEZE_RANGE      =      0.5                                      # m, distance from ground and ceiling in which vertical velocity is gradually limited
 
@@ -23,7 +23,7 @@ N_FRUIT              =   30
 
 
 # Static Drone Parameters
-N_DRONES             =    10                                        # -, number of drones
+N_DRONES             =    6                                        # -, number of drones
 R_DRONE              =    0.14                                        # cm drone radius
 TOF_VFOV             =  23 / 57.3                                   # rad
 TOF_HFOV             =  23 / 57.3                                   # rad
@@ -41,7 +41,7 @@ DT                   =    0.05                                       # s, timest
 T_MAX                =  200                                         # s, 1min, maximum simulation duration
 MAX_TICKS            = int(T_MAX // DT)
 VISUALISE            =  True                                       # Boolean deciding if simulation shall be visualised
-SHOW_BT              =  False                                       # Boolean deciding if behaviour trees shall be visualised        
+SHOW_BT              =  True                                       # Boolean deciding if behaviour trees shall be visualised        
 REALTIME             =  False                                     # Boolean deciding if visuals shall be real-time
 VIEW                 =    0                                         # Variable for different views in visualisation
 SENSITIVITY_ANALYSIS =  False                                        # Boolean deciding if noise should be added to certain parameters
