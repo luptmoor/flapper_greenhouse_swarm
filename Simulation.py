@@ -165,8 +165,8 @@ def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_arra
 
         
         if tick < MAX_TICKS - 1:
-            x_array[i, tick+1] = min(max(x_array[i, tick] + vx_array[i] * DT * np.cos(heading_array[i]), 0.1), WIDTH)
-            y_array[i, tick+1] = min(max(y_array[i, tick] + vx_array[i] * DT * np.sin(heading_array[i]), 0.1), HEIGHT)
+            x_array[i, tick+1] = x_array[i, tick] + vx_array[i] * DT * np.cos(heading_array[i])
+            y_array[i, tick+1] = y_array[i, tick] + vx_array[i] * DT * np.sin(heading_array[i])
             z_array[i, tick+1] = min(max(z_array[i, tick] + vz_array[i] * DT, 0.1), CEILING)
 
 
@@ -352,7 +352,7 @@ def run(sim, bt, vis=True, gen=1):
             skip = sim.visuals.update(sim.trees, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, string_array, t, i)
             
 
-        if np.sum(active_array) < 1:
+        if np.sum(active_array) < 2:
             break
 
         if skip:
