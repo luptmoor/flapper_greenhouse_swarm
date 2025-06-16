@@ -23,7 +23,7 @@ N_FRUIT              =   30
 
 
 # Static Drone Parameters
-N_DRONES             =    6                                        # -, number of drones
+N_DRONES             =    5                                        # -, number of drones
 R_DRONE              =    0.14                                        # cm drone radius
 TOF_VFOV             =  23 / 57.3                                   # rad
 TOF_HFOV             =  23 / 57.3                                   # rad
@@ -41,7 +41,8 @@ DT                   =    0.05                                       # s, timest
 T_MAX                =  200                                         # s, 1min, maximum simulation duration
 MAX_TICKS            = int(T_MAX // DT)
 VISUALISE            =  True                                       # Boolean deciding if simulation shall be visualised
-SHOW_BT              =  True                                       # Boolean deciding if behaviour trees shall be visualised        
+SHOW_BT              =  True                                       # Boolean deciding if behaviour trees shall be visualised   
+REALTIME_BT          =  False                                       # Boolean deciding if behaviour trees shall be visualised in real-time      
 REALTIME             =  False                                     # Boolean deciding if visuals shall be real-time
 VIEW                 =    0                                         # Variable for different views in visualisation
 SENSITIVITY_ANALYSIS =  False                                        # Boolean deciding if noise should be added to certain parameters
@@ -73,7 +74,7 @@ P_BT_SEQUENCE       =         0.5
 
 
 ## Action and reading limits
-YAWRATE_MAX         =        np.pi/5        # rad/s
+YAWRATE_MAX         =        np.pi/2        # rad/s
 V_FORWARD_MAX       =         1.0           # m/s
 V_BACKWARD_MAX      =         0.0           # m/s
 V_LEFT_MAX          =         0.0           # m/s

@@ -133,16 +133,21 @@ if __name__ == '__main__':
 
         score_list = []
 
-        # Simulate
+        #  1. Simulate
         for i in range(len(population)):
             sim = Simulation(vis=VISUALISE, seed=gen)
-            score = run(sim, population[i], gen=gen)
+            score = run(sim, population[i], gen=gen, phenotype=i)
             score_list.append(score)
             population[i].save_to_json(f'gen_{gen}/bt_{i}_score_{score:.3f}.json')  
-            population[i].save_to_pdf(f'gen_{gen}/bt_{i}_score_{score:.3f}_salat')
-
+            population[i].save_to_pdf(f'gen_{gen}/bt_{i}_score_{score:.3f}')
         
-        # Sort population by score (decreasing order)
+
+        #  2.  Save the population and scores using pickle
+        with open(f'gen_{gen}/population.pkl', 'wb') as f:
+            pickle.dump({'population': population, 'scores': score_list}, f)
+        
+
+        #  3. Sort population by score and select
         population, score_list = zip(*sorted(zip(population, score_list), key=lambda x: x[1], reverse=True))
          
         selection = population[:5]
@@ -150,7 +155,7 @@ if __name__ == '__main__':
         population = selection + selection
 
 
-        #Mutate
+        #  4. Mutate
         for i in range(len(population)):
             population[i].root.macromutate()
 
@@ -158,4 +163,16 @@ if __name__ == '__main__':
             population[i].root.micromutate()
 
         
+      
+
+
+
+
+
+
+        # # Read population and scores from pickle
+        # with open(f'gen_{gen}/population.pkl', 'rb') as f:
+        #     data = pickle.load(f)
+        #     population = data['population']
+        #     score_list = data['scores']
 

@@ -275,7 +275,7 @@ class Simulation:
 
                 
         
-def run(sim, bt, vis=True, gen=1):
+def run(sim, bt, vis=True, gen=1, phenotype=1):
     """
     loads environment, starts simulation loop and finally calls evaluation function.
     :return: (float) score for this particular simulation, lies in interval [0, 1].
@@ -317,6 +317,8 @@ def run(sim, bt, vis=True, gen=1):
 
     if SHOW_BT:
         bt_screen = init_bt_visualizer()
+        update_bt_visualizer(bt_screen, bt_list[0])
+
 
 
     for i in range(MAX_TICKS):
@@ -329,7 +331,7 @@ def run(sim, bt, vis=True, gen=1):
                                                                                         vx_array[j], vz_array[j], r_array[j],
                                                                                         swarm_array[j], 
                                                                                         obstacle_array, active_array, msg_array) 
-            if SHOW_BT: 
+            if REALTIME_BT: 
                 update_bt_visualizer(bt_screen, bt_list[0])
                 
             for j in range(N_DRONES):
@@ -346,7 +348,7 @@ def run(sim, bt, vis=True, gen=1):
         
         t += DT
 
-        
+
         if skip:
             break
 
@@ -366,8 +368,8 @@ def run(sim, bt, vis=True, gen=1):
     if vis:
         folder = f"gen_{gen}"
         os.makedirs(folder, exist_ok=True)  # create folder if it doesn't exist
-        filename = os.path.join(folder, f"{score}_d_{np.sum(active_array)}_{np.random.uniform(0, 1):.2f}.png")
-        plot_3d_trajectory(x_array, y_array, z_array, filename=filename.replace('.png', '_3d.png'))
+        filename = os.path.join(folder, f"BT_{phenotype}_score_{score:.2}_traj.png")
+        plot_3d_trajectory(x_array, y_array, z_array, filename=filename)
 
 
     if SHOW_BT:

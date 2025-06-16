@@ -114,8 +114,17 @@ def disperse(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, a
 
     if np.sum(active_array) < 2: return {}, 'success', 'disp'
 
-    x_avg = np.sum([swarm_array[3*i] + x for i in range(N_DRONES - 1) if np.abs(swarm_array[3*i] + x) > 0.01]) / np.sum(active_array)
-    y_avg = np.sum([swarm_array[3*i+1] + y for i in range(N_DRONES - 1) if np.abs(swarm_array[3*i+1] + y) > 0.01]) / np.sum(active_array)
+    x_avg = 0.0
+    y_avg = 0.0
+    for i in range(N_DRONES - 1):
+        if abs(swarm_array[3*i]) < 0.001 and abs(swarm_array[3*i+1]) < 0.001 and abs(swarm_array[3*i+2]) < 0.001:
+            continue
+
+        x_avg += swarm_array[3*i]
+        y_avg += swarm_array[3*i+1]
+
+    x_avg /= (np.sum(active_array) - 1)
+    y_avg /= (np.sum(active_array) - 1)
 
     dy = x - x_avg
     dx = y - y_avg
@@ -133,6 +142,9 @@ def disperse(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, a
     else: vx_cmd = 0
 
     r_cmd = heading_error * params["DISP_K_HEADING"]
+
+    r_cmd = np.clip(r_cmd, -YAWRATE_MAX, YAWRATE_MAX)
+
 
     return {"vx": vx_cmd, "r": r_cmd}, 'running', 'disp'
     
@@ -350,6 +362,9 @@ action_strings = [
     'Random Walk',
     'Disperse',
     'Send message',
+    'Ascend',
+    'Descend',
+    'Brake',
 ]
 
 actions = {
@@ -414,19 +429,19 @@ param_dicts = {
 }
 
 param_ranges = {
-    "AVD_K_REP": (0.0, 10.0),
-    "AVD_R_REP": (0.0, 10.0),
-    "RGHT_TURN_RATE": (0.0, 30.0 / 57.3),  # 30 degrees in radians
-    "LEFT_TURN_RATE": (0.0, 30.0 / 57.3),  # 30 degrees in radians
-    "EXP_VX": (0.0, 1.0),
-    "EXP_VZ_SPREAD": (0.0, 1.0),
-    "EXP_R_SPREAD": (0.0, 30.0 / 57.3),  # 30 degrees in radians
-    "DISP_K_HEADING": (0.0, 10.0),
-    "DISP_VX": (0.0, 1.0),
-    "DISP_HEADING_PRECISION": (0.0, 30.0 / 57.3),  # 30 degrees in radians
-    "ASC_VZ": (0.0, 1.0),
-    "DESC_VZ": (0.0, 1.0),
-    "MINP_DISTANCE": (0.0, 10.0),
+    "AVD_K_REP": (0.1, 10.0),
+    "AVD_R_REP": (0.5, 10.0),
+    "RGHT_TURN_RATE": (0.1, YAWRATE_MAX),  
+    "LEFT_TURN_RATE": (0.1, YAWRATE_MAX), 
+    "EXP_VX": (0.1, V_FORWARD_MAX),
+    "EXP_VZ_SPREAD": (0.1, V_UP_MAX),
+    "EXP_R_SPREAD": (0.1, YAWRATE_MAX),  
+    "DISP_K_HEADING": (0.1, 6.0),
+    "DISP_VX": (0.1, V_FORWARD_MAX),
+    "DISP_HEADING_PRECISION": (0.0, 45.0 / 57.3),  # 45 degrees in radians
+    "ASC_VZ": (0.0, V_UP_MAX),
+    "DESC_VZ": (0.0, V_UP_MAX),
+    "MINP_DISTANCE": (0.0, 8.0),     # m
     "RND_THRESHOLD": (0.0, 1.0),
-    "SPRD_THRESHOLD": (0.0, 10.0)
+    "SPRD_THRESHOLD": (0.0, 8.0)    # m
 }
