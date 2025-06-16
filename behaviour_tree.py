@@ -274,6 +274,7 @@ class ConditionNode(BTNode):
     def to_dict(self):
         return {"type": self.__class__.__name__, "name": self.name, "condition_string": self.condition_string, "params": self.params}
 
+
     def execute(self, tick,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):        
         
         if tick % self.frequency == 0: 
@@ -438,5 +439,5 @@ class SelectorNode(CompositeNode):
             
         #print(f"Feedback of {self.name}: {self.feedback}")
         self.state = 'failure'
-        return self.feedback, 'failure'
+        return self.feedback, 'failure', string
 

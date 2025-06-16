@@ -161,7 +161,7 @@ def ascend(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, act
     """
 
     if z < CEILING - 0.1:
-        return {"vx": 0.0, "vz": params["ASC_VZ"], "r": 0.0}, 'running', 'ascend'
+        return {"vx": 0.0, "vz": params["ASC_VZ"], "r": 0.0}, 'running', 'asc'
     else:
         return {}, 'success', 'asc'
     
@@ -172,7 +172,7 @@ def descend(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, ac
     """
 
     if z > 0.1:
-        return {"vx": 0.0, "vz": -params["DESC_VZ"], "r": 0.0}, 'running', 'descend'
+        return {"vx": 0.0, "vz": -params["DESC_VZ"], "r": 0.0}, 'running', 'desc'
     else:
         return {}, 'success', 'desc'
     
@@ -373,7 +373,7 @@ condition_strings = [
     'Path clear?',
     'Minimum peer distance > X ?',
     'Message received?',
-    'Random > 0.5 ?',
+    'Random > X ?',
 ]
 
 conditions = {
@@ -383,7 +383,7 @@ conditions = {
     "Path clear?": path_clear,
     "Minimum peer distance > X ?": min_distance,
     "Message received?": message_received,
-    "Random > 0.5 ?": random_condition,
+    "Random > X ?": random_condition,
     "Swarm spread out?": swarm_spread
 }
 
@@ -391,7 +391,7 @@ frequencies = {
     "Path clear?": 10,
     "Minimum peer distance > X ?": 10,
     "Message received?": 20,
-    "Random > 0.5 ?": 100,
+    "Random > X ?": 100,
     "Swarm spread out?": 10
 }
 
@@ -409,7 +409,7 @@ param_dicts = {
     "Path clear?": {},
     "Minimum peer distance > X ?": {"MINP_DISTANCE": 1.0},
     "Message received?": {},
-    "Random > 0.5 ?": {"RND_THRESHOLD": 0.5},
+    "Random > X ?": {"RND_THRESHOLD": 0.5},
     "Swarm spread out?": {"SPRD_THRESHOLD": 2.0}
 }
 

@@ -55,8 +55,8 @@ BASEPATH            =       "simresults/results_"
 ## Evolution
 POPULATION_SIZE     =        100
 N_GENERATIONS       =        150
-P_MICROMUTATION     =         0.2
-P_MACROMUTATION     =         0.1
+P_MICROMUTATION     =         0.5
+P_MACROMUTATION     =         0.2
 ELITISM_RATE        =         0.04
 N_ELITE             =       int(ELITISM_RATE * POPULATION_SIZE)
 N_TOURNAMENTS       =        10

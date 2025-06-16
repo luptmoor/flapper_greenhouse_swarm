@@ -149,12 +149,14 @@ def advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_arra
     heading_array[:] = (heading_array + np.pi) % (2 * np.pi) - np.pi
 
     for i in range(N_DRONES):
-       
+        if active_array[i] == 0:
+            continue
+
         if is_inside_obstacle(x_array[i, tick], y_array[i, tick], z_array[i, tick], obstacle_array):
             active_array[i] = 0
             #print(f'collision with obstacle for drone {i}')
         
-        if (not 0.1 < x_array[i, tick] < WIDTH) or (not 0.1 < y_array[i, tick] < HEIGHT):
+        if (not 0.0 < x_array[i, tick] < WIDTH) or (not 0.0 < y_array[i, tick] < HEIGHT):
             active_array[i] = 0
             #print(f'out of bounds for drone {i}')
 

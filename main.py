@@ -122,18 +122,40 @@ if __name__ == '__main__':
 
     np.random.seed(0)
     torch.manual_seed(0) 
-    
-    for s in range(2, 100):
-        sim = Simulation(vis=True, seed=s)
-        bt = BehaviourTree(seed=s)
-        bt.load_from_file('BT_2.json')
-        #bt.save_to_pdf('BT_manual_v4.pdf')
-        #bt.save_to_json(f'BT_{s}.json')
 
-        run(sim, bt)
+    population = [BehaviourTree(seed=i) for i in range(1, 11)]
+
+    
+    for gen in range(1, 100):
         print()
         print()
+        print(f"Generation {gen}")
+
+        score_list = []
+
+        # Simulate
+        for i in range(len(population)):
+            sim = Simulation(vis=VISUALISE, seed=gen)
+            score = run(sim, population[i], gen=gen)
+            score_list.append(score)
+            population[i].save_to_json(f'gen_{gen}/bt_{i}_score_{score:.3f}.json')  
+            population[i].save_to_pdf(f'gen_{gen}/bt_{i}_score_{score:.3f}.pdf')
+
+        
+        # Sort population by score (decreasing order)
+        population, score_list = zip(*sorted(zip(population, score_list), key=lambda x: x[1], reverse=True))
+         
+        selection = population[:5]
+        print(f"Best score: {score_list[0]}")
+        population = selection + selection
+
+
+        #Mutate
+        for i in range(len(population)):
+            population[i].root.macromutate()
+
+        for i in range(len(population)):
+            population[i].root.micromutate()
 
         
 
-    #visualize_bt_live(simulate_bt_steps())
