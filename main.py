@@ -139,7 +139,7 @@ if __name__ == '__main__':
             score = run(sim, population[i], gen=gen)
             score_list.append(score)
             population[i].save_to_json(f'gen_{gen}/bt_{i}_score_{score:.3f}.json')  
-            population[i].save_to_pdf(f'gen_{gen}/bt_{i}_score_{score:.3f}.pdf')
+            population[i].save_to_pdf(f'gen_{gen}/bt_{i}_score_{score:.3f}_salat')
 
         
         # Sort population by score (decreasing order)

@@ -325,7 +325,7 @@ def run(sim, bt, vis=True, gen=1):
 
         if i % 10 == 0:
             for j in range(N_DRONES):
-                vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j], string_array[j] = bt_list[j].feed_forward(i, x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
+                vxcmd_array[j], vzcmd_array[j], rcmd_array[j], msg_array[j], string_array[j], skip = bt_list[j].feed_forward(i, x_array[j, i], y_array[j, i], z_array[j, i], heading_array[j],
                                                                                         vx_array[j], vz_array[j], r_array[j],
                                                                                         swarm_array[j], 
                                                                                         obstacle_array, active_array, msg_array) 
@@ -346,6 +346,9 @@ def run(sim, bt, vis=True, gen=1):
         
         t += DT
 
+        
+        if skip:
+            break
 
         # Update screen if requested
         if vis:
@@ -355,8 +358,7 @@ def run(sim, bt, vis=True, gen=1):
         if np.sum(active_array) < 2:
             break
 
-        if skip:
-            break
+        
 
         
     score = calc_fitness(x_array, y_array, z_array)

@@ -85,6 +85,7 @@ class BehaviourTree:
         
         self.fitness = 0
         self.root = None
+        self.skipcounter = 0
 
        
         if random.uniform(0, 1) >= P_BT_SEQUENCE:
@@ -111,8 +112,14 @@ class BehaviourTree:
 
     def feed_forward(self, tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
         feedback, success, string = self.root.execute(tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
+        if success != 'running':
+            self.skipcounter += 1
+        
+        if self.skipcounter > 50:
+            self.skipcounter = 0
+            return feedback["vx"], feedback["vz"], feedback["r"], feedback["msg"], string, True
 
-        return feedback["vx"], feedback["vz"], feedback["r"], feedback["msg"], string
+        return feedback["vx"], feedback["vz"], feedback["r"], feedback["msg"], string, False
 
 
 
@@ -158,8 +165,6 @@ class BehaviourTree:
 
         add_nodes_edges(self.root)
 
-        # Render and view the graph; file formats can be 'pdf', 'png', etc.
-        #dot.render(path, view=True, format='pdf')
         return dot
     
 
@@ -205,7 +210,7 @@ class BehaviourTree:
         add_nodes_edges(self.root)
 
         # Render and view the graph; file formats can be 'pdf', 'png', etc.
-        dot.render(path, view=True, format='pdf')
+        dot.render(path, view=False, format='png', cleanup=True)
 
 
 
