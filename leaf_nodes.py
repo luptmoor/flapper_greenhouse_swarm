@@ -18,7 +18,7 @@ _base4 = np.array([R_TOF,  _half_extent,  _half_extent])
 ###################### ACTION FUNCTIONS ########################
 
 
-def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def apf_avoidance(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     Function to calculate the avoidance vector for an array of N drones using artificial potential fields.
     Assume that minimum avoidance distance is not met when this fn is called
@@ -29,10 +29,6 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
     """
 
     if np.sum(active_array) < 2: return {}, 'success', 'avd'
-
-    # Parameters for APF
-    K_REP = 1.0  # Repulsive gain
-    R_REP = 1.0  # Repulsive distance threshold
 
     vx_cmd = 0.0
     vy_cmd = 0.0
@@ -48,15 +44,15 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
         dz = swarm_array[3 * i + 2]
         dist = np.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
 
-        if dist > R_REP:
+        if dist > params["AVD_R_REP"]:
             continue
 
         dist = max(dist, 0.001)  # Avoid division by zero
         
         # Repulsive force (inverse distance)
-        fx = K_REP * dx / (dist ** 2)
-        fy = K_REP * dy / (dist ** 2)
-        fz = K_REP * dz / (dist ** 2)
+        fx = params["AVD_K_REP"] * dx / (dist ** 2)
+        fy = params["AVD_K_REP"] * dy / (dist ** 2)
+        fz = params["AVD_K_REP"] * dz / (dist ** 2)
         # Calculate target heading for the repulsive force
         
 
@@ -86,7 +82,7 @@ def apf_avoidance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, acti
 
 
      
-def approach(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def approach(params, x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
     """
     approach a fruit until it is considered observed
     """
@@ -94,7 +90,7 @@ def approach(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z
     return  {}, 'running', 'app'
 
 
-def follow_wall(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def follow_wall(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     stay to the wall and move up and down along it
     """
@@ -102,27 +98,19 @@ def follow_wall(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active
     return  {}, 'running', 'wall'
 
 
-def random_walk(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def random_walk(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     random turn and climb commands with constant forward speed
     """
 
-    V_X = 0.3
-    V_Z_SPREAD = 0.3
-    R_SPREAD = 15 / 57.3  # 15 degrees in radians
-
-    return {"vx": V_X, "vz": np.random.uniform(-V_Z_SPREAD, V_Z_SPREAD), "r": np.random.uniform(-R_SPREAD, R_SPREAD)}, 'running', 'exp'
+    return {"vx": params["EXP_VX"], "vz": np.random.uniform(-params["EXP_VZ_SPREAD"], params["EXP_VZ_SPREAD"]), "r": np.random.uniform(-params["EXP_R_SPREAD"], params["EXP_R_SPREAD"])}, 'running', 'exp'
 
 
-def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def disperse(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     
     """
     move away from the other drones
     """
-
-    K_HEADING = 0.5  # Gain for heading control
-    V_X = 0.3  # Forward speed
-    HEADING_PRECISION = 10 / 57.3  # 10 degrees in radians
 
     if np.sum(active_array) < 2: return {}, 'success', 'disp'
 
@@ -141,62 +129,55 @@ def disperse(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_ar
 
     heading_error = target_heading - heading
 
-    if np.abs(heading_error) < HEADING_PRECISION: vx_cmd = V_X
+    if np.abs(heading_error) < params["DISP_HEADING_PRECISION"]: vx_cmd = params["DISP_VX"]
     else: vx_cmd = 0
 
-    r_cmd = heading_error * K_HEADING
+    r_cmd = heading_error * params["DISP_K_HEADING"]
 
     return {"vx": vx_cmd, "r": r_cmd}, 'running', 'disp'
     
 
 
-def turn_right(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def turn_right(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     brake and rotate right until the path is clear
     """
 
-    TURN_RATE = 15 / 57.3  # 15 degrees in radians
-
-    return {"vx": 0.0, "vz": 0.0, "r": TURN_RATE}, 'running', 'right'
+    return {"vx": 0.0, "vz": 0.0, "r": params["RGHT_TURN_RATE"]}, 'running', 'right'
 
 
 
-def turn_left(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def turn_left(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     brake and rotate left until the path is clear
     """
-    TURN_RATE = 15 / 57.3  # 15 degrees in radians
+
+    return {"vx": 0.0, "vz": 0.0, "r": -params["LEFT_TURN_RATE"]}, 'running', 'left'
 
 
-    return {"vx": 0.0, "vz": 0.0, "r": -TURN_RATE}, 'running', 'left'
-
-
-def ascend(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def ascend(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     ascend until the ceiling is reached
     """
-    ASCEND_RATE = 0.3 # m/s
 
     if z < CEILING - 0.1:
-        return {"vx": 0.0, "vz": ASCEND_RATE, "r": 0.0}, 'running', 'ascend'
+        return {"vx": 0.0, "vz": params["ASC_VZ"], "r": 0.0}, 'running', 'ascend'
     else:
         return {}, 'success', 'asc'
     
 
-def descend(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def descend(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     descend until the ground is reached
     """
 
-    DESCEND_RATE = 0.3  # m/s
-
     if z > 0.1:
-        return {"vx": 0.0, "vz": -DESCEND_RATE, "r": 0.0}, 'running', 'descend'
+        return {"vx": 0.0, "vz": -params["DESC_VZ"], "r": 0.0}, 'running', 'descend'
     else:
         return {}, 'success', 'desc'
     
     
-def brake(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def brake(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     brake until the speed is 0
     """
@@ -208,7 +189,7 @@ def brake(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array
 
 
 
-def send_message(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def send_message(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     send a message to the other drones
     """
@@ -219,7 +200,7 @@ def send_message(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, activ
 
 ################### CONDITION FUNCTIONS #######################
 
-def fruit_counter(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def fruit_counter(params, x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
     """
     check if the fruit counter is greater than 0
     """
@@ -227,7 +208,7 @@ def fruit_counter(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fr
     return 'failure'
 
 
-def discovery_rate(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def discovery_rate(params, x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
     """
     check if the discovery rate is greater than 0
     """
@@ -235,7 +216,7 @@ def discovery_rate(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, f
     return 'failure'
 
 
-def fruit_visible(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
+def fruit_visible(params, x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fruit_z, fruit_side_array, fruit_disc_array, obstacle_array, active_array, msg_array):
     """
     check if the fruit is visible
     """
@@ -243,12 +224,10 @@ def fruit_visible(x, y, z, heading, vx, vz, r, swarm_array, fruit_x, fruit_y, fr
     return 'failure'
 
 
-def swarm_spread(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def swarm_spread(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     check if the swarm is spread out
     """
-
-    DISTANCE_THRESHOLD = 2.0  # meters
 
     if np.sum(active_array) < 2: return 'success'
 
@@ -263,14 +242,14 @@ def swarm_spread(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, activ
     d_list.sort()
     index = min(max(np.sum(active_array) // 3, 0), len(d_list) - 1)
 
-    if d_list[index] < DISTANCE_THRESHOLD:
+    if d_list[index] < params["SPRD_THRESHOLD"]:
         return 'failure'
     else:
         return 'success'
 
 
 
-def path_clear(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def path_clear(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     njit-compatible: check if any cuboid corner is inside the FOV pyramid
     """
@@ -320,13 +299,10 @@ def path_clear(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_
     return 'success'
 
 
-def min_distance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def min_distance(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     check if the minimum distance to other drones is greater than 1.0m
     """
-
-    DISTANCE_THRESHOLD = 1.0  # meters
-
 
     d_list = [10000]
     for i in range(N_DRONES - 1):
@@ -336,12 +312,12 @@ def min_distance(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, activ
         d = np.sqrt(swarm_array[3*i]**2 + swarm_array[3*i+1]**2 + swarm_array[3*i+2]**2) 
         d_list.append(d)
 
-    if min(d_list) > DISTANCE_THRESHOLD:
+    if min(d_list) > params["MINP_DISTANCE"]:
         return 'success'
     else: return 'failure'
     
 
-def message_received(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def message_received(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     check if a message was received
     """
@@ -349,16 +325,15 @@ def message_received(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, a
     else: return 'failure'
 
 
-def random_condition(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def random_condition(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     check if a random number is greater than 0.5
     """
 
-    THRESHOLD = 0.5  # threshold for random condition
 
     randnr = np.random.uniform(0, 1)
     #print(f"Random condition: {randnr}")
-    if randnr > THRESHOLD: return 'success'
+    if randnr > params["RND_THRESHOLD"]: return 'success'
     else: return 'failure'
 
 

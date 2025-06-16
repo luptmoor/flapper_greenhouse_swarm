@@ -43,6 +43,7 @@ def dict_to_bt(data):
         if "action_string" in data:
             node.action_string = data["action_string"]
             node.action = actions[data["action_string"]]
+            node.params = data.get("params", {})
         return node
 
     # Reconstruct a ConditionNode: restore name and condition_id.
@@ -52,6 +53,8 @@ def dict_to_bt(data):
             node.condition_string = data["condition_string"]
             node.condition = conditions[data["condition_string"]]
             node.frequency = frequencies[data["condition_string"]]
+            node.params = data.get("params", {})
+
         return node
     
     # Reconstruct composite nodes (SequenceNode or SelectorNode)
@@ -174,7 +177,7 @@ class BehaviourTree:
             classname = f"{node.__class__.__name__}"
             shape = shapedict[classname]
             label = labeldict[classname]
-            
+
 
             if hasattr(node, 'action_string'):
                 label += f"\n {node.action_string}"
@@ -238,11 +241,11 @@ class ActionNode(BTNode):
 
 
     def to_dict(self):
-        return {"type": self.__class__.__name__, "name": self.name, "action_string": self.action_string}
+        return {"type": self.__class__.__name__, "name": self.name, "action_string": self.action_string, "params": self.params}
     
 
     def execute(self, tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
-        action_feedback, self.state, string = self.action(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
+        action_feedback, self.state, string = self.action(self.params, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
         self.feedback.update(action_feedback)
 
         return self.feedback, self.state, string
@@ -269,12 +272,12 @@ class ConditionNode(BTNode):
 
 
     def to_dict(self):
-        return {"type": self.__class__.__name__, "name": self.name, "condition_string": self.condition_string}
+        return {"type": self.__class__.__name__, "name": self.name, "condition_string": self.condition_string, "params": self.params}
 
     def execute(self, tick,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):        
         
         if tick % self.frequency == 0: 
-            self.state = self.condition(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
+            self.state = self.condition(self.params, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
             self.memorised_state = self.state
         else:
             self.state = self.memorised_state
