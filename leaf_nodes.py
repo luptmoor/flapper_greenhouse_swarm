@@ -195,6 +195,39 @@ def turn_left(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_a
     return {"vx": 0.0, "vz": 0.0, "r": -YAWRATE_MAX}, 'running', 'left'
 
 
+def ascend(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+    """
+    ascend until the ceiling is reached
+    """
+
+    if z < CEILING - 0.1:
+        return {"vx": 0.0, "vz": V_UP_MAX, "r": 0.0}, 'running', 'ascend'
+    else:
+        return {}, 'success', 'asc'
+    
+
+def descend(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+    """
+    descend until the ground is reached
+    """
+
+    if z > 0.1:
+        return {"vx": 0.0, "vz": -V_UP_MAX, "r": 0.0}, 'running', 'descend'
+    else:
+        return {}, 'success', 'desc'
+    
+    
+def brake(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+    """
+    brake until the speed is 0
+    """
+
+    if np.sqrt(vx**2 + vz**2) > 0.1:
+        return {"vx": -vx * 0.5, "vz": -vz * 0.5, "r": 0.0}, 'running', 'brake'
+    else:
+        return {}, 'success', 'brake'
+
+
 
 def send_message(x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
@@ -361,7 +394,10 @@ actions = {
 #   "Follow wall":  follow_wall,
     "Random Walk":  random_walk,
     "Disperse":  disperse,
-    "Send message":  send_message
+    "Send message":  send_message,
+    "Ascend": ascend,
+    "Descend": descend,
+    "Brake": brake,
 }
 
 condition_strings = [
@@ -379,7 +415,6 @@ conditions = {
 #   "# discovered fruit > X ?": fruit_counter,
 #   "# new fruit last 30s < X ?: discovery_rate,
     "Path clear?": path_clear,
-
     "Minimum peer distance > X ?": min_distance,
     "Message received?": message_received,
     "Random > 0.5 ?": random_condition,
