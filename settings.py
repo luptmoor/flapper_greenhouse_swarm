@@ -23,7 +23,7 @@ N_FRUIT              =   30
 
 
 # Static Drone Parameters
-N_DRONES             =    5                                        # -, number of drones
+N_DRONES             =    2                                        # -, number of drones
 R_DRONE              =    0.14                                        # cm drone radius
 TOF_VFOV             =  23 / 57.3                                   # rad
 TOF_HFOV             =  23 / 57.3                                   # rad
@@ -43,7 +43,7 @@ MAX_TICKS            = int(T_MAX // DT)
 VISUALISE            =  True                                       # Boolean deciding if simulation shall be visualised
 SHOW_BT              =  False                                       # Boolean deciding if behaviour trees shall be visualised   
 REALTIME_BT          =  False                                       # Boolean deciding if behaviour trees shall be visualised in real-time      
-REALTIME             =  False                                     # Boolean deciding if visuals shall be real-time
+REALTIME             =  True                                     # Boolean deciding if visuals shall be real-time
 VIEW                 =    0                                         # Variable for different views in visualisation
 SENSITIVITY_ANALYSIS =  False                                        # Boolean deciding if noise should be added to certain parameters
 NOISE                =    0.0                                     # -, Noise amplitude if in sensitivity analysis

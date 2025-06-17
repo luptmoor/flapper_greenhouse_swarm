@@ -172,6 +172,17 @@ def turn_left(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, 
     return {"vx": 0.0, "vz": 0.0, "r": -params["LEFT_TURN_RATE"]}, 'running', 'left'
 
 
+def turn(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+    """
+    """
+
+
+    if heading < 2 * np.pi:
+        return {"vx": 0.0, "vz": 0.0, "r": params['TURN_RATE']}, 'running', 'turn'
+    else:
+        return {}, 'success', 'turn'
+
+
 def ascend(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     ascend until the ceiling is reached
@@ -384,6 +395,7 @@ action_strings = [
     'Ascend',
     'Descend',
     'Brake',
+    'Turn'
 ]
 
 actions = {
@@ -398,6 +410,7 @@ actions = {
     "Ascend": ascend,
     "Descend": descend,
     "Brake": brake,
+    "Turn": turn
 }
 
 condition_strings = [
@@ -443,6 +456,7 @@ param_dicts = {
     "Ascend": {"ASC_VZ": 0.3},
     "Descend": {"DESC_VZ": 0.3},
     "Brake": {},
+    "Turn": {"TURN_RATE": 15 / 57.3},  # 15 degrees in radians
     "Path clear?": {},
     "Minimum peer distance > X ?": {"MINP_DISTANCE": 1.0},
     "Message received?": {},
@@ -457,6 +471,7 @@ param_ranges = {
     "AVD_HEADING_PRECISION": (0.01, 45.0 / 57.3),  # radians
     "RGHT_TURN_RATE": (0.1, YAWRATE_MAX),  
     "LEFT_TURN_RATE": (0.1, YAWRATE_MAX), 
+    "TURN_RATE": (-YAWRATE_MAX, YAWRATE_MAX),
     "EXP_VX": (0.1, V_FORWARD_MAX),
     "EXP_VZ_SPREAD": (0.1, V_UP_MAX),
     "EXP_R_SPREAD": (0.1, YAWRATE_MAX),  

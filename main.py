@@ -1,4 +1,5 @@
 
+import copy
 from Simulation import Simulation, run, WeightedDeepSet
 import cma
 import csv
@@ -123,52 +124,62 @@ if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0) 
 
-    # for s in range(10):
-    #     sim = Simulation(vis=True, seed=s)
-    #     bt = BehaviourTree()
-    #     bt.load_from_file('manual_v4.json')
-    #     score = run(sim, bt, gen=0, phenotype=0)
+    for s in range(10):
+        sim = Simulation(vis=True, seed=s)
+        bt = BehaviourTree()
+        bt.load_from_file('turn_success.json')
+        score = run(sim, bt, gen=12312, phenotype=0)
 
 
 
-    population = [BehaviourTree(seed=i) for i in range(21, 30)]
+    #population = [BehaviourTree(seed=i) for i in range(21, 30)]
     
-    for gen in range(1, 100):
-        print()
-        print()
-        print(f"Generation {gen}")
 
-        score_list = []
+    #Read population and scores from pickle
+    # with open(f'gen_{61}/population.pkl', 'rb') as f:
+    #     data = pickle.load(f)
+    #     population = data['population']
+    #     score_list = data['scores']
 
-        #  1. Simulate
-        for i in range(len(population)):
-            sim = Simulation(vis=VISUALISE, seed=gen)
-            score = run(sim, population[i], gen=gen, phenotype=i)
-            score_list.append(score)
-            population[i].save_to_json(f'gen_{gen}/bt_{i}_score_{score:.3f}.json')  
-            population[i].save_to_pdf(f'gen_{gen}/bt_{i}_score_{score:.3f}')
+
+
+    # for gen in range(1, 200):
+    #     print()
+    #     print()
+    #     print(f"Generation {gen}")
+
+    #     score_list = []
+
+
+    #     #  1. Simulate
+    #     for i in range(len(population)):
+    #         sim = Simulation(vis=VISUALISE, seed=gen)
+    #         score = run(sim, population[i], gen=gen, phenotype=i)
+    #         score_list.append(score)
+    #         population[i].save_to_json(f'gen_{gen}/bt_{i}_score_{score:.3f}.json')  
+    #         population[i].save_to_pdf(f'gen_{gen}/bt_{i}_score_{score:.3f}')
         
 
-        #  2.  Save the population and scores using pickle
-        with open(f'gen_{gen}/population.pkl', 'wb') as f:
-            pickle.dump({'population': population, 'scores': score_list}, f)
+    #     #  2.  Save the population and scores using pickle
+    #     with open(f'gen_{gen}/population.pkl', 'wb') as f:
+    #         pickle.dump({'population': population, 'scores': score_list}, f)
         
 
-        #  3. Sort population by descending score (highest to lowest)
-        population, score_list = zip(*sorted(zip(population, score_list), key=lambda x: x[1], reverse=True))
+    #     #  3. Sort population by descending score (highest to lowest)
+    #     population, score_list = zip(*sorted(zip(population, score_list), key=lambda x: x[1], reverse=True))
 
         
-        selection = population[:5]
-        print(f"Best score: {score_list[0]}")
-        population = selection + selection
+    #     selection = [copy.deepcopy(bt) for bt in population[:5]]
+    #     print(f"Best score: {score_list[0]}")
+    #     population = selection + [copy.deepcopy(bt) for bt in selection]
 
 
-        #  4. Mutate
-        for i in range(2, len(population)):
-            population[i].root.macromutate()
+    #     #  4. Mutate
+    #     for i in range(2, len(population)):
+    #         population[i].root.macromutate()
 
-        for i in range(2, len(population)):
-            population[i].root.micromutate()
+    #     for i in range(2, len(population)):
+    #         population[i].root.micromutate()
 
         
       
@@ -178,9 +189,4 @@ if __name__ == '__main__':
 
 
 
-        # # Read population and scores from pickle
-        # with open(f'gen_{gen}/population.pkl', 'rb') as f:
-        #     data = pickle.load(f)
-        #     population = data['population']
-        #     score_list = data['scores']
-
+       
