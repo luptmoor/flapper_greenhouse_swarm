@@ -429,8 +429,8 @@ def plot_3d_trajectory(x_array, y_array, z_array, filename="3d_trajectory.png"):
   
   
     plt.title("3D Trajectory of Drones")
-    plt.savefig(filename, dpi=150)
-    plt.show()
+    #plt.savefig(filename, dpi=150)
+    #plt.show()
 
     plt.close()
     print(f"[✔] Saved 3D trajectory plot to {filename}")

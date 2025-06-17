@@ -123,8 +123,15 @@ if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0) 
 
-    population = [BehaviourTree(seed=i) for i in range(1, 11)]
+    # for s in range(10):
+    #     sim = Simulation(vis=True, seed=s)
+    #     bt = BehaviourTree()
+    #     bt.load_from_file('manual_v4.json')
+    #     score = run(sim, bt, gen=0, phenotype=0)
 
+
+
+    population = [BehaviourTree(seed=i) for i in range(21, 30)]
     
     for gen in range(1, 100):
         print()
@@ -147,19 +154,20 @@ if __name__ == '__main__':
             pickle.dump({'population': population, 'scores': score_list}, f)
         
 
-        #  3. Sort population by score and select
+        #  3. Sort population by descending score (highest to lowest)
         population, score_list = zip(*sorted(zip(population, score_list), key=lambda x: x[1], reverse=True))
-         
+
+        
         selection = population[:5]
         print(f"Best score: {score_list[0]}")
         population = selection + selection
 
 
         #  4. Mutate
-        for i in range(len(population)):
+        for i in range(2, len(population)):
             population[i].root.macromutate()
 
-        for i in range(len(population)):
+        for i in range(2, len(population)):
             population[i].root.micromutate()
 
         

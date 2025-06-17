@@ -270,6 +270,7 @@ class ConditionNode(BTNode):
         self.condition = conditions[self.condition_string]
         self.frequency = frequencies[self.condition_string]
         self.memorised_state = 'idle'
+        self.tick_reference = 0
 
         self.params = param_dicts[self.condition_string]
         for key, value in self.params.items():
@@ -283,8 +284,10 @@ class ConditionNode(BTNode):
     def execute(self, tick,  x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):        
         
         if tick % self.frequency == 0: 
-            self.state = self.condition(self.params, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
+            self.state, timer_reset = self.condition(self.params, tick - self.tick_reference, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
             self.memorised_state = self.state
+            if timer_reset:
+                self.tick_reference = tick
         else:
             self.state = self.memorised_state
         return {}, self.state, 'cond'
