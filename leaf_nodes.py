@@ -389,13 +389,13 @@ def timer_condition(params, tick, x, y, z, heading, vx, vz, r, swarm_array, obst
 
 action_strings = [
     #'Approach',
-    'Avoid other drones',
+    # 'Avoid other drones',
     # 'Turn right',
     # 'Turn left',
     #'Follow wall',
     'Random Walk',
-    'Disperse',
-    'Send message',
+    # 'Disperse',
+    # 'Send message',
     'Ascend',
     'Descend',
     'Brake',
@@ -422,8 +422,8 @@ condition_strings = [
     #'# discovered fruit > X ?',
     #'# new fruit last 30s < X ?',
     'Path clear?',
-    'Minimum peer distance > X ?',
-    'Message received?',
+    # 'Minimum peer distance > X ?',
+    # 'Message received?',
     'Random > X ?',
     'Timer > X ?',
 ]

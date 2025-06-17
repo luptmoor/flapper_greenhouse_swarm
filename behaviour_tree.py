@@ -7,6 +7,7 @@ import random
 import json
 from graphviz import Digraph
 from leaf_nodes import *
+import os
 
 shapedict = {
     'ActionNode': 'box',
@@ -105,7 +106,8 @@ class BehaviourTree:
 
 
     def save_to_json(self, path):
-        """Save the behavior tree to a JSON file."""
+        """Save the behavior tree to a JSON file, creating the directory if needed."""
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as file:
             json.dump(self.root.to_dict(), file, indent=4)
     
@@ -432,7 +434,7 @@ class SequenceNode(CompositeNode):
             
         #print(f"Feedback of {self.name}: {self.feedback}")
         self.state = 'success'
-        return self.feedback, 'success', string
+        return self.feedback, 'success', 'seqn'
 
 
 

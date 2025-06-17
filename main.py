@@ -132,18 +132,18 @@ if __name__ == '__main__':
 
 
 
-    population = [BehaviourTree(seed=i) for i in range(21, 30)]
+    # population = [BehaviourTree(seed=i) for i in range(21, 35)]
     
 
     #Read population and scores from pickle
-    # with open(f'gen_{61}/population.pkl', 'rb') as f:
-    #     data = pickle.load(f)
-    #     population = data['population']
-    #     score_list = data['scores']
+    with open(f'gen_{35}/population.pkl', 'rb') as f:
+        data = pickle.load(f)
+        population = data['population']
+        score_list = data['scores']
 
 
 
-    for gen in range(1, 200):
+    for gen in range(36, 200):
         print()
         print()
         print(f"Generation {gen}")
@@ -154,7 +154,7 @@ if __name__ == '__main__':
         #  1. Simulate
         for i in range(len(population)):
             sim = Simulation(vis=VISUALISE, seed=gen)
-            score = run(sim, population[i], gen=gen, phenotype=i)
+            score = run(sim, population[i], gen=gen, vis=VISUALISE, phenotype=i)
             score_list.append(score)
             population[i].save_to_json(f'gen_{gen}/bt_{i}_score_{score:.3f}.json')  
             population[i].save_to_pdf(f'gen_{gen}/bt_{i}_score_{score:.3f}')
@@ -169,13 +169,13 @@ if __name__ == '__main__':
         population, score_list = zip(*sorted(zip(population, score_list), key=lambda x: x[1], reverse=True))
 
         
-        selection = [copy.deepcopy(bt) for bt in population[:5]]
+        selection = [copy.deepcopy(bt) for bt in population[:7]]
         print(f"Best score: {score_list[0]}")
-        population = selection + [copy.deepcopy(bt) for bt in selection]
+        population = selection + [copy.deepcopy(bt) for bt in selection] + [BehaviourTree(seed=np.random.randint(0, 1000))]
 
 
         #  4. Mutate
-        for i in range(2, len(population)):
+        for i in range(4, len(population)):
             population[i].root.macromutate()
 
         for i in range(2, len(population)):

@@ -325,7 +325,7 @@ def run(sim, bt, vis=True, gen=1, phenotype=1):
 
     for i in range(MAX_TICKS):
 
-        update_swarm_matrices(x_array[:, i], y_array[:, i], z_array[:, i], swarm_array, active_array)
+        #update_swarm_matrices(x_array[:, i], y_array[:, i], z_array[:, i], swarm_array, active_array)
 
         if i % 10 == 0:
             for j in range(N_DRONES):
@@ -341,11 +341,11 @@ def run(sim, bt, vis=True, gen=1, phenotype=1):
 
 
 
-        vzcmd_array = squeeze_vertical_speed(z_array[:, i], vzcmd_array)
+        #vzcmd_array = squeeze_vertical_speed(z_array[:, i], vzcmd_array)
         advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, obstacle_array, i)
         
 
-        check_drone_collisions(x_array[:, i], y_array[:, i], z_array[:, i], active_array)
+        #check_drone_collisions(x_array[:, i], y_array[:, i], z_array[:, i], active_array)
         #check_fruit_discoveries(x_array[:, i], y_array[:, i], z_array[:, i], heading_array)
         
         t += DT
@@ -359,7 +359,7 @@ def run(sim, bt, vis=True, gen=1, phenotype=1):
             skip[:] = sim.visuals.update(sim.trees, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, string_array, t, i)
             
 
-        if np.sum(active_array) < 2:
+        if np.sum(active_array) < 1:
             break
 
         
