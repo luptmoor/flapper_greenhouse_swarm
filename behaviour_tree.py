@@ -239,13 +239,13 @@ class ActionNode(BTNode):
         self.action_string = random.choice(action_strings)
         self.action = actions[self.action_string]
         self.feedback = {}
-        self.init_turn_heading = 0.0
-        self.heading_loose = False
+
 
         self.params = param_dicts[self.action_string]
         for key, value in self.params.items():
             self.params[key] = np.random.uniform(*param_ranges[key])
-
+        
+        self.last_tick = 0
 
     def to_dict(self):
         return {"type": self.__class__.__name__, "name": self.name, "action_string": self.action_string, "params": self.params}
@@ -253,40 +253,18 @@ class ActionNode(BTNode):
 
     def execute(self, tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array):
 
-        if self.action_string == 'Turn' and self.heading_loose:
-            # transform to 0-2pi range
-            if heading_array < 0.0:
-                heading_array = heading_array + 2 * np.pi
+        if self.action_string == "Turn":
+            # Count ticks since begin of this turn session
+            if np.abs(r_array - self.params["TURN_RATE"]) > 0.001:
+                self.last_tick = tick
 
-            self.init_turn_heading = heading_array
-            print('init heading set')
-            self.heading_loose = False
-
-
-        if self.action_string == 'Turn':
-             # transform to 0-2pi range
-            if heading_array < 0.0:
-                heading_array = heading_array + 2 * np.pi 
-                print('heading period')  
-
-            heading = heading_array - self.init_turn_heading
-             # eliminate sign
-            heading = max(0.0, heading / self.params["TURN_RATE"] * np.abs(self.params["TURN_RATE"]))
-            
-
-            print('Conducting turn with progress:', heading*57.3, 'deg')
-            action_feedback, self.state, string = self.action(self.params, x_array, y_array, z_array, heading, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
-        
+            action_feedback, self.state, string = self.action(self.params, tick - self.last_tick, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
         else:
             action_feedback, self.state, string = self.action(self.params, x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, swarm_array, obstacle_array, active_array, msg_array)
-       
+        
         self.feedback.update(action_feedback)
 
-        if self.action_string == 'Turn':
-            if (self.state == 'success' or np.abs(r_array - self.params["TURN_RATE"]) > 0.001):
-                print('init heading released')
-                self.heading_loose = True
-
+    
         return self.feedback, self.state, string
     
 

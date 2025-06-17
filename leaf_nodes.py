@@ -172,15 +172,19 @@ def turn_left(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, 
     return {"vx": 0.0, "vz": 0.0, "r": -params["LEFT_TURN_RATE"]}, 'running', 'left'
 
 
-def turn(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
+def turn(params, tick, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
     """
     """
 
+    max_ticks = np.abs(2 * np.pi / (params['TURN_RATE'] * DT))
 
-    if heading < 2 * np.pi:
-        return {"vx": 0.0, "vz": 0.0, "r": params['TURN_RATE']}, 'running', 'turn'
-    else:
+    #print(f"Turn action at tick {tick}, max ticks: {max_ticks}")
+
+    if tick > max_ticks:
         return {}, 'success', 'turn'
+    else:
+        return {"vx": 0.0, "vz": 0.0, "r": params['TURN_RATE']}, 'running', 'turn'
+        
 
 
 def ascend(params, x, y, z, heading, vx, vz, r, swarm_array, obstacle_array, active_array, msg_array):
@@ -386,8 +390,8 @@ def timer_condition(params, tick, x, y, z, heading, vx, vz, r, swarm_array, obst
 action_strings = [
     #'Approach',
     'Avoid other drones',
-    'Turn right',
-    'Turn left',
+    # 'Turn right',
+    # 'Turn left',
     #'Follow wall',
     'Random Walk',
     'Disperse',
