@@ -12,9 +12,9 @@ _base4 = np.array([R_TOF,  _half_extent,  _half_extent])
 
 
 
-def _px(x, y=0):
+def _px(x, y=None):
     """helper function to transform meters to pixels. Works for points or single dimensions"""
-    if y == 0:
+    if y is None:
         return int(x * SCALE)
     else:
         return (int(x * SCALE), int(y * SCALE))
@@ -75,7 +75,8 @@ class Visuals:
                 # Change view
                 if event.key == pygame.K_v:
                     VIEW += 1
-                    if VIEW > 3:
+                    print(f'View changed to {VIEW}')
+                    if VIEW > 1:
                         VIEW = 0
                 
                 if event.key == pygame.K_ESCAPE:
@@ -137,18 +138,18 @@ class Visuals:
             if i == 0: colour = GREEN
             else: colour = BLUE
             if active_array[i]:
-                pygame.draw.circle(self.screen, colour, _px(x_array[i], y_array[i]), _px(R_DRONE))
-                pygame.draw.line(self.screen, RED, _px(x_array[i], y_array[i]), (float(_px(x_array[i]) + np.cos(heading_array[i]) * _px(R_DRONE)), float(_px(y_array[i]) + np.sin(heading_array[i]) * _px(R_DRONE))), 2)
-                self.draw_fov_triangle(_px(x_array[i], y_array[i]), TOF_HFOV, _px(R_TOF), heading_array[i])
+                pygame.draw.circle(self.screen, colour, _px(x_array[i, tick], y_array[i, tick]), _px(R_DRONE))
+                pygame.draw.line(self.screen, RED, _px(x_array[i, tick], y_array[i, tick]), (float(_px(x_array[i, tick]) + np.cos(heading_array[i]) * _px(R_DRONE)), float(_px(y_array[i, tick]) + np.sin(heading_array[i]) * _px(R_DRONE))), 2)
+                self.draw_fov_triangle(_px(x_array[i, tick], y_array[i, tick]), TOF_HFOV, _px(R_TOF), heading_array[i])
 
                 # Height indication
                 text_surface, text_rect = self.font.render(str(round(z_array[i], 2)), (255, 255, 255))
-                text_rect.center = _px(x_array[i], y_array[i])
+                text_rect.center = _px(x_array[i, tick], y_array[i, tick])
                 self.screen.blit(text_surface, text_rect)
 
                 # state indication
                 text_surface, text_rect = self.font.render(string_array[i], (0, 0, 0))
-                text_rect.center = _px(x_array[i]+0.25, y_array[i])
+                text_rect.center = _px(x_array[i, tick]+0.25, y_array[i, tick])
                 self.screen.blit(text_surface, text_rect)
                 
             # if VIEW == 1:  # Drone vision and influenced entitites
@@ -164,7 +165,14 @@ class Visuals:
             #     text_surface, text_rect = self.font.render(str(round(drone.activity, 0)), (0, 0, 0))
             #     text_rect.center = (X, Y)
             #     self.screen.blit(text_surface, text_rect)
-
+       
+        if VIEW == 1:
+            x_flat = x_array.ravel()
+            y_flat = y_array.ravel()
+            for i in range(len(x_flat)):
+                #print(_px(x_flat[i], y_flat[i]))
+                
+                pygame.draw.circle(self.screen, RED, _px(x_flat[i], y_flat[i]), 1)
 
         # Screen update
         pygame.display.flip()

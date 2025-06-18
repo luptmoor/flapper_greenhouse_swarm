@@ -356,7 +356,7 @@ def run(sim, bt, vis=True, gen=1, phenotype=1):
 
         # Update screen if requested
         if vis:
-            skip[:] = sim.visuals.update(sim.trees, x_array[:, i], y_array[:, i], z_array[:, i], heading_array, active_array, string_array, t, i)
+            skip[:] = sim.visuals.update(sim.trees, x_array, y_array, z_array[:, i], heading_array, active_array, string_array, t, i)
             
 
         if np.sum(active_array) < 1:
