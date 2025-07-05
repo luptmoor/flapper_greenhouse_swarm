@@ -18,6 +18,7 @@ import pickle
 import matplotlib.image as mpimg
 from graphviz import Digraph
 import tempfile
+import glob
 
     
     # centroid of fruit visited in polar body coords
@@ -124,62 +125,105 @@ if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0) 
 
-    for s in range(10):
-        sim = Simulation(vis=True, seed=s)
-        bt = BehaviourTree()
-        bt.load_from_file('gen_44/bt_0_score_0.113.json')
-        score = run(sim, bt, gen=12312, phenotype=0)
+    # for s in range(10):
+    #     sim = Simulation(vis=True, seed=s)
+    #     bt = BehaviourTree()
+    #     #bt.load_from_file('gen_44/bt_0_score_0.113.json')
+    #     #bt.load_from_file('genX_12/bt_0_score_0.137.json') # regularly incrases altitude up to explore only the top of the greenhouse
+    #     #bt.load_from_file('genX_1/bt_3_score_0.155.json') # stays close to the ground
+    #     #bt.load_from_file('genX_5/bt_1_score_0.130.json') # ascends if encounters obstacles, only turns when risen to ceiling
+    #     #bt.load_from_file('genX_6/bt_0_score_0.131.json') # very similar
+    #     #bt.load_from_file('genX_20/bt_1_score_0.121.json') # also 
+    #     bt.load_from_file('genX_81/bt_0_score_0.085_mod.json') # stays close to the ground, turns always right, manages to explore other rows sometimes
+
+        
+    #     score = run(sim, bt, gen=12312, phenotype=0)
 
 
 
-    # population = [BehaviourTree(seed=i) for i in range(21, 35)]
+
+
+
+
+    # json_folder = 'genX_1'  # Change this to your folder path
+    # population = []
+    # for json_file in glob.glob(os.path.join(json_folder, '*.json')):
+    #     bt = BehaviourTree()
+    #     bt.load_from_file(json_file)
+    #     population.append(bt)
+
+    population = [BehaviourTree(seed=i) for i in range(21, 21 + POPULATION_SIZE - 1)]  # Initialize population with random BTs
     
 
-    #Read population and scores from pickle
-    # with open(f'gen_{35}/population.pkl', 'rb') as f:
+    # # Read population and scores from pickle
+    # with open(f'genX_{1}/population.pkl', 'rb') as f:
     #     data = pickle.load(f)
     #     population = data['population']
     #     score_list = data['scores']
 
 
 
-    # for gen in range(36, 200):
-    #     print()
-    #     print()
-    #     print(f"Generation {gen}")
+    for gen in range(199, 300):
+        print()
+        print()
+        print(f"Generation {gen}")
 
-    #     score_list = []
+        score_list = []
 
 
-    #     #  1. Simulate
-    #     for i in range(len(population)):
-    #         sim = Simulation(vis=VISUALISE, seed=gen)
-    #         score = run(sim, population[i], gen=gen, vis=VISUALISE, phenotype=i)
-    #         score_list.append(score)
-    #         population[i].save_to_json(f'gen_{gen}/bt_{i}_score_{score:.3f}.json')  
-    #         population[i].save_to_pdf(f'gen_{gen}/bt_{i}_score_{score:.3f}')
+        #  1. Simulate
+        for i in range(len(population)):
+            sim = Simulation(vis=VISUALISE, seed=gen)
+            score = run(sim, population[i], gen=gen, vis=VISUALISE, phenotype=i)
+            score_list.append(score)
+            # population[i].save_to_json(f'genT_{gen}/bt_{i}_score_{score:.3f}.json')  
+            # population[i].save_to_pdf(f'genT_{gen}/bt_{i}_score_{score:.3f}')
         
 
-    #     #  2.  Save the population and scores using pickle
-    #     with open(f'gen_{gen}/population.pkl', 'wb') as f:
-    #         pickle.dump({'population': population, 'scores': score_list}, f)
+        # #  2.  Save the population and scores using pickle
+        # with open(f'genT_{gen}/population.pkl', 'wb') as f:
+        #     pickle.dump({'population': population, 'scores': score_list}, f)
         
-
-    #     #  3. Sort population by descending score (highest to lowest)
-    #     population, score_list = zip(*sorted(zip(population, score_list), key=lambda x: x[1], reverse=True))
-
         
-    #     selection = [copy.deepcopy(bt) for bt in population[:7]]
-    #     print(f"Best score: {score_list[0]}")
-    #     population = selection + [copy.deepcopy(bt) for bt in selection] + [BehaviourTree(seed=np.random.randint(0, 1000))]
+        
+        # population, score_list = zip(*sorted(zip(population, score_list), key=lambda x: x[1], reverse=True))
 
 
-    #     #  4. Mutate
-    #     for i in range(4, len(population)):
-    #         population[i].root.macromutate()
+        # # #  3a. Absolute selection
+        # # selection = [copy.deepcopy(bt) for bt in population[:POPULATION_SIZE//2]]
+        # # population = selection + [copy.deepcopy(bt) for bt in selection] + [BehaviourTree(seed=np.random.randint(0, 1000))]
 
-    #     for i in range(2, len(population)):
-    #         population[i].root.micromutate()
+
+        # #  3b. Tournament selection
+
+        # # Start with elite
+        # new_population = [copy.deepcopy(population[i]) for i in range(N_ELITE)]
+
+        # while len(new_population) < POPULATION_SIZE:
+        #     tournament_scores = []
+        #     indices = []
+        #     for i in range(TOURNAMENT_SIZE):
+        #         index = np.random.randint(0, len(score_list))
+        #         while index in indices:
+        #             index = np.random.randint(0, len(score_list))
+        #         indices.append(index)
+    
+        #         tournament_scores.append(score_list[index])
+        #         print('candidate found')
+
+        #     winner_index = indices[np.argmax(tournament_scores)]
+        #     print('winner found')
+        #     new_population.append(copy.deepcopy(population[winner_index]))
+
+        # population = new_population
+
+
+        # #  4. Mutate
+        # for i in range(4, len(population)):
+        #     population[i].root.macromutate()
+
+        # for i in range(4, len(population)):
+        #     population[i].root.micromutate()
 
         
       

@@ -283,7 +283,7 @@ def run(sim, bt, vis=True, gen=1, phenotype=1):
     t = 0.0;
     score = 0.0;
 
-    active_array = np.ones(N_DRONES, dtype=np.bool)
+    active_array = np.ones(N_DRONES, dtype=np.bool_)
 
     x_array = np.zeros((N_DRONES, MAX_TICKS), dtype=np.float32)
     y_array = np.zeros((N_DRONES, MAX_TICKS), dtype=np.float32)
@@ -450,8 +450,9 @@ def calc_fitness(x_array, y_array, z_array):
     visited_voxels = set()
     for i in range(N_DRONES):
         for j in range(MAX_TICKS):
-            voxel = (int(x_array[i, j] // VOXEL_SIZE), int(y_array[i, j] // VOXEL_SIZE), int(z_array[i, j] // VOXEL_SIZE))
-            visited_voxels.add(voxel)
+            if z_array[i, j] < 2.0:
+                voxel = (int(x_array[i, j] // VOXEL_SIZE), int(y_array[i, j] // VOXEL_SIZE), int(z_array[i, j] // VOXEL_SIZE))
+                visited_voxels.add(voxel)
 
     fitness_score = len(visited_voxels) / (WIDTH * HEIGHT * CEILING / (VOXEL_SIZE ** 3))
 

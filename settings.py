@@ -23,8 +23,8 @@ N_FRUIT              =   30
 
 
 # Static Drone Parameters
-N_DRONES             =    1                                        # -, number of drones
-R_DRONE              =    0.14                                        # cm drone radius
+N_DRONES             =    5                                        # -, number of drones
+R_DRONE              =    0.25                                        # cm drone radius
 TOF_VFOV             =  23 / 57.3                                   # rad
 TOF_HFOV             =  23 / 57.3                                   # rad
 R_TOF                =   1.0
@@ -38,12 +38,12 @@ TAU_R                =   0.1
 # Simulation parameters
 SEED                 =   44
 DT                   =    0.05                                       # s, timestep per tick
-T_MAX                =  200                                         # s, 1min, maximum simulation duration
+T_MAX                =  300                                         # s, 1min, maximum simulation duration
 MAX_TICKS            = int(T_MAX // DT)
-VISUALISE            =  False                                       # Boolean deciding if simulation shall be visualised
+VISUALISE            =  True                                       # Boolean deciding if simulation shall be visualised
 SHOW_BT              =  False                                       # Boolean deciding if behaviour trees shall be visualised   
 REALTIME_BT          =  False                                       # Boolean deciding if behaviour trees shall be visualised in real-time      
-REALTIME             =  False                                     # Boolean deciding if visuals shall be real-time
+REALTIME             =  True                                     # Boolean deciding if visuals shall be real-time
 VIEW                 =    0                                         # Variable for different views in visualisation
 SENSITIVITY_ANALYSIS =  False                                        # Boolean deciding if noise should be added to certain parameters
 NOISE                =    0.0                                     # -, Noise amplitude if in sensitivity analysis
@@ -54,13 +54,12 @@ VOXEL_SIZE           =  0.5                                        # m, size of 
 BASEPATH            =       "simresults/results_"
 
 ## Evolution
-POPULATION_SIZE     =        100
+POPULATION_SIZE     =        15
 N_GENERATIONS       =        150
-P_MICROMUTATION     =         0.5
-P_MACROMUTATION     =         0.2
-ELITISM_RATE        =         0.04
-N_ELITE             =       int(ELITISM_RATE * POPULATION_SIZE)
-N_TOURNAMENTS       =        10
+P_MICROMUTATION     =         0.3
+P_MACROMUTATION     =         0.1
+N_ELITE             =         2
+TOURNAMENT_SIZE     =         5
 
 
 ## Behaviour Trees

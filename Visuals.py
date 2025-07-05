@@ -102,7 +102,7 @@ class Visuals:
         text_rect.center = (60, 17)
         self.screen.blit(text_surface, text_rect)
 
-        text_surface, text_rect = self.font.render('Dead Drones: ' + str(round(N_DRONES - sum(active_array))), (0, 0, 0))
+        text_surface, text_rect = self.font.render('Crashed Drones: ' + str(round(N_DRONES - sum(active_array))), (0, 0, 0))
         text_rect.center = (180, 17)
         self.screen.blit(text_surface, text_rect)
 
@@ -125,6 +125,7 @@ class Visuals:
                 _px((1-LAUNCHPAD_FRAC)*WIDTH - 2*R_TREE_AVG), 
                 _px(R_TREE_AVG))
                                                             )
+            print((1-LAUNCHPAD_FRAC)*WIDTH - 2*R_TREE_AVG)
 
         # for j in range(N_FRUIT):
         #     pygame.draw.circle(self.screen, fcolour(fruit_disc_array[j]), px(fruit_x_array[j], fruit_y_array[j]), px(R_FRUIT))
