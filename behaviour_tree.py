@@ -351,24 +351,50 @@ class CompositeNode(BTNode):
     def macromutate(self):
         for i in range(len(self.children)):
             if isinstance(self.children[i], CompositeNode):
-                if random.uniform(0, 1) < P_MACROMUTATION:
+                if random.uniform(0, 1) < P_NODE_SELECTION:
                     print(f'Macromutation at {self.children[i].name}')
                     self.children[i].clear()
                     self.children[i].grow()
-
+                    break
                 else:
                     self.children[i].macromutate()
+
+
+    def crossover(self, mate):
+        """
+
+        """
+        # 1. select child node to crossover from self       
+        for i in range(len(self.children)):
+            if isinstance(self.children[i], CompositeNode):
+                if random.uniform(0, 1) < 2*P_NODE_SELECTION:
+                    print(f"Crossover at {self.children[i].name}.")
+
+                    
+                    # 2. select child node to crossover from mate
+                    for j in range(len(mate.children)):
+                        if isinstance(mate.children[j], CompositeNode):
+                            if random.uniform(0, 1) < P_NODE_SELECTION:
+                                print(f"Copying {mate.children[j].name} to {self.children[i].name}.")
+                                self.children[i] = copy.deepcopy(mate.children[j])
+                                break
+                            else:
+                                print(f"Crossover {self.children[i].name} with {mate.children[j].name}.")
+                                self.children[i].crossover(mate.children[j])
+                else:
+                    self.children[i].crossover(mate)
+     
 
 
     def micromutate(self):
         for i in range(len(self.children)):
             if isinstance(self.children[i], ActionNode):
-                if random.uniform(0, 1) < P_MICROMUTATION:
+                if random.uniform(0, 1) < P_NODE_SELECTION:
                     print(f"Mutation at {self.children[i].name}.")
                     self.children[i] = ActionNode(self.name + "_action" + str(i))
 
             elif isinstance(self.children[i], ConditionNode):
-                if random.uniform(0, 1) < P_MICROMUTATION:
+                if random.uniform(0, 1) < P_NODE_SELECTION:
                     print(f"Mutation at {self.children[i].name}.")
                     self.children[i] = ConditionNode(self.name + "_condition" + str(i))
 

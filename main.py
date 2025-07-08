@@ -134,7 +134,10 @@ if __name__ == '__main__':
     #     #bt.load_from_file('genX_5/bt_1_score_0.130.json') # ascends if encounters obstacles, only turns when risen to ceiling
     #     #bt.load_from_file('genX_6/bt_0_score_0.131.json') # very similar
     #     #bt.load_from_file('genX_20/bt_1_score_0.121.json') # also 
-    #     bt.load_from_file('genX_81/bt_0_score_0.085_mod.json') # stays close to the ground, turns always right, manages to explore other rows sometimes
+    #     #bt.load_from_file('genX_81/bt_0_score_0.085_mod.json') # stays close to the ground, turns always right, manages to explore other rows sometimes
+       
+    #     #bt.load_from_file('genC_155/bt_9_score_0.055.json') 
+    #     bt.load_from_file('gen_64/bt_1_score_0.054.json')
 
         
     #     score = run(sim, bt, gen=12312, phenotype=0)
@@ -152,18 +155,21 @@ if __name__ == '__main__':
     #     bt.load_from_file(json_file)
     #     population.append(bt)
 
-    population = [BehaviourTree(seed=i) for i in range(21, 21 + POPULATION_SIZE - 1)]  # Initialize population with random BTs
     
 
-    # # Read population and scores from pickle
-    # with open(f'genX_{1}/population.pkl', 'rb') as f:
-    #     data = pickle.load(f)
-    #     population = data['population']
-    #     score_list = data['scores']
+    # # # Read population and scores from pickle
+    # # with open(f'genX_{1}/population.pkl', 'rb') as f:
+    # #     data = pickle.load(f)
+    # #     population = data['population']
+    # #     score_list = data['scores']
 
 
+    folder_prefix = "genC3"
 
-    for gen in range(199, 300):
+    population = [BehaviourTree(seed=i) for i in range(20, 20 + POPULATION_SIZE)]  # Initialize population with random BTs
+
+
+    for gen in range(1, 301):
         print()
         print()
         print(f"Generation {gen}")
@@ -173,57 +179,65 @@ if __name__ == '__main__':
 
         #  1. Simulate
         for i in range(len(population)):
-            sim = Simulation(vis=VISUALISE, seed=gen)
-            score = run(sim, population[i], gen=gen, vis=VISUALISE, phenotype=i)
-            score_list.append(score)
-            # population[i].save_to_json(f'genT_{gen}/bt_{i}_score_{score:.3f}.json')  
-            # population[i].save_to_pdf(f'genT_{gen}/bt_{i}_score_{score:.3f}')
+            scores = np.zeros(N_SIMRUNS)
+            for k in range(N_SIMRUNS):
+                sim = Simulation(vis=VISUALISE, seed=k)
+                scores[k] = run(sim, population[i], gen=gen, vis=VISUALISE, phenotype=i)
+
+            score_list.append(np.mean(scores))
+            population[i].save_to_json(f'{folder_prefix}_{gen}/bt_{i}_score_{score_list[-1]:.3f}.json')  
+            population[i].save_to_pdf(f'{folder_prefix}_{gen}/bt_{i}_score_{score_list[-1]:.3f}')
         
 
-        # #  2.  Save the population and scores using pickle
-        # with open(f'genT_{gen}/population.pkl', 'wb') as f:
-        #     pickle.dump({'population': population, 'scores': score_list}, f)
+        #  2.  Save the population and scores using pickle
+        with open(f'{folder_prefix}_{gen}/population.pkl', 'wb') as f:
+            pickle.dump({'population': population, 'scores': score_list}, f)
         
         
         
-        # population, score_list = zip(*sorted(zip(population, score_list), key=lambda x: x[1], reverse=True))
+        population, score_list = zip(*sorted(zip(population, score_list), key=lambda x: x[1], reverse=True))
 
 
-        # # #  3a. Absolute selection
-        # # selection = [copy.deepcopy(bt) for bt in population[:POPULATION_SIZE//2]]
-        # # population = selection + [copy.deepcopy(bt) for bt in selection] + [BehaviourTree(seed=np.random.randint(0, 1000))]
+        # #  3a. Absolute selection
+        # selection = [copy.deepcopy(bt) for bt in population[:POPULATION_SIZE//2]]
+        # population = selection + [copy.deepcopy(bt) for bt in selection] + [BehaviourTree(seed=np.random.randint(0, 1000))]
 
 
-        # #  3b. Tournament selection
+        #  3b. Tournament selection
 
-        # # Start with elite
-        # new_population = [copy.deepcopy(population[i]) for i in range(N_ELITE)]
+        # Start with elite
+        new_population = [copy.deepcopy(population[i]) for i in range(N_ELITE)]
 
-        # while len(new_population) < POPULATION_SIZE:
-        #     tournament_scores = []
-        #     indices = []
-        #     for i in range(TOURNAMENT_SIZE):
-        #         index = np.random.randint(0, len(score_list))
-        #         while index in indices:
-        #             index = np.random.randint(0, len(score_list))
-        #         indices.append(index)
-    
-        #         tournament_scores.append(score_list[index])
-        #         print('candidate found')
+        while len(new_population) < POPULATION_SIZE:
+            tournament_scores = []
+            indices = []
+            for i in range(TOURNAMENT_SIZE):
+                index = np.random.randint(0, len(score_list))
+                while index in indices:
+                    index = np.random.randint(0, len(score_list))
+                indices.append(index)
+                tournament_scores.append(score_list[index])
 
-        #     winner_index = indices[np.argmax(tournament_scores)]
-        #     print('winner found')
-        #     new_population.append(copy.deepcopy(population[winner_index]))
+            winner_index = indices[np.argmax(tournament_scores)]
+            new_population.append(copy.deepcopy(population[winner_index]))
 
-        # population = new_population
+       
+        #  4. Crossover
+        mates = copy.deepcopy(new_population)
+        for i in range (N_ELITE, int(round((POPULATION_SIZE - N_ELITE) * CROSSOVER_RATE))):
+            new_population[i].root.crossover(random.choice(mates).root)
 
 
-        # #  4. Mutate
-        # for i in range(4, len(population)):
-        #     population[i].root.macromutate()
+        #  5. Mutate
+        for i in range(N_ELITE + int(round((POPULATION_SIZE - N_ELITE) * CROSSOVER_RATE)), POPULATION_SIZE):
+            if random.uniform(0, 1) < P_MICROMUTATION:
+                new_population[i].root.micromutate()
+            else:
+                new_population[i].root.macromutate()
 
-        # for i in range(4, len(population)):
-        #     population[i].root.micromutate()
+
+
+        population = new_population
 
         
       

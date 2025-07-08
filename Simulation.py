@@ -186,7 +186,7 @@ def check_drone_collisions(x_array, y_array, z_array, active_array):
     dy = y_array[np.newaxis, :] - y_array[:, np.newaxis]
     dz = z_array[np.newaxis, :] - z_array[:, np.newaxis]
 
-    distance = np.sqrt(np.pow(dx, 2) + np.pow(dy, 2) + np.pow(dz, 2))
+    distance = np.sqrt(dx**2 + dy**2 + dz**2)
     collision_free = distance > 2.2*R_DRONE
  
     active_array[:] = (np.sum(collision_free, axis=1) >= (N_DRONES-1)) * active_array
@@ -345,7 +345,7 @@ def run(sim, bt, vis=True, gen=1, phenotype=1):
         advance_dynamics(x_array, y_array, z_array, heading_array, vx_array, vz_array, r_array, vxcmd_array, vzcmd_array, rcmd_array, active_array, obstacle_array, i)
         
 
-        #check_drone_collisions(x_array[:, i], y_array[:, i], z_array[:, i], active_array)
+        check_drone_collisions(x_array[:, i], y_array[:, i], z_array[:, i], active_array)
         #check_fruit_discoveries(x_array[:, i], y_array[:, i], z_array[:, i], heading_array)
         
         t += DT

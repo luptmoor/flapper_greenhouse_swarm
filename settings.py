@@ -40,10 +40,10 @@ SEED                 =   44
 DT                   =    0.05                                       # s, timestep per tick
 T_MAX                =  300                                         # s, 1min, maximum simulation duration
 MAX_TICKS            = int(T_MAX // DT)
-VISUALISE            =  True                                       # Boolean deciding if simulation shall be visualised
+VISUALISE            =  False                                       # Boolean deciding if simulation shall be visualised
 SHOW_BT              =  False                                       # Boolean deciding if behaviour trees shall be visualised   
 REALTIME_BT          =  False                                       # Boolean deciding if behaviour trees shall be visualised in real-time      
-REALTIME             =  True                                     # Boolean deciding if visuals shall be real-time
+REALTIME             =  False                                     # Boolean deciding if visuals shall be real-time
 VIEW                 =    0                                         # Variable for different views in visualisation
 SENSITIVITY_ANALYSIS =  False                                        # Boolean deciding if noise should be added to certain parameters
 NOISE                =    0.0                                     # -, Noise amplitude if in sensitivity analysis
@@ -51,15 +51,15 @@ MANUAL               = False
 VOXEL_SIZE           =  0.5                                        # m, size of voxel grid cells
 
 
-BASEPATH            =       "simresults/results_"
-
 ## Evolution
-POPULATION_SIZE     =        15
+POPULATION_SIZE     =        25
 N_GENERATIONS       =        150
-P_MICROMUTATION     =         0.3
-P_MACROMUTATION     =         0.1
+N_SIMRUNS           =        3
+P_MICROMUTATION     =         0.8
 N_ELITE             =         2
-TOURNAMENT_SIZE     =         5
+TOURNAMENT_SIZE     =         6
+CROSSOVER_RATE      =         0.8
+P_NODE_SELECTION    =         0.15
 
 
 ## Behaviour Trees
